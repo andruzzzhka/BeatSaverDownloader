@@ -113,7 +113,13 @@ namespace BeatSaverDownloader
             
 
             _backButton.onClick.AddListener(delegate () {
-                _songLoader.RefreshSongs();
+                try
+                {
+                    _songLoader.RefreshSongs();
+                }catch(Exception e)
+                {
+                    Debug.Log("Can't refresh songs!");
+                }
                 DismissModalViewController(null, false);
             });
 
@@ -149,9 +155,19 @@ namespace BeatSaverDownloader
 
         protected override void DidDeactivate()
         {
-            Destroy(gameObject,1f);
+            
+            Destroy(_songsTableView.gameObject);
+            Destroy(_loadingText.gameObject);
+            Destroy(_pageText.gameObject);
+
+            Destroy(_downloadButton.gameObject);
+
+            Destroy(_pageUpButton.gameObject);
+            Destroy(_pageDownButton.gameObject);
+            
             base.DidDeactivate();
             
+
         }
 
         IEnumerator GetSongs(int page)
@@ -170,8 +186,7 @@ namespace BeatSaverDownloader
                 try
                 {
                     string parse = "{\"songs\": " + www.downloadHandler.text.Replace("][", ",") + "}";
-                                        
-
+                    
                     JSONNode node = JSON.Parse(parse);
 
                     _songs.Clear();
@@ -190,8 +205,6 @@ namespace BeatSaverDownloader
                     Debug.Log("EXCEPTION IN GET SONGS: "+e.Message+" | "+e.StackTrace);
                 }
             }
-
-
 
         }
 

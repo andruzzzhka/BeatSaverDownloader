@@ -7,8 +7,8 @@
     <ProjectGuid>{2E037C8B-BC3E-41AD-988F-8631AD4828FB}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>SongSelectionChanger</RootNamespace>
-    <AssemblyName>SongSelectionChanger</AssemblyName>
+    <RootNamespace>BeatSaverDownloader</RootNamespace>
+    <AssemblyName>BeatSaverDownloader</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
@@ -153,6 +153,6 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>copy "SongSelectionChanger.dll" "C:\Users\andru_000\Desktop\Игры\Beat Saber\Plugins"</PostBuildEvent>
+    <PostBuildEvent>copy "BeatSaverDownloader.dll" "C:\Program Files (x86)\Steam\steamapps\common\Beat Saber\Plugins"</PostBuildEvent>
   </PropertyGroup>
 </Project>
