@@ -13,7 +13,7 @@ using VRUI;
 
 namespace BeatSaverDownloader
 {
-    class CustomUI : MonoBehaviour
+    class BeatSaverUI : MonoBehaviour
     {
 
         private RectTransform _mainMenuRectTransform;
@@ -22,11 +22,11 @@ namespace BeatSaverDownloader
         private Button _buttonInstance;
         private Button _backButtonInstance;
 
-        static CustomUI _instance;
+        static BeatSaverUI _instance;
 
         public static List<Sprite> icons = new List<Sprite>();
 
-        public CustomViewController _beatSaverViewController;
+        public BeatSaverMasterViewController _beatSaverViewController;
 
         internal static void OnLoad()
         {
@@ -34,7 +34,7 @@ namespace BeatSaverDownloader
             {
                 return;
             }
-            new GameObject("Custom UI").AddComponent<CustomUI>();
+            new GameObject("BeatSaver UI").AddComponent<BeatSaverUI>();
             
         }
 
@@ -43,7 +43,6 @@ namespace BeatSaverDownloader
             _instance = this;
             foreach (Sprite sprite in Resources.FindObjectsOfTypeAll<Sprite>())
             {
-                Debug.Log(sprite.name);
                 icons.Add(sprite);
             }
             Debug.Log("Trying to find buttons...");
@@ -74,6 +73,8 @@ namespace BeatSaverDownloader
             }
         }
 
+        
+
         private void CreateBeatSaverButton()
         {
             
@@ -97,7 +98,7 @@ namespace BeatSaverDownloader
                         if (_beatSaverViewController == null)
                         {
                             Debug.Log("BeatSaverViewController is null. Creating new...");
-                            _beatSaverViewController = CreateViewController();
+                            _beatSaverViewController = CreateViewController<BeatSaverMasterViewController>();
                             Debug.Log("Done!");
                             
 
@@ -151,9 +152,9 @@ namespace BeatSaverDownloader
             return _button;
         }
 
-        public CustomViewController CreateViewController()
+        public T CreateViewController<T>() where T : VRUIViewController
         {
-            CustomViewController vc = new GameObject("CustomViewController").AddComponent<CustomViewController>();
+            T vc = new GameObject("CreatedViewController").AddComponent<T>();
 
             vc.rectTransform.anchorMin = new Vector2(0f, 0f);
             vc.rectTransform.anchorMax = new Vector2(1f, 1f);
@@ -172,7 +173,7 @@ namespace BeatSaverDownloader
             textMesh.color = Color.white;
             textMesh.font = Resources.Load<TMP_FontAsset>("Teko-Medium SDF No Glow");
             textMesh.rectTransform.anchorMin = new Vector2(0.5f, 1f);
-            textMesh.rectTransform.anchorMax = new Vector2(1f, 1f);
+            textMesh.rectTransform.anchorMax = new Vector2(0.5f, 1f);
             textMesh.rectTransform.sizeDelta = new Vector2(60f, 10f);
             textMesh.rectTransform.anchoredPosition = position;
 

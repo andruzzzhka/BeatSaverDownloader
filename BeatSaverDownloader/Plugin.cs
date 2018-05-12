@@ -16,7 +16,7 @@ namespace BeatSaverDownloader
 
         string IPlugin.Name { get { return "BeatSaver Downloader"; } }
 
-        string IPlugin.Version { get { return "0.0.0.2"; } }
+        string IPlugin.Version { get { return "0.0.3"; } }
 
         void IPlugin.OnApplicationQuit()
         {
@@ -43,7 +43,7 @@ namespace BeatSaverDownloader
         {
             if (level == 1)
             {
-                CustomUI.OnLoad();
+                BeatSaverUI.OnLoad();
 
             }
         }
