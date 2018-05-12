@@ -3108,7 +3108,6 @@ namespace ICSharpCode.SharpZipLib.Zip
 		bool isDisposed_;
 		string name_;
 		string comment_;
-		string rawPassword_;
 		Stream baseStream_;
 		bool isStreamOwner;
 		long offsetOfFirstEntry;

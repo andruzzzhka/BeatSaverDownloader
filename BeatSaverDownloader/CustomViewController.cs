@@ -276,15 +276,6 @@ namespace BeatSaverDownloader
 
         }
 
-        private string HtmlDecode(string songName)
-        {
-            string buf = songName;
-
-            buf = buf.Replace("&amp;","&").Replace("&period;", ".").Replace("&lpar;","(").Replace("&rpar;",")").Replace("&semi;",";").Replace("&lbrack;","[").Replace("&rsqb;","]").Replace("&apos;","\'");
-
-            return buf;
-        }
-
         public void DownloadSong(int buttonId)
         {
             Debug.Log("Downloading "+_songs[buttonId].beatname);
@@ -370,8 +361,8 @@ namespace BeatSaverDownloader
             (_tableCell.transform as RectTransform).anchorMax = new Vector2(0f, 1f);
             (_tableCell.transform as RectTransform).sizeDelta = new Vector2(0f, 10f);
             
-            _tableCell.songName = string.Format("{0}\n<size=80%>{1}</size>", HtmlDecode(_songs[row].songName), HtmlDecode(_songs[row].songSubName));
-            _tableCell.author = HtmlDecode(_songs[row].authorName);
+            _tableCell.songName = string.Format("{0}\n<size=80%>{1}</size>", HTML5Decode.HtmlDecode(_songs[row].songName), HTML5Decode.HtmlDecode(_songs[row].songSubName));
+            _tableCell.author = HTML5Decode.HtmlDecode(_songs[row].authorName);
             StartCoroutine(LoadSprite("https://beatsaver.com/img/"+ _songs[row].id+ "."+ _songs[row].img, _tableCell));
 
             bool alreadyDownloaded = IsSongAlreadyDownloaded(_songs[row]);

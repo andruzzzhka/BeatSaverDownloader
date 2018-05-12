@@ -538,8 +538,6 @@ namespace ICSharpCode.SharpZipLib.Zip
 		//
 		private void WriteAESHeader(ZipEntry entry)
 		{
-			byte[] salt;
-			byte[] pwdVerifier;
 			
 			// File format for AES:
 			// Size (bytes)   Content

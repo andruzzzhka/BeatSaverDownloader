@@ -101,6 +101,7 @@
     <Compile Include="BeatSaverAPIResult.cs" />
     <Compile Include="CustomViewController.cs" />
     <Compile Include="Debug.cs" />
+    <Compile Include="HTML5Decode.cs" />
     <Compile Include="ICSharpCode.SharpZipLib\Checksum\Adler32.cs" />
     <Compile Include="ICSharpCode.SharpZipLib\Checksum\BZip2Crc.cs" />
     <Compile Include="ICSharpCode.SharpZipLib\Checksum\Crc32.cs" />

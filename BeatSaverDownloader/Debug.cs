@@ -18,6 +18,8 @@ namespace BeatSaverDownloader
 #if DEBUG
             logWriter.WriteLine("[" + DateTime.Now.ToString("HH:mm:ss") + "] " + log);
             logWriter.Flush();
+#else
+            Console.WriteLine("[" + DateTime.Now.ToString("HH:mm:ss") + "] " + log);
 #endif
         }
     }

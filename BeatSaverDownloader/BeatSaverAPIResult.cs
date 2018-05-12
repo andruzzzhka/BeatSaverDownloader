@@ -101,21 +101,14 @@ namespace BeatSaverDownloader
                     diffisIdentical = diffisIdentical && difficultyLevels[i].Compare(compareTo.difficultyLevels[i]);
                 }
             }
+
+
             
 
-
-
-            return (HtmlDecode(songName) == HtmlDecode(compareTo.songName) && HtmlDecode(songSubName) == HtmlDecode(compareTo.songSubName) && HtmlDecode(authorName) == HtmlDecode(compareTo.authorName) && diffisIdentical );
+            return (HTML5Decode.HtmlDecode(songName) == HTML5Decode.HtmlDecode(compareTo.songName) && HTML5Decode.HtmlDecode(songSubName) == HTML5Decode.HtmlDecode(compareTo.songSubName) && HTML5Decode.HtmlDecode(authorName) == HTML5Decode.HtmlDecode(compareTo.authorName) && diffisIdentical );
         }
 
-        private string HtmlDecode(string songName)
-        {
-            string buf = songName;
 
-            buf = buf.Replace("&amp;", "&").Replace("&period;", ".").Replace("&lpar;", "(").Replace("&rpar;", ")").Replace("&semi;", ";").Replace("&lbrack;", "[").Replace("&rsqb;", "]").Replace("&apos;", "\'");
-
-            return buf;
-        }
 
 
 
