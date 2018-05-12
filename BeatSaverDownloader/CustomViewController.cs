@@ -462,7 +462,9 @@ namespace BeatSaverDownloader
                 foreach (var result in results)
                 {
                     var songPath = Path.GetDirectoryName(result).Replace('\\', '/');
-                    customSongInfos.Add(GetCustomSongInfo(songPath));
+                    var customSong = GetCustomSongInfo(songPath);
+                    if (customSong == null) continue;
+                    customSongInfos.Add(customSong);
                 }
             }
 
