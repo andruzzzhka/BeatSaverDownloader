@@ -198,35 +198,46 @@ namespace BeatSaverDownloader
 
                     yield break;
                 }
-                
-               
+
+
+                bool isOverwriting = false;
                 using (var zf = new ZipFile(zipPath))
                 {
                     foreach (ZipEntry ze in zf)
                     {
                         if (ze.IsFile)
                         {
-                            if (File.Exists(customSongsPath + ze.Name))
+                            if (Directory.Exists(customSongsPath + ze.Name.Substring(0, ze.Name.IndexOf('/'))))
                             {
-                                yield return PromptOverwriteFiles();
+                                yield return PromptOverwriteFiles(ze.Name.Substring(0,ze.Name.IndexOf('/')));
                                 break;
                             }
+                            else
+                            {
+                                isOverwriting = true;
+                            }
+                            
                         }
                         else if (ze.IsDirectory)
                         {
                             if (Directory.Exists(customSongsPath + ze.Name))
                             {
 
-                                yield return PromptOverwriteFiles();
+                                yield return PromptOverwriteFiles(ze.Name.Trim('\\','/'));
                                 break;
+                            }
+                            else
+                            {
+                                isOverwriting = true;
                             }
                         }
                                     
                     }
+                    
                 }
                    
 
-                if (_confirmOverwriteState == FastZip.Overwrite.Always)
+                if (_confirmOverwriteState == FastZip.Overwrite.Always || isOverwriting)
                 {
 
                     FastZip zip = new FastZip();
@@ -247,10 +258,10 @@ namespace BeatSaverDownloader
             }
         }
 
-        IEnumerator PromptOverwriteFiles()
+        IEnumerator PromptOverwriteFiles(string dirName)
         {
 
-            TextMeshProUGUI _overwriteText = ui.CreateText(_songDetailViewController.rectTransform,"Overwrite?", new Vector2(24f,-64f));
+            TextMeshProUGUI _overwriteText = ui.CreateText(_songDetailViewController.rectTransform,String.Format("Overwrite folder \"{0}\"?",dirName), new Vector2(18f,-64f));
 
             Button _confirmOverwrite = ui.CreateUIButton(_songDetailViewController.rectTransform, "ApplyButton");
 
@@ -345,7 +356,7 @@ namespace BeatSaverDownloader
 
                 _textComponents.Where(x => x.name == "MaxRankText").First().text = "Easy/Normal";
                 _textComponents.Where(x => x.name == "MaxRankText").First().rectTransform.sizeDelta = new Vector2(18f, 3f);
-                _textComponents.Where(x => x.name == "MaxRankValueText").First().text = (_songs[row].difficultyLevels.Where(x => (x.difficulty == "Easy" || x.difficulty == "Normal")).Count() > 0) ? "Yes" : "No";
+                _textComponents.Where(x => x.name == "MaxRankValueText").First().text = (_songs[row].difficultyLevels.Where(x => (x.difficulty == "Easy" || x.difficulty == "Normal")).Count() > 0) ? "Yes" : "No";                
 
                 if (_textComponents.Where(x => x.name == "ObstaclesCountText").Count() != 0)
                 {

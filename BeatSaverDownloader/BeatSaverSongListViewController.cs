@@ -127,8 +127,21 @@ namespace BeatSaverDownloader
 
         private void _songsTableView_DidSelectRowEvent(TableView sender, int row)
         {
-
-            _parentViewController.ShowDetails(row);
+            if (_parentViewController._loading)
+            {
+                if (_parentViewController._selectedRow != -1)
+                {
+                    _songsTableView.SelectRow(_parentViewController._selectedRow);
+                }
+                else
+                {
+                    _songsTableView.ClearSelection();
+                }
+            }
+            else
+            {
+                _parentViewController.ShowDetails(row);
+            }
 
         }
 
