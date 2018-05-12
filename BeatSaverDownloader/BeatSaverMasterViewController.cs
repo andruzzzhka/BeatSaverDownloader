@@ -1,4 +1,5 @@
 ﻿using HMUI;
+using ICSharpCode.SharpZipLib.Core;
 using ICSharpCode.SharpZipLib.Zip;
 using SimpleJSON;
 using SongLoaderPlugin;
@@ -42,7 +43,7 @@ namespace BeatSaverDownloader
         public bool _loading = false;
         public int _selectedRow = -1;
 
-       
+        FastZip.Overwrite _confirmOverwriteState = FastZip.Overwrite.Prompt;
 
         protected override void DidActivate()
         {
@@ -178,41 +179,106 @@ namespace BeatSaverDownloader
             }
             else
             {
+                string zipPath = "";
+                string docPath = "";
+                string customSongsPath = "";
                 try
                 {
                     byte[] data = www.downloadHandler.data;
 
-                    
-                    string docPath = Application.dataPath;
+                    docPath = Application.dataPath;
                     docPath = docPath.Substring(0, docPath.Length - 5);
                     docPath = docPath.Substring(0, docPath.LastIndexOf("/"));
-                    string customSongsPath = docPath + "/CustomSongs/";
-                    docPath += "/CustomSongs/"+songInfo.beatname+".zip";
-                    File.WriteAllBytes(docPath, data);
+                    customSongsPath = docPath + "/CustomSongs/";
+                    zipPath = customSongsPath + songInfo.beatname + ".zip";
+                    File.WriteAllBytes(zipPath, data);
+                }catch(Exception e)
+                {
+                    Debug.Log("FATAL EXCEPTION: "+e);
+
+                    yield break;
+                }
+                
+               
+                using (var zf = new ZipFile(zipPath))
+                {
+                    foreach (ZipEntry ze in zf)
+                    {
+                        if (ze.IsFile)
+                        {
+                            if (File.Exists(customSongsPath + ze.Name))
+                            {
+                                yield return PromptOverwriteFiles();
+                                break;
+                            }
+                        }
+                        else if (ze.IsDirectory)
+                        {
+                            if (Directory.Exists(customSongsPath + ze.Name))
+                            {
+
+                                yield return PromptOverwriteFiles();
+                                break;
+                            }
+                        }
+                                    
+                    }
+                }
+                   
+
+                if (_confirmOverwriteState == FastZip.Overwrite.Always)
+                {
 
                     FastZip zip = new FastZip();
 
-                    zip.ExtractZip(docPath, customSongsPath,null);
-
-                    File.Delete(docPath);
-
-                    UpdateAlreadyDownloadedSongs();
-
-                    _songListViewController.RefreshScreen();
-
-                    RefreshDetails(row);
-
-                    _loading = false;
-                    _loadingText.text = "";
-                    _downloadButton.interactable = true;
+                    zip.ExtractZip(zipPath, customSongsPath, null);
                     
-
-                    }
-                catch (Exception e)
-                {
-                    Debug.Log("EXCEPTION IN DOWNLOAD SONG: " + e.Message + " | " + e.StackTrace);
+                    UpdateAlreadyDownloadedSongs();
+                    _songListViewController.RefreshScreen();
                 }
+                _confirmOverwriteState = FastZip.Overwrite.Prompt;
+                File.Delete(zipPath);
+
+                RefreshDetails(row);
+                _loading = false;
+                _loadingText.text = "";
+                _downloadButton.interactable = true;
+                    
             }
+        }
+
+        IEnumerator PromptOverwriteFiles()
+        {
+
+            TextMeshProUGUI _overwriteText = ui.CreateText(_songDetailViewController.rectTransform,"Overwrite?", new Vector2(24f,-64f));
+
+            Button _confirmOverwrite = ui.CreateUIButton(_songDetailViewController.rectTransform, "ApplyButton");
+
+            ui.SetButtonText(ref _confirmOverwrite, "Yes");
+            (_confirmOverwrite.transform as RectTransform).sizeDelta = new Vector2(15f,10f);
+            (_confirmOverwrite.transform as RectTransform).anchoredPosition = new Vector2(-13f, 6f);
+            _confirmOverwrite.onClick.AddListener(delegate() { _confirmOverwriteState = FastZip.Overwrite.Always; });
+
+            Button _discardOverwrite = ui.CreateUIButton(_songDetailViewController.rectTransform, "ApplyButton");
+
+            ui.SetButtonText(ref _discardOverwrite, "No");
+            (_discardOverwrite.transform as RectTransform).sizeDelta = new Vector2(15f, 10f);
+            (_discardOverwrite.transform as RectTransform).anchoredPosition = new Vector2(2f, 6f);
+            _discardOverwrite.onClick.AddListener(delegate () { _confirmOverwriteState = FastZip.Overwrite.Never; });
+
+            
+            (_downloadButton.transform as RectTransform).anchoredPosition = new Vector2(2f,-10f);
+
+            yield return new WaitUntil(delegate() { return (_confirmOverwriteState == FastZip.Overwrite.Always || _confirmOverwriteState == FastZip.Overwrite.Never); });
+            
+            (_downloadButton.transform as RectTransform).anchoredPosition = new Vector2(2f,6f);
+            
+            Destroy(_overwriteText.gameObject);
+            Destroy(_confirmOverwrite.gameObject);
+            Destroy(_discardOverwrite.gameObject);
+            
+            
+
         }
 
         public void ShowDetails(int row)
@@ -252,35 +318,44 @@ namespace BeatSaverDownloader
              
 
             TextMeshProUGUI[] _textComponents = _songDetailViewController.GetComponentsInChildren<TextMeshProUGUI>();
-            
-            _textComponents.Where(x => x.name == "SongNameText").First().text = string.Format("{0}\n<size=80%>{1}</size>", HTML5Decode.HtmlDecode(_songs[row].songName), HTML5Decode.HtmlDecode(_songs[row].songSubName));
-            _textComponents.Where(x => x.name == "DurationValueText").First().text = HTML5Decode.HtmlDecode(_songs[row].downloads);
-            _textComponents.Where(x => x.name == "DurationText").First().text = "Downloads";
 
-            _textComponents.Where(x => x.name == "BPMText").First().text = "Upvotes";
-            _textComponents.Where(x => x.name == "BPMValueText").First().text = HTML5Decode.HtmlDecode(_songs[row].upvotes);
+            try
+            {
 
-            _textComponents.Where(x => x.name == "NotesCountText").First().text = "Author";
-            _textComponents.Where(x => x.name == "NotesCountValueText").First().text = HTML5Decode.HtmlDecode(_songs[row].authorName);
+                _textComponents.Where(x => x.name == "SongNameText").First().text = string.Format("{0}\n<size=80%>{1}</size>", HTML5Decode.HtmlDecode(_songs[row].songName), HTML5Decode.HtmlDecode(_songs[row].songSubName));
+                _textComponents.Where(x => x.name == "DurationValueText").First().text = HTML5Decode.HtmlDecode(_songs[row].downloads);
+                _textComponents.Where(x => x.name == "DurationText").First().text = "Downloads";
 
-            _textComponents.Where(x => x.name == "NotesCountValueText").First().rectTransform.sizeDelta = new Vector2(16f,3f);
-            _textComponents.Where(x => x.name == "NotesCountValueText").First().alignment = TextAlignmentOptions.CaplineRight;
+                _textComponents.Where(x => x.name == "BPMText").First().text = "Upvotes";
+                _textComponents.Where(x => x.name == "BPMValueText").First().text = HTML5Decode.HtmlDecode(_songs[row].upvotes);
 
-            _textComponents.Where(x => x.name == "Title").First().text = "Difficulties";
+                _textComponents.Where(x => x.name == "NotesCountText").First().text = "Author";
+                _textComponents.Where(x => x.name == "NotesCountValueText").First().text = HTML5Decode.HtmlDecode(_songs[row].authorName);
 
-            _textComponents.Where(x => x.name == "HighScoreText").First().text = "Expert";
-            _textComponents.Where(x => x.name == "HighScoreValueText").First().text = (_songs[row].difficultyLevels.Where(x => x.difficulty == "Expert").Count() > 0) ? "Yes" : "No";
+                _textComponents.Where(x => x.name == "NotesCountValueText").First().rectTransform.sizeDelta = new Vector2(16f, 3f);
+                _textComponents.Where(x => x.name == "NotesCountValueText").First().alignment = TextAlignmentOptions.CaplineRight;
 
-            _textComponents.Where(x => x.name == "MaxComboText").First().text = "Hard";
-            _textComponents.Where(x => x.name == "MaxComboValueText").First().text = (_songs[row].difficultyLevels.Where(x => x.difficulty == "Hard").Count() > 0) ? "Yes" : "No";
+                _textComponents.Where(x => x.name == "Title").First().text = "Difficulties";
 
-            _textComponents.Where(x => x.name == "MaxRankText").First().text = "Easy/Normal";
-            _textComponents.Where(x => x.name == "MaxRankText").First().rectTransform.sizeDelta = new Vector2(18f,3f);
-            _textComponents.Where(x => x.name == "MaxRankValueText").First().text = (_songs[row].difficultyLevels.Where(x => (x.difficulty == "Easy" || x.difficulty == "Normal")).Count() > 0) ? "Yes" : "No";
+                _textComponents.Where(x => x.name == "HighScoreText").First().text = "Expert";
+                _textComponents.Where(x => x.name == "HighScoreValueText").First().text = (_songs[row].difficultyLevels.Where(x => x.difficulty == "Expert").Count() > 0) ? "Yes" : "No";
 
-            
-            Destroy(_textComponents.Where(x => x.name == "ObstaclesCountText").First().gameObject);
-            Destroy(_textComponents.Where(x => x.name == "ObstaclesCountValueText").First().gameObject);
+                _textComponents.Where(x => x.name == "MaxComboText").First().text = "Hard";
+                _textComponents.Where(x => x.name == "MaxComboValueText").First().text = (_songs[row].difficultyLevels.Where(x => x.difficulty == "Hard").Count() > 0) ? "Yes" : "No";
+
+                _textComponents.Where(x => x.name == "MaxRankText").First().text = "Easy/Normal";
+                _textComponents.Where(x => x.name == "MaxRankText").First().rectTransform.sizeDelta = new Vector2(18f, 3f);
+                _textComponents.Where(x => x.name == "MaxRankValueText").First().text = (_songs[row].difficultyLevels.Where(x => (x.difficulty == "Easy" || x.difficulty == "Normal")).Count() > 0) ? "Yes" : "No";
+
+                if (_textComponents.Where(x => x.name == "ObstaclesCountText").Count() != 0)
+                {
+                    Destroy(_textComponents.Where(x => x.name == "ObstaclesCountText").First().gameObject);
+                    Destroy(_textComponents.Where(x => x.name == "ObstaclesCountValueText").First().gameObject);
+                }
+            }catch(Exception e)
+            {
+                Debug.Log("EXCEPTION: "+e);
+            }
             
             _downloadButton = _songDetailViewController.GetComponentInChildren<Button>();
             (_downloadButton.transform as RectTransform).sizeDelta = new Vector2(30f,10f);

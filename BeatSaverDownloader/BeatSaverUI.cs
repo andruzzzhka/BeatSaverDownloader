@@ -78,7 +78,7 @@ namespace BeatSaverDownloader
         private void CreateBeatSaverButton()
         {
             
-            Button _beatSaverButton = CreateUIButton(_mainMenuRectTransform);
+            Button _beatSaverButton = CreateUIButton(_mainMenuRectTransform, "QuitButton");
             
             try
             {
@@ -124,14 +124,14 @@ namespace BeatSaverDownloader
 
        
 
-        public Button CreateUIButton(RectTransform parent)
+        public Button CreateUIButton(RectTransform parent, string buttonTemplate)
         {
             if (_buttonInstance == null)
             {
                 return null;
             }
 
-            Button btn = Instantiate(_buttonInstance, parent, false);
+            Button btn = Instantiate(Resources.FindObjectsOfTypeAll<Button>().Where(x => (x.name == buttonTemplate)).First(), parent, false);
             DestroyImmediate(btn.GetComponent<GameEventOnUIButtonClick>());
             btn.onClick = new Button.ButtonClickedEvent();
 
