@@ -36,6 +36,10 @@
     <Reference Include="Assembly-CSharp">
       <HintPath>..\..\..\..\Desktop\Игры\Beat Saber\Beat Saber_Data\Managed\Assembly-CSharp.dll</HintPath>
     </Reference>
+    <Reference Include="IllusionInjector, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Beat Saber\Beat Saber_Data\Managed\IllusionInjector.dll</HintPath>
+    </Reference>
     <Reference Include="IllusionPlugin">
       <HintPath>..\..\..\..\Desktop\Игры\Beat Saber\Beat Saber_Data\Managed\IllusionPlugin.dll</HintPath>
     </Reference>

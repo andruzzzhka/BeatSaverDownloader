@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using VRUI;
@@ -34,7 +35,7 @@ namespace BeatSaverDownloader
             {
                 if (_pageUpButton == null)
                 {
-                    _pageUpButton = Instantiate(Resources.FindObjectsOfTypeAll<Button>().Where(x => (x.name == "PageUpButton")).First(), rectTransform, false);
+                    _pageUpButton = Instantiate(Resources.FindObjectsOfTypeAll<Button>().First(x => (x.name == "PageUpButton")), rectTransform, false);
                     (_pageUpButton.transform as RectTransform).anchorMin = new Vector2(0.5f, 1f);
                     (_pageUpButton.transform as RectTransform).anchorMax = new Vector2(0.5f, 1f);
                     (_pageUpButton.transform as RectTransform).anchoredPosition = new Vector2(0f, -10f);
@@ -60,7 +61,7 @@ namespace BeatSaverDownloader
 
                 if (_pageDownButton == null)
                 {
-                    _pageDownButton = Instantiate(Resources.FindObjectsOfTypeAll<Button>().Where(x => (x.name == "PageDownButton")).First(), rectTransform, false);
+                    _pageDownButton = Instantiate(Resources.FindObjectsOfTypeAll<Button>().First(x => (x.name == "PageDownButton")), rectTransform, false);
                     (_pageDownButton.transform as RectTransform).anchorMin = new Vector2(0.5f, 0f);
                     (_pageDownButton.transform as RectTransform).anchorMax = new Vector2(0.5f, 0f);
                     (_pageDownButton.transform as RectTransform).anchoredPosition = new Vector2(0f, 10f);
@@ -79,7 +80,7 @@ namespace BeatSaverDownloader
                     });
                 }
 
-                _songListTableCellInstance = Resources.FindObjectsOfTypeAll<SongListTableCell>().Where(x => (x.name == "SongListTableCell")).First();
+                _songListTableCellInstance = Resources.FindObjectsOfTypeAll<SongListTableCell>().First(x => (x.name == "SongListTableCell"));
 
                 if (_songsTableView == null)
                 {
@@ -96,6 +97,7 @@ namespace BeatSaverDownloader
                     (_songsTableView.transform as RectTransform).anchoredPosition = new Vector2(0f, 0f);
 
                     _songsTableView.DidSelectRowEvent += _songsTableView_DidSelectRowEvent;
+                    
                 }
                 else
                 {
@@ -168,9 +170,16 @@ namespace BeatSaverDownloader
             if (alreadyDownloaded)
             {
 
-                _tableCell.GetComponentsInChildren<UnityEngine.UI.Image>()[0].color = Color.gray;
-                _tableCell.GetComponentsInChildren<UnityEngine.UI.Image>()[1].color = Color.gray;
-                _tableCell.GetComponentsInChildren<UnityEngine.UI.Image>()[2].color = Color.gray;
+                foreach(UnityEngine.UI.Image img in _tableCell.GetComponentsInChildren<UnityEngine.UI.Image>())
+                {
+                    img.color = new Color(1f,1f,1f,0.2f);
+                }
+                foreach (TextMeshProUGUI text in _tableCell.GetComponentsInChildren<TextMeshProUGUI>())
+                {
+                    text.faceColor = new Color32(255,255,255,50);
+                }
+
+
 
             }
 

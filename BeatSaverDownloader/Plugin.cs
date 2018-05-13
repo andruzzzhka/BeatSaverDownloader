@@ -1,22 +1,16 @@
-﻿using HMUI;
-using IllusionPlugin;
-using System;
-using System.IO;
-using UnityEngine;
-using UnityEngine.SceneManagement;
+﻿using IllusionPlugin;
 
 namespace BeatSaverDownloader
 {
-    public class Plugin : IPlugin
+    public class Plugin : IEnhancedPlugin
     {
-        
-
-
-
 
         string IPlugin.Name { get { return "BeatSaver Downloader"; } }
 
-        string IPlugin.Version { get { return "0.0.3"; } }
+        string IPlugin.Version { get { return "0.0.4"; } }
+
+        string[] IEnhancedPlugin.Filter { get; }
+
 
         void IPlugin.OnApplicationQuit()
         {
@@ -33,6 +27,11 @@ namespace BeatSaverDownloader
             
         }
 
+        void IEnhancedPlugin.OnLateUpdate()
+        {
+            
+        }
+
         void IPlugin.OnLevelWasInitialized(int level)
         {
             
@@ -44,7 +43,7 @@ namespace BeatSaverDownloader
             if (level == 1)
             {
                 BeatSaverUI.OnLoad();
-
+                
             }
         }
 

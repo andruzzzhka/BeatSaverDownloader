@@ -322,9 +322,9 @@ namespace BeatSaverDownloader
         private void RefreshDetails(int row)
         {
             
-            RectTransform _levelDetails = _songDetailViewController.GetComponentsInChildren<RectTransform>().Where(x => x.name == "LevelDetails").First();
+            RectTransform _levelDetails = _songDetailViewController.GetComponentsInChildren<RectTransform>().First(x => x.name == "LevelDetails");
             _levelDetails.sizeDelta = new Vector2(44f, 20f);
-            RectTransform _yourStats = _songDetailViewController.GetComponentsInChildren<RectTransform>().Where(x => x.name == "YourStats").First();
+            RectTransform _yourStats = _songDetailViewController.GetComponentsInChildren<RectTransform>().First(x => x.name == "YourStats");
             _yourStats.sizeDelta = new Vector2(44f, 18f);
              
 
@@ -333,45 +333,48 @@ namespace BeatSaverDownloader
             try
             {
 
-                _textComponents.Where(x => x.name == "SongNameText").First().text = string.Format("{0}\n<size=80%>{1}</size>", HTML5Decode.HtmlDecode(_songs[row].songName), HTML5Decode.HtmlDecode(_songs[row].songSubName));
-                _textComponents.Where(x => x.name == "DurationValueText").First().text = HTML5Decode.HtmlDecode(_songs[row].downloads);
-                _textComponents.Where(x => x.name == "DurationText").First().text = "Downloads";
+                _textComponents.First(x => x.name == "SongNameText").text = string.Format("{0}\n<size=80%>{1}</size>", HTML5Decode.HtmlDecode(_songs[row].songName), HTML5Decode.HtmlDecode(_songs[row].songSubName));
+                _textComponents.First(x => x.name == "DurationValueText").text = HTML5Decode.HtmlDecode(_songs[row].downloads);
+                _textComponents.First(x => x.name == "DurationText").text = "Downloads";
 
-                _textComponents.Where(x => x.name == "BPMText").First().text = "Upvotes";
-                _textComponents.Where(x => x.name == "BPMValueText").First().text = HTML5Decode.HtmlDecode(_songs[row].upvotes);
+                _textComponents.First(x => x.name == "BPMText").text = "Upvotes";
+                _textComponents.First(x => x.name == "BPMValueText").text = HTML5Decode.HtmlDecode(_songs[row].upvotes);
 
-                _textComponents.Where(x => x.name == "NotesCountText").First().text = "Author";
-                _textComponents.Where(x => x.name == "NotesCountValueText").First().text = HTML5Decode.HtmlDecode(_songs[row].authorName);
+                _textComponents.First(x => x.name == "NotesCountText").text = "Author";
+                _textComponents.First(x => x.name == "NotesCountValueText").text = HTML5Decode.HtmlDecode(_songs[row].authorName);
 
-                _textComponents.Where(x => x.name == "NotesCountValueText").First().rectTransform.sizeDelta = new Vector2(16f, 3f);
-                _textComponents.Where(x => x.name == "NotesCountValueText").First().alignment = TextAlignmentOptions.CaplineRight;
+                _textComponents.First(x => x.name == "NotesCountValueText").rectTransform.sizeDelta = new Vector2(16f, 3f);
+                _textComponents.First(x => x.name == "NotesCountValueText").alignment = TextAlignmentOptions.CaplineRight;
 
-                _textComponents.Where(x => x.name == "Title").First().text = "Difficulties";
+                _textComponents.First(x => x.name == "Title").text = "Difficulties";
 
-                _textComponents.Where(x => x.name == "HighScoreText").First().text = "Expert";
-                _textComponents.Where(x => x.name == "HighScoreValueText").First().text = (_songs[row].difficultyLevels.Where(x => x.difficulty == "Expert").Count() > 0) ? "Yes" : "No";
+                _textComponents.First(x => x.name == "HighScoreText").text = "Expert";
+                _textComponents.First(x => x.name == "HighScoreValueText").text = (_songs[row].difficultyLevels.Where(x => x.difficulty == "Expert").Count() > 0) ? "Yes" : "No";
 
-                _textComponents.Where(x => x.name == "MaxComboText").First().text = "Hard";
-                _textComponents.Where(x => x.name == "MaxComboValueText").First().text = (_songs[row].difficultyLevels.Where(x => x.difficulty == "Hard").Count() > 0) ? "Yes" : "No";
+                _textComponents.First(x => x.name == "MaxComboText").text = "Hard";
+                _textComponents.First(x => x.name == "MaxComboValueText").text = (_songs[row].difficultyLevels.Where(x => x.difficulty == "Hard").Count() > 0) ? "Yes" : "No";
 
-                _textComponents.Where(x => x.name == "MaxRankText").First().text = "Easy/Normal";
-                _textComponents.Where(x => x.name == "MaxRankText").First().rectTransform.sizeDelta = new Vector2(18f, 3f);
-                _textComponents.Where(x => x.name == "MaxRankValueText").First().text = (_songs[row].difficultyLevels.Where(x => (x.difficulty == "Easy" || x.difficulty == "Normal")).Count() > 0) ? "Yes" : "No";                
+                _textComponents.First(x => x.name == "MaxRankText").text = "Easy/Normal";
+                _textComponents.First(x => x.name == "MaxRankText").rectTransform.sizeDelta = new Vector2(18f, 3f);
+                _textComponents.First(x => x.name == "MaxRankValueText").text = (_songs[row].difficultyLevels.Where(x => (x.difficulty == "Easy" || x.difficulty == "Normal")).Count() > 0) ? "Yes" : "No";                
 
                 if (_textComponents.Where(x => x.name == "ObstaclesCountText").Count() != 0)
                 {
-                    Destroy(_textComponents.Where(x => x.name == "ObstaclesCountText").First().gameObject);
-                    Destroy(_textComponents.Where(x => x.name == "ObstaclesCountValueText").First().gameObject);
+                    Destroy(_textComponents.First(x => x.name == "ObstaclesCountText").gameObject);
+                    Destroy(_textComponents.First(x => x.name == "ObstaclesCountValueText").gameObject);
                 }
             }catch(Exception e)
             {
                 Debug.Log("EXCEPTION: "+e);
             }
-            
-            _downloadButton = _songDetailViewController.GetComponentInChildren<Button>();
-            (_downloadButton.transform as RectTransform).sizeDelta = new Vector2(30f,10f);
-            (_downloadButton.transform as RectTransform).anchoredPosition = new Vector2(2f, 6f);
 
+            if (_downloadButton == null)
+            {
+                _downloadButton = _songDetailViewController.GetComponentInChildren<Button>();
+                (_downloadButton.transform as RectTransform).sizeDelta = new Vector2(30f, 10f);
+                (_downloadButton.transform as RectTransform).anchoredPosition = new Vector2(2f, 6f);
+
+            }
             _downloadButton.onClick.RemoveAllListeners();
 
             _downloadButton.onClick.AddListener(delegate()

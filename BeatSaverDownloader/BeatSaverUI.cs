@@ -48,8 +48,8 @@ namespace BeatSaverDownloader
             Debug.Log("Trying to find buttons...");
             try
             {
-                _buttonInstance = Resources.FindObjectsOfTypeAll<Button>().Where(x => (x.name == "QuitButton")).First();
-                _backButtonInstance = Resources.FindObjectsOfTypeAll<Button>().Where(x => (x.name == "BackArrowButton")).First();
+                _buttonInstance = Resources.FindObjectsOfTypeAll<Button>().First(x => (x.name == "QuitButton"));
+                _backButtonInstance = Resources.FindObjectsOfTypeAll<Button>().First(x => (x.name == "BackArrowButton"));
                 _mainMenuViewController = Resources.FindObjectsOfTypeAll<MainMenuViewController>().First();
                 _mainMenuRectTransform = _buttonInstance.transform.parent as RectTransform;
                 Debug.Log("Buttons and main menu found!");
@@ -87,7 +87,7 @@ namespace BeatSaverDownloader
 
                 SetButtonText(ref _beatSaverButton, "BeatSaver");
 
-                SetButtonIcon(ref _beatSaverButton, icons.Where(x => (x.name == "SettingsIcon")).First());
+                SetButtonIcon(ref _beatSaverButton, icons.First(x => (x.name == "SettingsIcon")));
                 
                 _beatSaverButton.onClick.AddListener(delegate () {
 
@@ -131,7 +131,7 @@ namespace BeatSaverDownloader
                 return null;
             }
 
-            Button btn = Instantiate(Resources.FindObjectsOfTypeAll<Button>().Where(x => (x.name == buttonTemplate)).First(), parent, false);
+            Button btn = Instantiate(Resources.FindObjectsOfTypeAll<Button>().First(x => (x.name == buttonTemplate)), parent, false);
             DestroyImmediate(btn.GetComponent<GameEventOnUIButtonClick>());
             btn.onClick = new Button.ButtonClickedEvent();
 
