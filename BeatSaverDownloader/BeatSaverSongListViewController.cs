@@ -17,8 +17,12 @@ namespace BeatSaverDownloader
 
         public Button _pageUpButton;
         public Button _pageDownButton;
+        Button _topButton;
+        Button _newButton;
+        Button _starButton;
+        TextMeshProUGUI _sortByText;
 
-        TableView _songsTableView;
+        public TableView _songsTableView;
         SongListTableCell _songListTableCellInstance;
 
         int _currentPage = 0;
@@ -38,7 +42,7 @@ namespace BeatSaverDownloader
                     _pageUpButton = Instantiate(Resources.FindObjectsOfTypeAll<Button>().First(x => (x.name == "PageUpButton")), rectTransform, false);
                     (_pageUpButton.transform as RectTransform).anchorMin = new Vector2(0.5f, 1f);
                     (_pageUpButton.transform as RectTransform).anchorMax = new Vector2(0.5f, 1f);
-                    (_pageUpButton.transform as RectTransform).anchoredPosition = new Vector2(0f, -10f);
+                    (_pageUpButton.transform as RectTransform).anchoredPosition = new Vector2(0f, -14f);
                     _pageUpButton.interactable = true;
                     _pageUpButton.onClick.AddListener(delegate ()
                      {
@@ -49,9 +53,8 @@ namespace BeatSaverDownloader
                              {
                                  _parentViewController._loading = true;
                                  _parentViewController._loadingText.text = "Loading...";
-                                 _parentViewController._selectedRow = -1;
                                  _currentPage -= 1;
-                                 StartCoroutine(_parentViewController.GetSongs(_currentPage));
+                                 StartCoroutine(_parentViewController.GetSongs(_currentPage,_parentViewController._sortBy));
                              }
                          }
 
@@ -64,7 +67,7 @@ namespace BeatSaverDownloader
                     _pageDownButton = Instantiate(Resources.FindObjectsOfTypeAll<Button>().First(x => (x.name == "PageDownButton")), rectTransform, false);
                     (_pageDownButton.transform as RectTransform).anchorMin = new Vector2(0.5f, 0f);
                     (_pageDownButton.transform as RectTransform).anchorMax = new Vector2(0.5f, 0f);
-                    (_pageDownButton.transform as RectTransform).anchoredPosition = new Vector2(0f, 10f);
+                    (_pageDownButton.transform as RectTransform).anchoredPosition = new Vector2(0f, 8f);
                     _pageDownButton.interactable = true;
                     _pageDownButton.onClick.AddListener(delegate ()
                     {
@@ -72,11 +75,75 @@ namespace BeatSaverDownloader
                         {
                             _parentViewController._loading = true;
                             _parentViewController._loadingText.text = "Loading...";
-                            _parentViewController._selectedRow = -1;
                             _currentPage += 1;
-                            StartCoroutine(_parentViewController.GetSongs(_currentPage));
+                            StartCoroutine(_parentViewController.GetSongs(_currentPage, _parentViewController._sortBy));
                         }
 
+                    });
+                }
+
+                if(_sortByText == null)
+                {
+                    _sortByText = ui.CreateText(rectTransform,"SORT BY", new Vector2(-36f,-4.75f));
+                    _sortByText.fontSize = 3.5f;
+                    _sortByText.rectTransform.sizeDelta = new Vector2(10f,6f);
+                }
+
+                if (_topButton == null)
+                {
+                    _topButton = ui.CreateUIButton(rectTransform, "ApplyButton");
+                    ui.SetButtonText(ref _topButton, "Downloads");
+                    ui.SetButtonTextSize(ref _topButton, 3f);
+                    (_topButton.transform as RectTransform).sizeDelta = new Vector2(20f, 6f);
+                    (_topButton.transform as RectTransform).anchoredPosition = new Vector2(-30f, 73f);
+                    _topButton.onClick.RemoveAllListeners();
+                    _topButton.onClick.AddListener(delegate() {
+                        if (!_parentViewController._loading)
+                        {
+                            _parentViewController._loading = true;
+                            _parentViewController._loadingText.text = "Loading...";
+                            _parentViewController._sortBy = "top";
+                            StartCoroutine(_parentViewController.GetSongs(_currentPage, _parentViewController._sortBy));
+                        }
+                    });
+                }
+
+                if (_newButton == null)
+                {
+                    _newButton = ui.CreateUIButton(rectTransform, "ApplyButton");
+                    ui.SetButtonText(ref _newButton, "Upload Time");
+                    ui.SetButtonTextSize(ref _newButton, 3f);
+                    (_newButton.transform as RectTransform).sizeDelta = new Vector2(20f, 6f);
+                    (_newButton.transform as RectTransform).anchoredPosition = new Vector2(-10f, 73f);
+                    _newButton.onClick.RemoveAllListeners();
+                    _newButton.onClick.AddListener(delegate () {
+                        if (!_parentViewController._loading)
+                        {
+                            _parentViewController._loading = true;
+                            _parentViewController._loadingText.text = "Loading...";
+                            _parentViewController._sortBy = "new";
+                            StartCoroutine(_parentViewController.GetSongs(_currentPage, _parentViewController._sortBy));
+                        }
+                    });
+
+                }
+
+                if (_starButton == null)
+                {
+                    _starButton = ui.CreateUIButton(rectTransform, "ApplyButton");
+                    ui.SetButtonText(ref _starButton, "Upvotes");
+                    ui.SetButtonTextSize(ref _starButton, 3f);
+                    (_starButton.transform as RectTransform).sizeDelta = new Vector2(20f, 6f);
+                    (_starButton.transform as RectTransform).anchoredPosition = new Vector2(10f, 73f);
+                    _starButton.onClick.RemoveAllListeners();
+                    _starButton.onClick.AddListener(delegate () {
+                        if (!_parentViewController._loading)
+                        {
+                            _parentViewController._loading = true;
+                            _parentViewController._loadingText.text = "Loading...";
+                            _parentViewController._sortBy = "star";
+                            StartCoroutine(_parentViewController.GetSongs(_currentPage, _parentViewController._sortBy));
+                        }
                     });
                 }
 
@@ -94,7 +161,7 @@ namespace BeatSaverDownloader
                     (_songsTableView.transform as RectTransform).anchorMax = new Vector2(1f, 0.5f);
                     (_songsTableView.transform as RectTransform).sizeDelta = new Vector2(0f, 60f);
                     (_songsTableView.transform as RectTransform).position = new Vector3(0f, 0f, 2.4f);
-                    (_songsTableView.transform as RectTransform).anchoredPosition = new Vector2(0f, 0f);
+                    (_songsTableView.transform as RectTransform).anchoredPosition = new Vector3(0f, -3f);
 
                     _songsTableView.DidSelectRowEvent += _songsTableView_DidSelectRowEvent;
                     

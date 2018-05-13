@@ -190,6 +190,16 @@ namespace BeatSaverDownloader
 
         }
 
+        public void SetButtonTextSize(ref Button _button, float _fontSize)
+        {
+            if (_button.GetComponentInChildren<TextMeshProUGUI>() != null)
+            {
+                _button.GetComponentInChildren<TextMeshProUGUI>().fontSize = _fontSize;
+            }
+            
+
+        }
+
         public void SetButtonIcon(ref Button _button, Sprite _icon)
         {
             if (_button.GetComponentsInChildren<UnityEngine.UI.Image>().Count() > 1)

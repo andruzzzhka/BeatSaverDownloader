@@ -17,9 +17,6 @@ using VRUI;
 
 namespace BeatSaverDownloader
 {
-    
-
-
     class BeatSaverMasterViewController : VRUINavigationController
     {
         BeatSaverUI ui;
@@ -30,16 +27,16 @@ namespace BeatSaverDownloader
         bool _songDetailPushed = false;
 
         public List<Song> _songs = new List<Song>();
-
-
         public List<Song> _alreadyDownloadedSongs = new List<Song>();
 
         public TextMeshProUGUI _loadingText;
         public Button _downloadButton;
         Button _backButton;
+        
 
         public SongLoader _songLoader;
 
+        public string _sortBy = "top";
         public bool _loading = false;
         public int _selectedRow = -1;
 
@@ -68,6 +65,7 @@ namespace BeatSaverDownloader
                 PushViewController(_songListViewController,true);
             }
 
+            
 
             if (_backButton == null)
             {
@@ -98,7 +96,7 @@ namespace BeatSaverDownloader
                 _loadingText.text = "Loading...";
             }
 
-            StartCoroutine(GetSongs(0));
+            StartCoroutine(GetSongs(0, _sortBy));
 
             base.DidActivate();
 
@@ -114,10 +112,13 @@ namespace BeatSaverDownloader
 
         }
 
-        public IEnumerator GetSongs(int page)
+        public IEnumerator GetSongs(int page, string sortBy)
         {
+            _songs.Clear();
+            _songListViewController.RefreshScreen();
+            
 
-            UnityWebRequest www = UnityWebRequest.Get("https://beatsaver.com/api.php?mode=top&off="+(page * _songListViewController._songsPerPage));
+            UnityWebRequest www = UnityWebRequest.Get(String.Format("https://beatsaver.com/api.php?mode={0}&off={1}", sortBy, (page * _songListViewController._songsPerPage)));
             yield return www.SendWebRequest();
 
             if (www.isNetworkError || www.isHttpError)
@@ -132,7 +133,7 @@ namespace BeatSaverDownloader
                     
                     JSONNode node = JSON.Parse(parse);
 
-                    _songs.Clear();
+                    
 
                     for(int i = 0; i < node["songs"].Count; i++)
                     {                        
@@ -142,6 +143,11 @@ namespace BeatSaverDownloader
                     _loading = false;
                     _loadingText.text = "";
                     _songListViewController.RefreshScreen();
+                    if (_selectedRow != -1)
+                    {
+                        _songListViewController._songsTableView.SelectRow(_selectedRow);
+                        ShowDetails(_selectedRow);
+                    }
 
                     _songListViewController._pageUpButton.interactable = (page == 0) ? false : true;
                     _songListViewController._pageDownButton.interactable = (_songs.Count < _songListViewController._songsPerPage) ? false : true;
@@ -250,6 +256,7 @@ namespace BeatSaverDownloader
                 _confirmOverwriteState = FastZip.Overwrite.Prompt;
                 File.Delete(zipPath);
 
+                _songListViewController._songsTableView.SelectRow(row);
                 RefreshDetails(row);
                 _loading = false;
                 _loadingText.text = "";
@@ -294,6 +301,7 @@ namespace BeatSaverDownloader
 
         public void ShowDetails(int row)
         {
+            _selectedRow = row;
             if(_songDetailViewController == null)
             {
                 _songDetailViewController = Instantiate(Resources.FindObjectsOfTypeAll<SongDetailViewController>().First(), rectTransform, false);
@@ -301,8 +309,8 @@ namespace BeatSaverDownloader
                 RefreshDetails(row);
 
                 PushViewController(_songDetailViewController, false);
+                _songDetailPushed = true;
 
-                
             }
             else
             {
@@ -315,6 +323,7 @@ namespace BeatSaverDownloader
                     RefreshDetails(row);
 
                     PushViewController(_songDetailViewController, false);
+                    _songDetailPushed = true;
                 }
             }
         }
