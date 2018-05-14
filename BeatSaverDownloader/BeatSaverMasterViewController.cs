@@ -21,10 +21,10 @@ namespace BeatSaverDownloader
     {
         BeatSaverUI ui;
 
-        BeatSaverSongListViewController _songListViewController;
-        SongDetailViewController _songDetailViewController;
-
-        bool _songDetailPushed = false;
+        public BeatSaverSongListViewController _songListViewController;
+        public SongDetailViewController _songDetailViewController;
+        public SearchKeyboardViewController _searchKeyboardViewController;
+        
 
         public List<Song> _songs = new List<Song>();
         public List<Song> _alreadyDownloadedSongs = new List<Song>();
@@ -45,27 +45,30 @@ namespace BeatSaverDownloader
         protected override void DidActivate()
         {
             Debug.Log("Activated!");
-
-            ui = FindObjectOfType<BeatSaverUI>();
+            
+            ui = BeatSaverUI._instance;
             _songLoader = FindObjectOfType<SongLoader>();
 
             UpdateAlreadyDownloadedSongs();
 
-            if(_songListViewController == null)
+            if (_songListViewController == null)
             {
                 _songListViewController = ui.CreateViewController<BeatSaverSongListViewController>();
                 _songListViewController.rectTransform.anchorMin = new Vector2(0.3f, 0f);
                 _songListViewController.rectTransform.anchorMax = new Vector2(0.7f, 1f);
 
-                PushViewController(_songListViewController,true);
+                PushViewController(_songListViewController, true);
 
             }
             else
             {
-                PushViewController(_songListViewController,true);
+                if (_viewControllers.IndexOf(_songListViewController) < 0)
+                {
+                    PushViewController(_songListViewController, true);
+                }
+                 
             }
-
-            
+            _songListViewController.SelectTopButtons(TopButtonsState.Select);
 
             if (_backButton == null)
             {
@@ -79,46 +82,53 @@ namespace BeatSaverDownloader
                     }
                     catch (Exception e)
                     {
-                        Debug.Log("Can't refresh songs! Exception: " + e);
+                        Debug.Log("Can't refresh songs! EXCEPTION: " + e);
                     }
                     DismissModalViewController(null, false);
                 });
             }
-           
+
 
             if (_loadingText == null)
             {
-                _loadingText = ui.CreateText(rectTransform, "Loading...", new Vector2(-52f, -8f));
+                _loadingText = ui.CreateText(rectTransform, "", new Vector2(-52f, -8f));
                 _loadingText.rectTransform.sizeDelta = new Vector2(12.5f, 10f);
             }
             else
             {
-                _loadingText.text = "Loading...";
+                _loadingText.text = "";
             }
 
-            StartCoroutine(GetSongs(0, _sortBy));
+            if(IsSearching())
+            {
+                
+                StartCoroutine(GetSearchResults(0, (_searchKeyboardViewController == null) ? "" : _searchKeyboardViewController._inputString));
+            }
+            else
+            {
+                StartCoroutine(GetSongs(0, _sortBy));
+            }
+            
+            
 
             base.DidActivate();
-
             
         }
 
         protected override void DidDeactivate()
         {
-            _songDetailPushed = false;
+            ClearSearchInput();
 
             base.DidDeactivate();
-
-
         }
 
         public IEnumerator GetSongs(int page, string sortBy)
         {
             _songs.Clear();
             _songListViewController.RefreshScreen();
-            
 
             UnityWebRequest www = UnityWebRequest.Get(String.Format("https://beatsaver.com/api.php?mode={0}&off={1}", sortBy, (page * _songListViewController._songsPerPage)));
+
             yield return www.SendWebRequest();
 
             if (www.isNetworkError || www.isHttpError)
@@ -130,32 +140,83 @@ namespace BeatSaverDownloader
                 try
                 {
                     string parse = "{\"songs\": " + www.downloadHandler.text.Replace("][", ",") + "}";
-                    
+
                     JSONNode node = JSON.Parse(parse);
 
-                    
 
-                    for(int i = 0; i < node["songs"].Count; i++)
-                    {                        
+
+                    for (int i = 0; i < node["songs"].Count; i++)
+                    {
                         _songs.Add(new Song(node["songs"][i]));
                     }
 
                     _loading = false;
                     _loadingText.text = "";
                     _songListViewController.RefreshScreen();
-                    if (_selectedRow != -1)
+                    if (_selectedRow != -1 && _songs.Count > 0)
                     {
-                        _songListViewController._songsTableView.SelectRow(_selectedRow);
-                        ShowDetails(_selectedRow);
+                        _songListViewController._songsTableView.SelectRow(Math.Min(_selectedRow, _songs.Count-1));
+                        ShowDetails(Math.Min(_selectedRow, _songs.Count-1));
                     }
 
                     _songListViewController._pageUpButton.interactable = (page == 0) ? false : true;
                     _songListViewController._pageDownButton.interactable = (_songs.Count < _songListViewController._songsPerPage) ? false : true;
 
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
-                    Debug.Log("EXCEPTION IN GET SONGS: "+e.Message+" | "+e.StackTrace);
+                    Debug.Log("EXCEPTION IN GET SONGS: " + e.Message + " | " + e.StackTrace);
+                }
+            }
+
+        }
+
+        public IEnumerator GetSearchResults(int page, string search)
+        {
+            _songs.Clear();
+            _songListViewController.RefreshScreen();
+
+            UnityWebRequest www = UnityWebRequest.Get(String.Format("https://beatsaver.com/search.php?q={0}", search));//  (page * _songListViewController._songsPerPage)
+
+            yield return www.SendWebRequest();
+
+            if (www.isNetworkError || www.isHttpError)
+            {
+                Debug.Log(www.error);
+            }
+            else
+            {
+                try
+                {
+                    string parse = www.downloadHandler.text;
+
+                    JSONNode node = JSON.Parse(parse);
+
+
+                    
+
+                    for (int i = (page * _songListViewController._songsPerPage); i < Math.Min(node["hits"]["hits"].Count, ((page + 1) * _songListViewController._songsPerPage)); i++)
+                    {
+                        
+                        _songs.Add(new Song(node["hits"]["hits"][i]["_source"]));
+                    }
+
+                    _loading = false;
+                    _loadingText.text = "";
+                    _songListViewController.RefreshScreen();
+                    if (_selectedRow != -1 && _songs.Count > 0)
+                    {
+                        _songListViewController._songsTableView.SelectRow(Math.Min(_selectedRow,_songs.Count-1));
+                        ShowDetails(Math.Min(_selectedRow, _songs.Count-1));
+                    }
+
+                    _songListViewController._pageUpButton.interactable = (page == 0) ? false : true;
+                    _songListViewController._pageDownButton.interactable = (_songs.Count < _songListViewController._songsPerPage) ? false : true;
+
+                }
+                catch (Exception e)
+                {
+                    Debug.Log("EXCEPTION IN GET SEARCH RESULTS: " + e.Message + " | " + e.StackTrace);
                 }
             }
 
@@ -299,32 +360,60 @@ namespace BeatSaverDownloader
 
         }
 
+        public void ClearSearchInput()
+        {
+            if(_searchKeyboardViewController != null)
+            {
+                _searchKeyboardViewController._inputString = "";
+            }
+        }
+
+        public bool IsSearching()
+        {
+            return (_searchKeyboardViewController != null && !String.IsNullOrEmpty(_searchKeyboardViewController._inputString));
+        }
+
+        public void ShowSearchKeyboard()
+        {
+            if (_searchKeyboardViewController == null)
+            {
+                _searchKeyboardViewController = ui.CreateViewController<SearchKeyboardViewController>();
+                PresentModalViewController(_searchKeyboardViewController, null);
+                
+            }
+            else
+            {
+                PresentModalViewController(_searchKeyboardViewController, null);
+                
+            }
+        }
+
         public void ShowDetails(int row)
         {
             _selectedRow = row;
-            if(_songDetailViewController == null)
+            
+            if (_songDetailViewController == null)
             {
                 _songDetailViewController = Instantiate(Resources.FindObjectsOfTypeAll<SongDetailViewController>().First(), rectTransform, false);
 
                 RefreshDetails(row);
 
                 PushViewController(_songDetailViewController, false);
-                _songDetailPushed = true;
 
             }
             else
             {
-                if (_songDetailPushed)
+
+                if (_viewControllers.IndexOf(_songDetailViewController) < 0)
                 {
                     RefreshDetails(row);
+                    PushViewController(_songDetailViewController, true);
                 }
                 else
                 {
                     RefreshDetails(row);
-
-                    PushViewController(_songDetailViewController, false);
-                    _songDetailPushed = true;
                 }
+                
             }
         }
 

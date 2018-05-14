@@ -19,6 +19,7 @@ namespace BeatSaverDownloader
             logWriter.WriteLine("[" + DateTime.Now.ToString("HH:mm:ss") + "] " + log);
             logWriter.Flush();
 #else
+            Console.ForegroundColor = ConsoleColor.White;
             Console.WriteLine("[" + DateTime.Now.ToString("HH:mm:ss") + "] " + log);
 #endif
         }

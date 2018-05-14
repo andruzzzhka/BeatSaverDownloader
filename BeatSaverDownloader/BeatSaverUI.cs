@@ -22,7 +22,7 @@ namespace BeatSaverDownloader
         private Button _buttonInstance;
         private Button _backButtonInstance;
 
-        static BeatSaverUI _instance;
+        public static BeatSaverUI _instance;
 
         public static List<Sprite> icons = new List<Sprite>();
 

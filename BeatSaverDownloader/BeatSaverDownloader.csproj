@@ -149,6 +149,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ReflectionUtil.cs" />
     <Compile Include="BeatSaverUI.cs" />
+    <Compile Include="SearchKeyboardViewController.cs" />
     <Compile Include="SimpleJSON.cs" />
   </ItemGroup>
   <ItemGroup>
