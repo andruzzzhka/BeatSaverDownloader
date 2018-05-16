@@ -21,6 +21,7 @@ namespace BeatSaverDownloader
 
         private Button _buttonInstance;
         private Button _backButtonInstance;
+        private GameObject _loadingIndicatorInstance;
 
         public static BeatSaverUI _instance;
 
@@ -35,7 +36,7 @@ namespace BeatSaverDownloader
                 return;
             }
             new GameObject("BeatSaver UI").AddComponent<BeatSaverUI>();
-            
+
         }
 
         private void Awake()
@@ -52,6 +53,7 @@ namespace BeatSaverDownloader
                 _backButtonInstance = Resources.FindObjectsOfTypeAll<Button>().First(x => (x.name == "BackArrowButton"));
                 _mainMenuViewController = Resources.FindObjectsOfTypeAll<MainMenuViewController>().First();
                 _mainMenuRectTransform = _buttonInstance.transform.parent as RectTransform;
+                _loadingIndicatorInstance = Resources.FindObjectsOfTypeAll<GameObject>().Where(x => x.name == "LoadingIndicator").First();
                 Debug.Log("Buttons and main menu found!");
                 
 
@@ -71,9 +73,8 @@ namespace BeatSaverDownloader
             {
                 Debug.Log("EXCEPTION ON AWAKE(TRY CREATE BUTTON): " + e);
             }
-        }
-
-        
+            
+        }        
 
         private void CreateBeatSaverButton()
         {
@@ -162,6 +163,12 @@ namespace BeatSaverDownloader
             vc.rectTransform.anchoredPosition = new Vector2(0f, 0f);
 
             return vc;
+        }
+
+        public GameObject CreateLoadingIndicator(Transform parent)
+        {
+            GameObject indicator = Instantiate(_loadingIndicatorInstance, parent, false);
+            return indicator;
         }
 
         public TextMeshProUGUI CreateText(RectTransform parent, string text, Vector2 position)

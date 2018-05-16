@@ -139,12 +139,6 @@ namespace BeatSaverDownloader {
         #endregion
         // helper class for lookup of HTML encoding entities
         private static class HtmlEntities {
-#if DEBUG
-            static HtmlEntities() {
-                // Make sure the initial capacity for s_lookupTable is correct
-                Debug.Assert(s_lookupTable.Count == Count, $"There should be {Count} HTML entities, but {nameof(s_lookupTable)} has {s_lookupTable.Count} of them.");
-            }
-#endif
 
             // The list is from https://www.w3.org/TR/html5/syntax.html#named-character-references
 
