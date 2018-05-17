@@ -7,6 +7,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using VRUI;
+using Logger = IllusionPlugin.Logger;
 
 namespace BeatSaverDownloader
 {
@@ -15,6 +16,7 @@ namespace BeatSaverDownloader
     {
         BeatSaverMasterViewController _parentMasterViewController;
         BeatSaverUI ui;
+        private Logger log = new Logger("BeatSaverDownloader");
 
         public Button _pageUpButton;
         public Button _pageDownButton;
@@ -28,7 +30,7 @@ namespace BeatSaverDownloader
 
         Button _searchButton;
 
-        
+        public GameObject _loadingIndicator;
 
         public TableView _songsTableView;
         SongListTableCell _songListTableCellInstance;
@@ -60,17 +62,8 @@ namespace BeatSaverDownloader
                              if (!_parentMasterViewController._loading)
                              {
                                  _parentMasterViewController._loading = true;
-                                 _parentMasterViewController._loadingText.text = "";
                                  _currentPage -= 1;
-                                 if (_parentMasterViewController.IsSearching())
-                                 {
-
-                                     StartCoroutine(_parentMasterViewController.GetSearchResults(_currentPage, (_parentMasterViewController._searchKeyboardViewController == null) ? "" : _parentMasterViewController._searchKeyboardViewController._inputString));
-                                 }
-                                 else
-                                 {
-                                     StartCoroutine(_parentMasterViewController.GetSongs(_currentPage, _parentMasterViewController._sortBy));
-                                 }
+                                 _parentMasterViewController.GetPage(_currentPage);
                              }
                          }
 
@@ -90,17 +83,8 @@ namespace BeatSaverDownloader
                         if (!_parentMasterViewController._loading)
                         {
                             _parentMasterViewController._loading = true;
-                            _parentMasterViewController._loadingText.text = "";
                             _currentPage += 1;
-                            if (_parentMasterViewController.IsSearching())
-                            {
-
-                                StartCoroutine(_parentMasterViewController.GetSearchResults(_currentPage, (_parentMasterViewController._searchKeyboardViewController == null) ? "" : _parentMasterViewController._searchKeyboardViewController._inputString));
-                            }
-                            else
-                            {
-                                StartCoroutine(_parentMasterViewController.GetSongs(_currentPage, _parentMasterViewController._sortBy));
-                            }
+                            _parentMasterViewController.GetPage(_currentPage);
                         }
 
                     });
@@ -140,11 +124,10 @@ namespace BeatSaverDownloader
                         if (!_parentMasterViewController._loading)
                         {
                             _parentMasterViewController._loading = true;
-                            _parentMasterViewController._loadingText.text = "";
                             _parentMasterViewController._sortBy = "top";
                             _currentPage = 0;
                             _parentMasterViewController.ClearSearchInput();
-                            StartCoroutine(_parentMasterViewController.GetSongs(_currentPage, _parentMasterViewController._sortBy));
+                            _parentMasterViewController.GetPage(_currentPage);
                             SelectTopButtons(TopButtonsState.Select);
                         }
                     });
@@ -163,11 +146,10 @@ namespace BeatSaverDownloader
                         if (!_parentMasterViewController._loading)
                         {
                             _parentMasterViewController._loading = true;
-                            _parentMasterViewController._loadingText.text = "";
                             _parentMasterViewController._sortBy = "new";
                             _currentPage = 0;
                             _parentMasterViewController.ClearSearchInput();
-                            StartCoroutine(_parentMasterViewController.GetSongs(_currentPage, _parentMasterViewController._sortBy));
+                            _parentMasterViewController.GetPage(_currentPage);
                             SelectTopButtons(TopButtonsState.Select);
                         }
                     });
@@ -178,7 +160,7 @@ namespace BeatSaverDownloader
                 if (_starButton == null)
                 {
                     _starButton = ui.CreateUIButton(rectTransform, "ApplyButton");
-                    ui.SetButtonText(ref _starButton, "Upvotes");
+                    ui.SetButtonText(ref _starButton, "Plays");
                     ui.SetButtonTextSize(ref _starButton, 3f);
                     (_starButton.transform as RectTransform).sizeDelta = new Vector2(20f, 6f);
                     (_starButton.transform as RectTransform).anchoredPosition = new Vector2(10f, 73f);
@@ -186,12 +168,10 @@ namespace BeatSaverDownloader
                     _starButton.onClick.AddListener(delegate () {
                         if (!_parentMasterViewController._loading)
                         {
-                            _parentMasterViewController._loading = true;
-                            _parentMasterViewController._loadingText.text = "";
-                            _parentMasterViewController._sortBy = "star";
+                            _parentMasterViewController._sortBy = "plays";
                             _currentPage = 0;
                             _parentMasterViewController.ClearSearchInput();
-                            StartCoroutine(_parentMasterViewController.GetSongs(_currentPage, _parentMasterViewController._sortBy));
+                            _parentMasterViewController.GetPage(_currentPage);
                             SelectTopButtons(TopButtonsState.Select);
                         }
                     });
@@ -214,6 +194,22 @@ namespace BeatSaverDownloader
                     });
                 }
 
+                
+                if(_loadingIndicator == null)
+                {
+                    try
+                    {
+                        _loadingIndicator = ui.CreateLoadingIndicator(rectTransform);
+                        (_loadingIndicator.transform as RectTransform).anchorMin = new Vector2(0.5f, 0.5f);
+                        (_loadingIndicator.transform as RectTransform).anchorMax = new Vector2(0.5f, 0.5f);
+                        (_loadingIndicator.transform as RectTransform).anchoredPosition = new Vector2(0f, 0f);
+                        _loadingIndicator.SetActive(true);
+
+                    }catch(Exception e)
+                    {
+                        log.Exception("EXCEPTION: "+e);
+                    }
+                }
                 
 
                 _songListTableCellInstance = Resources.FindObjectsOfTypeAll<SongListTableCell>().First(x => (x.name == "SongListTableCell"));
@@ -245,7 +241,7 @@ namespace BeatSaverDownloader
             }
             catch (Exception e)
             {
-                Debug.Log("EXCEPTION IN DidActivate: " + e);
+                log.Exception("EXCEPTION IN DidActivate: " + e);
             }
 
         }
