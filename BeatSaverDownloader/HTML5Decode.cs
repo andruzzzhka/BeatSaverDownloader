@@ -139,7 +139,6 @@ namespace BeatSaverDownloader {
         #endregion
         // helper class for lookup of HTML encoding entities
         private static class HtmlEntities {
-
             // The list is from https://www.w3.org/TR/html5/syntax.html#named-character-references
 
             private const int Count = 2125;

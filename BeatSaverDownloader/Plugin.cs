@@ -5,7 +5,6 @@ namespace BeatSaverDownloader
 {
     public class Plugin : IPlugin
     {
-
         string IPlugin.Name { get { return "BeatSaver Downloader"; } }
 
         string IPlugin.Version { get { return "1.4"; } }
@@ -17,7 +16,7 @@ namespace BeatSaverDownloader
         public void OnApplicationQuit()
         {
         }
-
+        
         public void OnApplicationStart()
         {
         }
@@ -33,6 +32,7 @@ namespace BeatSaverDownloader
                 BeatSaverUI.OnLoad();
 
             }
+
         }
 
         public void OnSceneUnloaded(Scene scene)
