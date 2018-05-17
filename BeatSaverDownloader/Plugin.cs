@@ -1,56 +1,46 @@
 ﻿using IllusionPlugin;
+using UnityEngine.SceneManagement;
 
 namespace BeatSaverDownloader
 {
-    public class Plugin : IEnhancedPlugin
+    public class Plugin : IPlugin
     {
 
         string IPlugin.Name { get { return "BeatSaver Downloader"; } }
 
-        string IPlugin.Version { get { return "1.3"; } }
+        string IPlugin.Version { get { return "1.4"; } }
 
-        string[] IEnhancedPlugin.Filter { get; }
-
-
-        void IPlugin.OnApplicationQuit()
+        public void OnActiveSceneChanged(Scene prevScene, Scene nextScene)
         {
-            
         }
 
-        void IPlugin.OnApplicationStart()
+        public void OnApplicationQuit()
         {
-            
         }
 
-        void IPlugin.OnFixedUpdate()
+        public void OnApplicationStart()
         {
-            
         }
 
-        void IEnhancedPlugin.OnLateUpdate()
+        public void OnFixedUpdate()
         {
-            
         }
 
-        void IPlugin.OnLevelWasInitialized(int level)
+        public void OnSceneLoaded(Scene scene, LoadSceneMode sceneMode)
         {
-            
-            
-        }
-
-        void IPlugin.OnLevelWasLoaded(int level)
-        {
-            if (level == 1)
+            if (scene.buildIndex == 1)
             {
                 BeatSaverUI.OnLoad();
-                
+
             }
         }
 
-        void IPlugin.OnUpdate()
+        public void OnSceneUnloaded(Scene scene)
         {
-            
         }
-        
+
+        public void OnUpdate()
+        {
+        }
     }
 }

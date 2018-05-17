@@ -7,6 +7,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using VRUI;
+using Logger = IllusionPlugin.Logger;
 
 namespace BeatSaverDownloader
 {
@@ -15,6 +16,7 @@ namespace BeatSaverDownloader
     {
         BeatSaverMasterViewController _parentMasterViewController;
         BeatSaverUI ui;
+        private Logger log = new Logger("BeatSaverDownloader");
 
         public Button _pageUpButton;
         public Button _pageDownButton;
@@ -205,7 +207,7 @@ namespace BeatSaverDownloader
 
                     }catch(Exception e)
                     {
-                        Debug.Log("EXCEPTION: "+e);
+                        log.Exception("EXCEPTION: "+e);
                     }
                 }
                 
@@ -239,7 +241,7 @@ namespace BeatSaverDownloader
             }
             catch (Exception e)
             {
-                Debug.Log("EXCEPTION IN DidActivate: " + e);
+                log.Exception("EXCEPTION IN DidActivate: " + e);
             }
 
         }

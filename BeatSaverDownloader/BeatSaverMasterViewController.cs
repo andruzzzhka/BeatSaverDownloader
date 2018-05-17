@@ -14,12 +14,14 @@ using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.UI;
 using VRUI;
+using Logger = IllusionPlugin.Logger;
 
 namespace BeatSaverDownloader
 {
     class BeatSaverMasterViewController : VRUINavigationController
     {
         BeatSaverUI ui;
+        private Logger log = new Logger("BeatSaverDownloader");
 
         public BeatSaverSongListViewController _songListViewController;
         public SongDetailViewController _songDetailViewController;
@@ -44,7 +46,7 @@ namespace BeatSaverDownloader
 
         protected override void DidActivate()
         {
-            Debug.Log("Activated!");
+            log.Log("Activated!");
             
             ui = BeatSaverUI._instance;
             _songLoader = FindObjectOfType<SongLoader>();
@@ -82,7 +84,7 @@ namespace BeatSaverDownloader
                     }
                     catch (Exception e)
                     {
-                        Debug.Log("Can't refresh songs! EXCEPTION: " + e);
+                        log.Exception("Can't refresh songs! EXCEPTION: " + e);
                     }
                     DismissModalViewController(null, false);
                 });
@@ -125,7 +127,7 @@ namespace BeatSaverDownloader
 
             if (www.isNetworkError || www.isHttpError)
             {
-                Debug.Log(www.error);
+                log.Error(www.error);
             }
             else
             {
@@ -156,7 +158,7 @@ namespace BeatSaverDownloader
                 }
                 catch (Exception e)
                 {
-                    Debug.Log("EXCEPTION IN GET SONGS: " + e.Message + " | " + e.StackTrace);
+                    log.Exception("EXCEPTION IN GET SONGS: " + e.Message + " | " + e.StackTrace);
                 }
             }
 
@@ -173,7 +175,7 @@ namespace BeatSaverDownloader
 
             if (www.isNetworkError || www.isHttpError)
             {
-                Debug.Log(www.error);
+                log.Error(www.error);
             }
             else
             {
@@ -206,7 +208,7 @@ namespace BeatSaverDownloader
                 }
                 catch (Exception e)
                 {
-                    Debug.Log("EXCEPTION IN GET SEARCH RESULTS: " + e.Message + " | " + e.StackTrace);
+                    log.Exception("EXCEPTION IN GET SEARCH RESULTS: " + e.Message + " | " + e.StackTrace);
                 }
             }
 
@@ -214,7 +216,7 @@ namespace BeatSaverDownloader
 
         public void DownloadSong(int buttonId)
         {
-            Debug.Log("Downloading "+_songs[buttonId].beatname);
+            log.Log("Downloading "+_songs[buttonId].beatname);
 
             StartCoroutine(DownloadSongCoroutine(_songs[buttonId],buttonId));
 
@@ -232,7 +234,7 @@ namespace BeatSaverDownloader
 
             if (www.isNetworkError || www.isHttpError)
             {
-                Debug.Log(www.error);
+                log.Error(www.error);
             }
             else
             {
@@ -251,7 +253,7 @@ namespace BeatSaverDownloader
                     File.WriteAllBytes(zipPath, data);
                 }catch(Exception e)
                 {
-                    Debug.Log("FATAL EXCEPTION: "+e);
+                    log.Exception("FATAL EXCEPTION: "+e);
 
                     _songListViewController._songsTableView.SelectRow(row);
                     RefreshDetails(row);
@@ -467,7 +469,7 @@ namespace BeatSaverDownloader
                 }
             }catch(Exception e)
             {
-                Debug.Log("EXCEPTION: "+e);
+                log.Exception("EXCEPTION: "+e);
             }
 
             if (_downloadButton == null)
@@ -557,7 +559,7 @@ namespace BeatSaverDownloader
                 var results = Directory.GetFiles(song, "info.json", SearchOption.AllDirectories);
                 if (results.Length == 0)
                 {
-                    Debug.Log("Custom song folder '" + song + "' is missing info.json!");
+                    log.Log("Custom song folder '" + song + "' is missing info.json!");
                     continue;
                 }
 

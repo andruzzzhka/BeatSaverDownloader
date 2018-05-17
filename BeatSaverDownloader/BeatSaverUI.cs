@@ -10,11 +10,13 @@ using UnityEngine.Events;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using VRUI;
+using Logger = IllusionPlugin.Logger;
 
 namespace BeatSaverDownloader
 {
     class BeatSaverUI : MonoBehaviour
     {
+        private Logger log = new Logger("BeatSaverDownloader");
 
         private RectTransform _mainMenuRectTransform;
         private MainMenuViewController _mainMenuViewController;
@@ -28,7 +30,7 @@ namespace BeatSaverDownloader
         public static List<Sprite> icons = new List<Sprite>();
 
         public BeatSaverMasterViewController _beatSaverViewController;
-
+        
         internal static void OnLoad()
         {
             if (_instance != null)
@@ -46,7 +48,7 @@ namespace BeatSaverDownloader
             {
                 icons.Add(sprite);
             }
-            Debug.Log("Trying to find buttons...");
+            log.Log("Trying to find buttons...");
             try
             {
                 _buttonInstance = Resources.FindObjectsOfTypeAll<Button>().First(x => (x.name == "QuitButton"));
@@ -54,24 +56,25 @@ namespace BeatSaverDownloader
                 _mainMenuViewController = Resources.FindObjectsOfTypeAll<MainMenuViewController>().First();
                 _mainMenuRectTransform = _buttonInstance.transform.parent as RectTransform;
                 _loadingIndicatorInstance = Resources.FindObjectsOfTypeAll<GameObject>().Where(x => x.name == "LoadingIndicator").First();
-                Debug.Log("Buttons and main menu found!");
+                
+                log.Log("Buttons and main menu found!");
                 
 
             }
             catch(Exception e)
             {
-                Debug.Log("EXCEPTION ON AWAKE(TRY FIND BUTTONS): "+e);
+                log.Exception("EXCEPTION ON AWAKE(TRY FIND BUTTONS): "+e);
             }
 
             try
             {
                 CreateBeatSaverButton();
 
-                Debug.Log("BeatSaver button created!");
+                log.Log("BeatSaver button created!");
             }
             catch (Exception e)
             {
-                Debug.Log("EXCEPTION ON AWAKE(TRY CREATE BUTTON): " + e);
+                log.Exception("EXCEPTION ON AWAKE(TRY CREATE BUTTON): " + e);
             }
             
         }        
@@ -94,13 +97,13 @@ namespace BeatSaverDownloader
 
                     try
                     {
-                        Debug.Log("Created button pressed");
+                        log.Log("Created button pressed");
 
                         if (_beatSaverViewController == null)
                         {
-                            Debug.Log("BeatSaverViewController is null. Creating new...");
+                            log.Log("BeatSaverViewController is null. Creating new...");
                             _beatSaverViewController = CreateViewController<BeatSaverMasterViewController>();
-                            Debug.Log("Done!");
+                            log.Log("Done!");
                             
 
                         }
@@ -109,7 +112,7 @@ namespace BeatSaverDownloader
                     }
                     catch (Exception e)
                     {
-                        Debug.Log("EXCETPION IN BUTTON: "+e.Message);
+                        log.Exception("EXCETPION IN BUTTON: "+e.Message);
                     }
 
                 });
@@ -117,9 +120,9 @@ namespace BeatSaverDownloader
             }
             catch(Exception e)
             {
-                Debug.Log("EXCEPTION: "+e.Message);
+                log.Exception("EXCEPTION: "+e.Message);
             }
-            Debug.Log("Finished");
+            log.Log("Finished");
 
         }
 
