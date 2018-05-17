@@ -10,6 +10,7 @@ using UnityEngine.Events;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using VRUI;
+using Image = UnityEngine.UI.Image;
 
 namespace BeatSaverDownloader
 {
@@ -212,7 +213,7 @@ namespace BeatSaverDownloader
 
         public void SetButtonBackground(ref Button _button, Sprite _background)
         {
-            if (_button.GetComponentsInChildren<UnityEngine.UI.Image>().Count() > 0)
+            if (_button.GetComponentsInChildren<Image>().Any())
             {
 
                 _button.GetComponentsInChildren<UnityEngine.UI.Image>()[0].sprite = _background;
