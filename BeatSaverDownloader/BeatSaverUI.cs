@@ -11,7 +11,6 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using VRUI;
 using Image = UnityEngine.UI.Image;
-using Logger = IllusionPlugin.Logger;
 
 namespace BeatSaverDownloader
 {

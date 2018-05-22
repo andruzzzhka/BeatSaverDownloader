@@ -141,6 +141,7 @@
     <Compile Include="ICSharpCode.SharpZipLib\Zip\ZipInputStream.cs" />
     <Compile Include="ICSharpCode.SharpZipLib\Zip\ZipNameTransform.cs" />
     <Compile Include="ICSharpCode.SharpZipLib\Zip\ZipOutputStream.cs" />
+    <Compile Include="Logger.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ReflectionUtil.cs" />

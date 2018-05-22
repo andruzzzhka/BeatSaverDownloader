@@ -7,7 +7,6 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using VRUI;
-using Logger = IllusionPlugin.Logger;
 
 namespace BeatSaverDownloader
 {

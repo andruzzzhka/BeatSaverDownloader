@@ -7,11 +7,9 @@ namespace BeatSaverDownloader
     {
         string IPlugin.Name { get { return "BeatSaver Downloader"; } }
 
-        string IPlugin.Version { get { return "1.4"; } }
+        string IPlugin.Version { get { return "1.5"; } }
 
-        public void OnActiveSceneChanged(Scene prevScene, Scene nextScene)
-        {
-        }
+        
 
         public void OnApplicationQuit()
         {
@@ -25,18 +23,17 @@ namespace BeatSaverDownloader
         {
         }
 
-        public void OnSceneLoaded(Scene scene, LoadSceneMode sceneMode)
+        public void OnLevelWasInitialized(int level)
         {
-            if (scene.buildIndex == 1)
+        }
+
+        public void OnLevelWasLoaded(int level)
+        {
+            if (level == 1)
             {
                 BeatSaverUI.OnLoad();
 
             }
-
-        }
-
-        public void OnSceneUnloaded(Scene scene)
-        {
         }
 
         public void OnUpdate()
