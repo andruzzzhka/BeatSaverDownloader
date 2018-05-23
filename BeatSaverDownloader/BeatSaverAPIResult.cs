@@ -25,6 +25,12 @@ namespace BeatSaverDownloader
             jsonPath = difficultyLevel.jsonPath;
         }
 
+        public DifficultyLevel(LevelStaticData.DifficultyLevel difficultyLevel)
+        {
+            difficulty = LevelStaticData.GetDifficultyName(difficultyLevel.difficulty);
+            difficultyRank = difficultyLevel.difficultyRank;
+        }
+
         public DifficultyLevel(string Difficulty, int DifficultyRank, string AudioPath, string JsonPath, int Offset = 0)
         {
             difficulty = Difficulty;
@@ -33,12 +39,6 @@ namespace BeatSaverDownloader
             jsonPath = JsonPath;
             offset = Offset;
 
-        }
-
-        public bool Compare(DifficultyLevel compareTo)
-        {
-            
-            return (difficulty==compareTo.difficulty && difficultyRank == compareTo.difficultyRank && audioPath == compareTo.audioPath && jsonPath == compareTo.jsonPath);
         }
 
     }
@@ -59,6 +59,8 @@ namespace BeatSaverDownloader
         public string beatsPerMinute;
         public DifficultyLevel[] difficultyLevels;
         public string img;
+
+        public string path;
 
         public Song(JSONNode jsonNode)
         {
@@ -114,31 +116,44 @@ namespace BeatSaverDownloader
 
         public bool Compare(Song compareTo)
         {
-            bool diffisIdentical = true;
-
-            if (difficultyLevels.Length != compareTo.difficultyLevels.Length)
+            if (compareTo != null)
             {
-                diffisIdentical = false;
+                //Logger.StaticLog("songName is " + string.IsNullOrEmpty(compareTo.songName));
+                //Logger.StaticLog("songSubName is " + string.IsNullOrEmpty(compareTo.songSubName));
+                //Logger.StaticLog("authorName is " + string.IsNullOrEmpty(compareTo.authorName));
+                //Logger.StaticLog("authorName is " + string.IsNullOrEmpty(compareTo.authorName));
 
+                if (HTML5Decode.HtmlDecode(songName) == HTML5Decode.HtmlDecode(compareTo.songName))
+                {
+                    if (difficultyLevels != null && compareTo.difficultyLevels != null)
+                    {
+                        return (HTML5Decode.HtmlDecode(songSubName) == HTML5Decode.HtmlDecode(compareTo.songSubName) && HTML5Decode.HtmlDecode(authorName) == HTML5Decode.HtmlDecode(compareTo.authorName) && difficultyLevels.Length == compareTo.difficultyLevels.Length);
+                    }
+                    else
+                    {
+                        return (HTML5Decode.HtmlDecode(songSubName) == HTML5Decode.HtmlDecode(compareTo.songSubName) && HTML5Decode.HtmlDecode(authorName) == HTML5Decode.HtmlDecode(compareTo.authorName));
+                    }
+                }
+                else
+                {
+                    return false;
+                }
             }
             else
             {
-
-                for (int i = 0; i < difficultyLevels.Length; i++)
-                {
-                    diffisIdentical = diffisIdentical && difficultyLevels[i].Compare(compareTo.difficultyLevels[i]);
-                }
+                return false;
             }
-
-
-            
-
-            return (HTML5Decode.HtmlDecode(songName) == HTML5Decode.HtmlDecode(compareTo.songName) && HTML5Decode.HtmlDecode(songSubName) == HTML5Decode.HtmlDecode(compareTo.songSubName) && HTML5Decode.HtmlDecode(authorName) == HTML5Decode.HtmlDecode(compareTo.authorName) && diffisIdentical );
         }
 
 
 
-
+        public Song(CustomLevelStaticData _data)
+        {
+            songName = _data.songName;
+            songSubName = _data.songSubName;
+            authorName = _data.authorName;
+            difficultyLevels = ConvertDifficultyLevels(_data.difficultyLevels);
+        }
 
         public Song(CustomSongInfo _song)
         {
@@ -147,22 +162,49 @@ namespace BeatSaverDownloader
             songSubName = _song.songSubName;
             authorName = _song.authorName;
             difficultyLevels = ConvertDifficultyLevels(_song.difficultyLevels);
-            
+            path = _song.path;
         }
 
         public DifficultyLevel[] ConvertDifficultyLevels(CustomSongInfo.DifficultyLevel[] _difficultyLevels)
         {
-            DifficultyLevel[] buffer = new DifficultyLevel[_difficultyLevels.Length];
-
-            for(int i = 0; i < _difficultyLevels.Length; i++)
+            if (_difficultyLevels != null && _difficultyLevels.Length > 0)
             {
-                buffer[i] = new DifficultyLevel(_difficultyLevels[i]);
+                DifficultyLevel[] buffer = new DifficultyLevel[_difficultyLevels.Length];
+
+                for (int i = 0; i < _difficultyLevels.Length; i++)
+                {
+                    buffer[i] = new DifficultyLevel(_difficultyLevels[i]);
+                }
+
+
+                return buffer;
             }
-
-
-            return buffer;
+            else
+            {
+                return null;
+            }
         }
-        
+
+        public DifficultyLevel[] ConvertDifficultyLevels(LevelStaticData.DifficultyLevel[] _difficultyLevels)
+        {
+            if (_difficultyLevels != null && _difficultyLevels.Length > 0)
+            {
+                DifficultyLevel[] buffer = new DifficultyLevel[_difficultyLevels.Length];
+
+                for (int i = 0; i < _difficultyLevels.Length; i++)
+                {
+                    buffer[i] = new DifficultyLevel(_difficultyLevels[i]);
+                }
+
+
+                return buffer;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
     }
     [Serializable]
     public class RootObject

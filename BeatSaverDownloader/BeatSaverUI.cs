@@ -48,7 +48,6 @@ namespace BeatSaverDownloader
             {
                 icons.Add(sprite);
             }
-            log.Log("Trying to find buttons...");
             try
             {
                 _buttonInstance = Resources.FindObjectsOfTypeAll<Button>().First(x => (x.name == "QuitButton"));
@@ -56,10 +55,6 @@ namespace BeatSaverDownloader
                 _mainMenuViewController = Resources.FindObjectsOfTypeAll<MainMenuViewController>().First();
                 _mainMenuRectTransform = _buttonInstance.transform.parent as RectTransform;
                 _loadingIndicatorInstance = Resources.FindObjectsOfTypeAll<GameObject>().Where(x => x.name == "LoadingIndicator").First();
-                
-                log.Log("Buttons and main menu found!");
-                
-
             }
             catch(Exception e)
             {
@@ -69,8 +64,6 @@ namespace BeatSaverDownloader
             try
             {
                 CreateBeatSaverButton();
-
-                log.Log("BeatSaver button created!");
             }
             catch (Exception e)
             {
@@ -97,15 +90,9 @@ namespace BeatSaverDownloader
 
                     try
                     {
-                        log.Log("Created button pressed");
-
                         if (_beatSaverViewController == null)
                         {
-                            log.Log("BeatSaverViewController is null. Creating new...");
-                            _beatSaverViewController = CreateViewController<BeatSaverMasterViewController>();
-                            log.Log("Done!");
-                            
-
+                            _beatSaverViewController = CreateViewController<BeatSaverMasterViewController>();    
                         }
                         _mainMenuViewController.PresentModalViewController(_beatSaverViewController, null, false);
                         
@@ -122,7 +109,6 @@ namespace BeatSaverDownloader
             {
                 log.Exception("EXCEPTION: "+e.Message);
             }
-            log.Log("Finished");
 
         }
 

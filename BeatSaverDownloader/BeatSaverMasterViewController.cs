@@ -17,6 +17,8 @@ using VRUI;
 
 namespace BeatSaverDownloader
 {
+    enum Prompt { NotSelected, Yes, No};
+
     class BeatSaverMasterViewController : VRUINavigationController
     {
         BeatSaverUI ui;
@@ -30,10 +32,15 @@ namespace BeatSaverDownloader
         public List<Song> _songs = new List<Song>();
         public List<Song> _alreadyDownloadedSongs = new List<Song>();
 
+        private List<LevelStaticData> _notUpdatedSongs = new List<LevelStaticData>();
+
         public Button _downloadButton;
+        public Button _deleteButton;
         Button _backButton;
 
+        TextMeshProUGUI _warningText;
 
+        SongPreviewPlayer _songPreviewPlayer;
         public SongLoader _songLoader;
 
         public string _sortBy = "top";
@@ -41,16 +48,26 @@ namespace BeatSaverDownloader
         public bool _loading { get { return isLoading; } set { isLoading = value; SetLoadingIndicator(isLoading); } }
         public int _selectedRow = -1;
 
-        FastZip.Overwrite _confirmOverwriteState = FastZip.Overwrite.Prompt;
+        Prompt _confirmOverwriteState = Prompt.NotSelected;
+        Prompt _confirmDeleteState = Prompt.NotSelected;
 
         protected override void DidActivate()
-        {
-            log.Log("Activated!");
-            
+        {            
             ui = BeatSaverUI._instance;
             _songLoader = FindObjectOfType<SongLoader>();
 
             UpdateAlreadyDownloadedSongs();
+
+
+
+            if(_songPreviewPlayer == null)
+            {
+                ObjectProvider[] providers = Resources.FindObjectsOfTypeAll<ObjectProvider>().Where(x => x.name == "SongPreviewPlayerProvider").ToArray();
+
+                if (providers.Length > 0) {
+                    _songPreviewPlayer = providers[0].GetProvidedObject<SongPreviewPlayer>();
+                }
+            }
 
             if (_songListViewController == null)
             {
@@ -77,19 +94,27 @@ namespace BeatSaverDownloader
 
                 _backButton.onClick.AddListener(delegate ()
                 {
-                    try
+                    if (!_loading)
                     {
-                        _songLoader.RefreshSongs();
+                        if (_songPreviewPlayer != null)
+                        {
+                            _songPreviewPlayer.CrossfadeToDefault();
+                        }
+                        try
+                        {
+                            _songLoader.RefreshSongs();
+                            _notUpdatedSongs.Clear();
+                        }
+                        catch (Exception e)
+                        {
+                            log.Exception("Can't refresh songs! EXCEPTION: " + e);
+                        }
+                        DismissModalViewController(null, false);
                     }
-                    catch (Exception e)
-                    {
-                        log.Exception("Can't refresh songs! EXCEPTION: " + e);
-                    }
-                    DismissModalViewController(null, false);
                 });
             }
 
-            GetPage(0);
+            GetPage(_songListViewController._currentPage);
 
             base.DidActivate();
             
@@ -104,7 +129,7 @@ namespace BeatSaverDownloader
 
         public void GetPage(int page)
         {
-            _loading = true;
+            
             if (IsSearching())
             {
                 StartCoroutine(GetSearchResults(page, _searchKeyboardViewController._inputString));
@@ -120,13 +145,20 @@ namespace BeatSaverDownloader
             _songs.Clear();
             _songListViewController.RefreshScreen();
 
+            _loading = true;
+
             UnityWebRequest www = UnityWebRequest.Get(String.Format("https://beatsaver.com/api.php?mode={0}&off={1}", sortBy, (page * _songListViewController._songsPerPage)));
 
             yield return www.SendWebRequest();
 
+            
+
             if (www.isNetworkError || www.isHttpError)
             {
                 log.Error(www.error);
+                TextMeshProUGUI _errorText = ui.CreateText(rectTransform, String.Format("Request timed out"), new Vector2(0f, -48f));
+                _errorText.alignment = TextAlignmentOptions.Center;
+                Destroy(_errorText.gameObject, 2f);
             }
             else
             {
@@ -143,7 +175,7 @@ namespace BeatSaverDownloader
                         _songs.Add(new Song(node["songs"][i]));
                     }
 
-                    _loading = false;
+                    
                     _songListViewController.RefreshScreen();
                     if (_selectedRow != -1 && _songs.Count > 0)
                     {
@@ -157,10 +189,10 @@ namespace BeatSaverDownloader
                 }
                 catch (Exception e)
                 {
-                    log.Exception("EXCEPTION IN GET SONGS: " + e.Message + " | " + e.StackTrace);
+                    log.Exception("EXCEPTION(GET SONGS): " + e.Message + " | " + e.StackTrace);
                 }
             }
-
+            _loading = false;
         }
 
         public IEnumerator GetSearchResults(int page, string search)
@@ -172,9 +204,14 @@ namespace BeatSaverDownloader
 
             yield return www.SendWebRequest();
 
+            
+
             if (www.isNetworkError || www.isHttpError)
             {
                 log.Error(www.error);
+                TextMeshProUGUI _errorText = ui.CreateText(rectTransform, String.Format("Request timed out"), new Vector2(0f, -48f));
+                _errorText.alignment = TextAlignmentOptions.Center;
+                Destroy(_errorText.gameObject, 2f);
             }
             else
             {
@@ -193,7 +230,7 @@ namespace BeatSaverDownloader
                         _songs.Add(new Song(node["hits"]["hits"][i]["_source"], JSON.Parse(node["hits"]["hits"][i]["_source"]["difficultyLevels"].Value)));
                     }
 
-                    _loading = false;
+                    
                     _songListViewController.RefreshScreen();
                     if (_selectedRow != -1 && _songs.Count > 0)
                     {
@@ -207,10 +244,10 @@ namespace BeatSaverDownloader
                 }
                 catch (Exception e)
                 {
-                    log.Exception("EXCEPTION IN GET SEARCH RESULTS: " + e.Message + " | " + e.StackTrace);
+                    log.Exception("EXCEPTION(GET SEARCH RESULTS): " + e.Message + " | " + e.StackTrace);
                 }
             }
-
+            _loading = false;
         }
 
         public void DownloadSong(int buttonId)
@@ -227,13 +264,21 @@ namespace BeatSaverDownloader
             _loading = true;
             ui.SetButtonText(ref _downloadButton, "Downloading...");
             _downloadButton.interactable = false;
-            
+            _deleteButton.interactable = false;
+
+            string downloadedSongPath = "";
+
             UnityWebRequest www = UnityWebRequest.Get("https://beatsaver.com/dl.php?id=" + (songInfo.id));
+            www.timeout = 10;
             yield return www.SendWebRequest();
+
+            log.Log("Received response from BeatSaver.com...");
 
             if (www.isNetworkError || www.isHttpError)
             {
                 log.Error(www.error);
+                TextMeshProUGUI _errorText = ui.CreateText(_songDetailViewController.rectTransform, String.Format(www.error), new Vector2(18f, -64f));
+                Destroy(_errorText.gameObject, 2f);
             }
             else
             {
@@ -250,9 +295,10 @@ namespace BeatSaverDownloader
                     customSongsPath = docPath + "/CustomSongs/";
                     zipPath = customSongsPath + songInfo.beatname + ".zip";
                     File.WriteAllBytes(zipPath, data);
+                    log.Log("Downloaded zip file!");
                 }catch(Exception e)
                 {
-                    log.Exception("FATAL EXCEPTION: "+e);
+                    log.Exception("EXCEPTION: "+e);
 
                     _songListViewController._songsTableView.SelectRow(row);
                     RefreshDetails(row);
@@ -269,6 +315,10 @@ namespace BeatSaverDownloader
                     {
                         if (ze.IsFile)
                         {
+                            if (string.IsNullOrEmpty(downloadedSongPath) && ze.Name.IndexOf('/')!= -1)
+                            {
+                                downloadedSongPath = customSongsPath + ze.Name.Substring(0, ze.Name.IndexOf('/'));
+                            }
                             if (Directory.Exists(customSongsPath + ze.Name.Substring(0, ze.Name.IndexOf('/'))))
                             {
                                 yield return PromptOverwriteFiles(ze.Name.Substring(0,ze.Name.IndexOf('/')));
@@ -282,6 +332,7 @@ namespace BeatSaverDownloader
                         }
                         else if (ze.IsDirectory)
                         {
+                            downloadedSongPath = customSongsPath + ze.Name;
                             if (Directory.Exists(customSongsPath + ze.Name))
                             {
 
@@ -299,24 +350,74 @@ namespace BeatSaverDownloader
                 }
                    
 
-                if (_confirmOverwriteState == FastZip.Overwrite.Always || isOverwriting)
+
+                if (_confirmOverwriteState == Prompt.Yes || isOverwriting)
                 {
 
                     FastZip zip = new FastZip();
 
+                    log.Log("Extractibg...");
                     zip.ExtractZip(zipPath, customSongsPath, null);
+
                     
+                    try
+                    {
+                        CustomSongInfo downloadedSong = GetCustomSongInfo(downloadedSongPath);
+
+                        CustomLevelStaticData newLevel = null;
+                        try
+                        {
+                            newLevel = ScriptableObject.CreateInstance<CustomLevelStaticData>();
+                        }
+                        catch (Exception e)
+                        {
+                            //LevelStaticData.OnEnable throws null reference exception because we don't have time to set _difficultyLevels
+                        }
+
+                        ReflectionUtil.SetPrivateField(newLevel, "_levelId", downloadedSong.GetIdentifier());
+                        ReflectionUtil.SetPrivateField(newLevel, "_authorName", downloadedSong.authorName);
+                        ReflectionUtil.SetPrivateField(newLevel, "_songName", downloadedSong.songName);
+                        ReflectionUtil.SetPrivateField(newLevel, "_songSubName", downloadedSong.songSubName);
+                        ReflectionUtil.SetPrivateField(newLevel, "_previewStartTime", downloadedSong.previewStartTime);
+                        ReflectionUtil.SetPrivateField(newLevel, "_previewDuration", downloadedSong.previewDuration);
+                        ReflectionUtil.SetPrivateField(newLevel, "_beatsPerMinute", downloadedSong.beatsPerMinute);
+
+                        List<LevelStaticData.DifficultyLevel> difficultyLevels = new List<LevelStaticData.DifficultyLevel>();
+
+                        LevelStaticData.DifficultyLevel newDiffLevel = new LevelStaticData.DifficultyLevel();
+
+                        StartCoroutine(LoadAudio("file://" + downloadedSong.path + "/" + downloadedSong.difficultyLevels[0].audioPath, newDiffLevel, "_audioClip"));
+                        difficultyLevels.Add(newDiffLevel);
+
+                        ReflectionUtil.SetPrivateField(newLevel, "_difficultyLevels", difficultyLevels.ToArray());
+
+                        newLevel.OnEnable();
+                        _notUpdatedSongs.Add(newLevel);
+                    }catch(Exception e)
+                    {
+                        log.Exception("Can't play preview! Exception: "+e);
+                    }
+
                     UpdateAlreadyDownloadedSongs();
                     _songListViewController.RefreshScreen();
-                }
-                _confirmOverwriteState = FastZip.Overwrite.Prompt;
-                File.Delete(zipPath); 
-            }
 
-            _songListViewController._songsTableView.SelectRow(row);
-            RefreshDetails(row);
+                    log.Log("Downloaded!");
+                }
+                _confirmOverwriteState = Prompt.NotSelected;
+                File.Delete(zipPath);
+            }
+            try
+            {
+                _songListViewController._songsTableView.SelectRow(row);
+                RefreshDetails(row);
+            }
+            catch (Exception e)
+            {
+                log.Exception(e.ToString());
+            }
             _loading = false;
             _downloadButton.interactable = true;
+            
         }
 
         IEnumerator PromptOverwriteFiles(string dirName)
@@ -329,28 +430,112 @@ namespace BeatSaverDownloader
             ui.SetButtonText(ref _confirmOverwrite, "Yes");
             (_confirmOverwrite.transform as RectTransform).sizeDelta = new Vector2(15f,10f);
             (_confirmOverwrite.transform as RectTransform).anchoredPosition = new Vector2(-13f, 6f);
-            _confirmOverwrite.onClick.AddListener(delegate() { _confirmOverwriteState = FastZip.Overwrite.Always; });
+            _confirmOverwrite.onClick.AddListener(delegate() { _confirmOverwriteState = Prompt.Yes; });
 
             Button _discardOverwrite = ui.CreateUIButton(_songDetailViewController.rectTransform, "ApplyButton");
 
             ui.SetButtonText(ref _discardOverwrite, "No");
             (_discardOverwrite.transform as RectTransform).sizeDelta = new Vector2(15f, 10f);
             (_discardOverwrite.transform as RectTransform).anchoredPosition = new Vector2(2f, 6f);
-            _discardOverwrite.onClick.AddListener(delegate () { _confirmOverwriteState = FastZip.Overwrite.Never; });
+            _discardOverwrite.onClick.AddListener(delegate () { _confirmOverwriteState = Prompt.No; });
 
             
             (_downloadButton.transform as RectTransform).anchoredPosition = new Vector2(2f,-10f);
 
-            yield return new WaitUntil(delegate() { return (_confirmOverwriteState == FastZip.Overwrite.Always || _confirmOverwriteState == FastZip.Overwrite.Never); });
+            yield return new WaitUntil(delegate() { return (_confirmOverwriteState == Prompt.Yes || _confirmOverwriteState == Prompt.No); });
             
             (_downloadButton.transform as RectTransform).anchoredPosition = new Vector2(2f,6f);
             
             Destroy(_overwriteText.gameObject);
             Destroy(_confirmOverwrite.gameObject);
-            Destroy(_discardOverwrite.gameObject);
-            
-            
+            Destroy(_discardOverwrite.gameObject);            
 
+        }
+
+        IEnumerator DeleteSong(int row)
+        {
+            _loading = true;
+            _downloadButton.interactable = false;
+            _deleteButton.interactable = false;
+
+            string _songPath = GetDownloadedSongPath(_songs[row]);
+
+            if (!string.IsNullOrEmpty(_songPath) && _songPath.Contains("/.cache/"))
+            {
+                TextMeshProUGUI _deleteText = ui.CreateText(_songDetailViewController.rectTransform, String.Format("Can't delete zipped songs!"), new Vector2(18f, -64f));
+                Destroy(_deleteText.gameObject,2f);
+                _loading = false;
+                _downloadButton.interactable = true;
+                _deleteButton.interactable = true;
+                yield break;
+            }
+
+            if (string.IsNullOrEmpty(_songPath))
+            {
+                log.Error("Song path is null or empty!");
+                _loading = false;
+                _downloadButton.interactable = true;
+                _deleteButton.interactable = true;
+                yield break;
+            }
+            if (!Directory.Exists(_songPath))
+            {
+                log.Error("Song folder does not exists!");
+                _loading = false;
+                _downloadButton.interactable = true;
+                _deleteButton.interactable = true;
+                yield break;
+            }
+
+            yield return PromptDeleteFolder(_songPath);
+
+            if(_confirmDeleteState == Prompt.Yes)
+            {
+                log.Log("Deleting \"" + _songPath.Substring(_songPath.LastIndexOf('/')) + "\"...");
+                Directory.Delete(_songPath, true);
+            }
+            _confirmDeleteState = Prompt.NotSelected;
+
+            UpdateAlreadyDownloadedSongs();
+            _songListViewController.RefreshScreen();
+            _songListViewController._songsTableView.SelectRow(row);
+            RefreshDetails(row);
+
+            _loading = false;
+            _downloadButton.interactable = true;
+            _deleteButton.interactable = true;
+        }
+
+
+        IEnumerator PromptDeleteFolder(string dirName)
+        {
+            TextMeshProUGUI _deleteText = ui.CreateText(_songDetailViewController.rectTransform, String.Format("Delete folder \"{0}\"?", dirName.Substring(dirName.LastIndexOf('/')).Trim('/')), new Vector2(18f, -64f));
+
+            Button _confirmDelete = ui.CreateUIButton(_songDetailViewController.rectTransform, "ApplyButton");
+
+            ui.SetButtonText(ref _confirmDelete, "Yes");
+            (_confirmDelete.transform as RectTransform).sizeDelta = new Vector2(15f, 10f);
+            (_confirmDelete.transform as RectTransform).anchoredPosition = new Vector2(-13f, 6f);
+            _confirmDelete.onClick.AddListener(delegate () { _confirmDeleteState = Prompt.Yes; });
+
+            Button _discardDelete = ui.CreateUIButton(_songDetailViewController.rectTransform, "ApplyButton");
+
+            ui.SetButtonText(ref _discardDelete, "No");
+            (_discardDelete.transform as RectTransform).sizeDelta = new Vector2(15f, 10f);
+            (_discardDelete.transform as RectTransform).anchoredPosition = new Vector2(2f, 6f);
+            _discardDelete.onClick.AddListener(delegate () { _confirmDeleteState = Prompt.No; });
+
+
+            (_downloadButton.transform as RectTransform).anchoredPosition = new Vector2(2f, -10f);
+            
+            yield return new WaitUntil(delegate () { return (_confirmDeleteState == Prompt.Yes || _confirmDeleteState == Prompt.No); });
+
+            (_downloadButton.transform as RectTransform).anchoredPosition = new Vector2(2f, 6f);
+
+            Destroy(_deleteText.gameObject);
+            Destroy(_confirmDelete.gameObject);
+            Destroy(_discardDelete.gameObject);
+            
         }
 
         public void ClearSearchInput()
@@ -451,8 +636,8 @@ namespace BeatSaverDownloader
 
                 _textComponents.First(x => x.name == "Title").text = "Difficulties";
 
-                _textComponents.First(x => x.name == "HighScoreText").text = "Expert";
-                _textComponents.First(x => x.name == "HighScoreValueText").text = (_songs[row].difficultyLevels.Where(x => x.difficulty == "Expert").Count() > 0) ? "Yes" : "No";
+                _textComponents.First(x => x.name == "HighScoreText").text = "Expert/+";
+                _textComponents.First(x => x.name == "HighScoreValueText").text = (_songs[row].difficultyLevels.Where(x => (x.difficulty == "Expert" || x.difficulty == "ExpertPlus")).Count() > 0) ? "Yes" : "No";
 
                 _textComponents.First(x => x.name == "MaxComboText").text = "Hard";
                 _textComponents.First(x => x.name == "MaxComboValueText").text = (_songs[row].difficultyLevels.Where(x => x.difficulty == "Hard").Count() > 0) ? "Yes" : "No";
@@ -489,13 +674,112 @@ namespace BeatSaverDownloader
 
             });
 
+            if(_deleteButton == null)
+            {
+                _deleteButton=ui.CreateUIButton(_songDetailViewController.GetComponent<RectTransform>(),"ApplyButton");
+                ui.SetButtonText(ref _deleteButton, "Delete");
+                (_deleteButton.transform as RectTransform).sizeDelta = new Vector2(18f, 10f);
+                (_deleteButton.transform as RectTransform).anchoredPosition = new Vector2(18f, 6f);
+            }
+
+            _deleteButton.onClick.RemoveAllListeners();
+
+            _deleteButton.onClick.AddListener(delegate ()
+            {
+                if (!_loading)
+                {
+                    StartCoroutine(DeleteSong(row));
+                }
+
+            });
+
             if (IsSongAlreadyDownloaded(_songs[row]))
             {
                 ui.SetButtonText(ref _downloadButton, "Redownload");
+
+                LevelStaticData _songData = GetLevelStaticDataForSong(_songs[row]);
+                
+                PlayPreview(_songData);
+                
+
+                string _songPath = GetDownloadedSongPath(_songs[row]);
+                
+                if (!string.IsNullOrEmpty(_songPath) && _songPath.Contains("/.cache/"))
+                {
+                    _downloadButton.interactable = false;
+                    _deleteButton.interactable = false;
+                    if(_warningText == null)
+                    {
+                        _warningText = ui.CreateText(_songDetailViewController.rectTransform, "ZIPPED SONG!", new Vector2(18f, -64f));
+                    }
+                    else
+                    {
+                        _warningText.gameObject.SetActive(true);
+                    }
+                }
+                else
+                {
+                    _downloadButton.interactable = true;
+                    _deleteButton.interactable = true;
+                    if(_warningText != null)
+                    {
+                        _warningText.gameObject.SetActive(false);
+                    }
+                }
             }
             else
             {
                 ui.SetButtonText(ref _downloadButton, "Download");
+                _downloadButton.interactable = true;
+                _deleteButton.interactable = false;
+                if (_warningText != null)
+                {
+                    _warningText.gameObject.SetActive(false);
+                }
+                if (_songPreviewPlayer != null)
+                {
+                    _songPreviewPlayer.CrossfadeToDefault();
+                }
+            }
+        }
+
+        void PlayPreview(LevelStaticData _songData)
+        {
+            log.Log("Playing preview for " + _songData.songName);
+            if (_songData.previewAudioClip != null)
+            {
+                if (_songPreviewPlayer != null && _songData != null)
+                {
+                    try
+                    {
+                        _songPreviewPlayer.CrossfadeTo(_songData.previewAudioClip, _songData.previewStartTime, _songData.previewDuration, 1f);
+                    }
+                    catch (Exception e)
+                    {
+                        log.Error("Can't play preview! Exception: " + e);
+                    }
+                }
+            }
+            else
+            {
+                StartCoroutine(PlayPreviewCoroutine(_songData));
+            }
+        }
+
+        IEnumerator PlayPreviewCoroutine(LevelStaticData _songData)
+        {
+            yield return new WaitWhile(delegate () { return _songData.previewAudioClip != null; });
+
+            if (_songPreviewPlayer != null && _songData != null && _songData.previewAudioClip != null)
+            {
+                try
+                {
+                    _songPreviewPlayer.CrossfadeTo(_songData.previewAudioClip, _songData.previewStartTime, _songData.previewDuration, 1f);
+                }
+                catch (Exception e)
+                {
+                    log.Error("Can't play preview! Exception: " + e);
+                }
             }
         }
 
@@ -509,6 +793,15 @@ namespace BeatSaverDownloader
                 var newSprite = Sprite.Create(tex, new Rect(0, 0, 256, 256), Vector2.one * 0.5f, 100, 1);
                 obj.GetComponentsInChildren<UnityEngine.UI.Image>()[2].sprite = newSprite;
             }
+        }        
+
+        private IEnumerator LoadAudio(string audioPath, object obj, string fieldName)
+        {
+            using (var www = new WWW(audioPath))
+            {
+                yield return www;
+                ReflectionUtil.SetPrivateField(obj, fieldName, www.GetAudioClip(true, true, AudioType.UNKNOWN));
+            }
         }
 
         public bool IsSongAlreadyDownloaded(Song _song)
@@ -521,6 +814,38 @@ namespace BeatSaverDownloader
             }
 
             return alreadyDownloaded;
+        }
+
+        public LevelStaticData GetLevelStaticDataForSong(Song _song)
+        {
+            foreach(CustomLevelStaticData data in SongLoader.CustomLevelStaticDatas)
+            {
+                if ((new Song(data)).Compare(_song))
+                {
+                    return data;
+                }
+            }
+            
+            foreach (CustomLevelStaticData data in _notUpdatedSongs)
+            {
+                if ((new Song(data)).Compare(_song))
+                {
+                    return data;
+                }
+            }
+            return null;
+        }
+
+        public string GetDownloadedSongPath(Song _song)
+        {
+            foreach (Song song in _alreadyDownloadedSongs)
+            {
+                if (song.Compare(_song))
+                {
+                    return song.path;
+                }
+            }
+            return null;
         }
 
         private void UpdateAlreadyDownloadedSongs()
@@ -543,10 +868,6 @@ namespace BeatSaverDownloader
             if (Directory.Exists(path + "/CustomSongs/.cache"))
             {
                 cachedSongs = Directory.GetDirectories(path + "/CustomSongs/.cache");
-            }
-            else
-            {
-                Directory.CreateDirectory(path + "/CustomSongs/.cache");
             }
             
 
@@ -575,8 +896,13 @@ namespace BeatSaverDownloader
             return customSongInfos;
         }
 
-        private CustomSongInfo GetCustomSongInfo(string songPath)
+        private CustomSongInfo GetCustomSongInfo(string _songPath)
         {
+            string songPath = _songPath;
+            if(songPath.Contains("/autosaves"))
+            {
+                songPath = songPath.Replace("/autosaves","");
+            }
             var infoText = File.ReadAllText(songPath + "/info.json");
             CustomSongInfo songInfo;
             try
@@ -585,12 +911,11 @@ namespace BeatSaverDownloader
             }
             catch (Exception e)
             {
-                Debug.Log("Error parsing song: " + songPath);
+                log.Warning("Error parsing song: " + songPath);
                 return null;
             }
             songInfo.path = songPath;
-
-            //Here comes SimpleJSON to the rescue when JSONUtility can't handle an array.
+            
             var diffLevels = new List<CustomSongInfo.DifficultyLevel>();
             var n = JSON.Parse(infoText);
             var diffs = n["difficultyLevels"];
@@ -608,6 +933,8 @@ namespace BeatSaverDownloader
             songInfo.difficultyLevels = diffLevels.ToArray();
             return songInfo;
         }
+
+        
 
     }
 }

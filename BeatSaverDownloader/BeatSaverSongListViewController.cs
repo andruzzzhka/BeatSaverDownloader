@@ -34,7 +34,7 @@ namespace BeatSaverDownloader
         public TableView _songsTableView;
         SongListTableCell _songListTableCellInstance;
 
-        int _currentPage = 0;
+        public int _currentPage = 0;
 
         public int _songsPerPage = 6;
 

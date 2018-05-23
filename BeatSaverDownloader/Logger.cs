@@ -7,11 +7,17 @@ namespace BeatSaverDownloader
 {
     class Logger
     {
-        public string loggerName;
+        private string loggerName;
 
         public Logger(string _name)
         {
             loggerName = _name;
+        }
+
+        public static void StaticLog(string message)
+        {
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine("[BeatSaverDownloader @ " + DateTime.Now.ToString("HH:mm") + "] " + message);
         }
 
         public void Log(string message)
