@@ -50,6 +50,7 @@ namespace BeatSaverDownloader
         public string ownerid;
         public string downloads;
         public string upvotes;
+        public string downvotes;
         public string plays;
         public string beattext;
         public string uploadtime;
@@ -57,6 +58,8 @@ namespace BeatSaverDownloader
         public string songSubName;
         public string authorName;
         public string beatsPerMinute;
+        public string coverUrl;
+        public string downloadUrl;
         public DifficultyLevel[] difficultyLevels;
         public string img;
 
@@ -64,46 +67,50 @@ namespace BeatSaverDownloader
 
         public Song(JSONNode jsonNode)
         {
-
-            id = jsonNode["id"];
-            beatname = jsonNode["beatname"];
-            ownerid = jsonNode["ownerid"];
-            downloads = jsonNode["downloads"];
-            plays = jsonNode["plays"];
-            upvotes = jsonNode["upvotes"];
-            beattext = jsonNode["beattext"];
-            uploadtime = jsonNode["uploadtime"];
+            id = jsonNode["key"];
+            beatname = jsonNode["name"];
+            ownerid = jsonNode["uploaderId"];
+            downloads = jsonNode["downloadCount"];
+            upvotes = jsonNode["upVotes"];
+            downvotes = jsonNode["downVotes"];
+            plays = jsonNode["playedCount"];
+            beattext = jsonNode["description"];
+            uploadtime = jsonNode["createdAt"];
             songName = jsonNode["songName"];
             songSubName = jsonNode["songSubName"];
             authorName = jsonNode["authorName"];
-            beatsPerMinute = jsonNode["beatsPerMinute"];
-            img = jsonNode["img"];
+            beatsPerMinute = jsonNode["bpm"];
+            coverUrl = jsonNode["coverUrl"];
+            downloadUrl = jsonNode["downloadUrl"];
 
-            difficultyLevels = new DifficultyLevel[jsonNode["difficultyLevels"].Count];
+            var difficultyNode = jsonNode["difficulties"];
 
-            for (int i = 0; i < jsonNode["difficultyLevels"].Count; i++)
+            difficultyLevels = new DifficultyLevel[difficultyNode.Count];
+
+            for (int i = 0; i < difficultyNode.Count; i++)
             {
-                difficultyLevels[i] = new DifficultyLevel(jsonNode["difficultyLevels"][i]["difficulty"], jsonNode["difficultyLevels"][i]["difficultyRank"], jsonNode["difficultyLevels"][i]["audioPath"], jsonNode["difficultyLevels"][i]["jsonPath"]);
+                difficultyLevels[i] = new DifficultyLevel(difficultyNode[i]["difficulty"], difficultyNode[i]["difficultyRank"], difficultyNode[i]["audioPath"], difficultyNode[i]["jsonPath"]);
             }
-
         }
 
         public Song(JSONNode jsonNode, JSONNode difficultyNode)
         {
 
-            id = jsonNode["id"];
-            beatname = jsonNode["beatname"];
-            ownerid = jsonNode["ownerid"];
-            downloads = jsonNode["downloads"];
-            upvotes = jsonNode["upvotes"];
-            plays = jsonNode["plays"];
-            beattext = jsonNode["beattext"];
-            uploadtime = jsonNode["uploadtime"];
+            id = jsonNode["key"];
+            beatname = jsonNode["name"];
+            ownerid = jsonNode["uploaderId"];
+            downloads = jsonNode["downloadCount"];
+            upvotes = jsonNode["upVotes"];
+            downvotes = jsonNode["downVotes"];
+            plays = jsonNode["playedCount"];
+            beattext = jsonNode["description"];
+            uploadtime = jsonNode["createdAt"];
             songName = jsonNode["songName"];
             songSubName = jsonNode["songSubName"];
             authorName = jsonNode["authorName"];
-            beatsPerMinute = jsonNode["beatsPerMinute"];
-            img = jsonNode["img"];
+            beatsPerMinute = jsonNode["bpm"];
+            coverUrl = jsonNode["coverUrl"];
+            downloadUrl = jsonNode["downloadUrl"];
 
             difficultyLevels = new DifficultyLevel[difficultyNode.Count];
 
