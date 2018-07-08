@@ -145,8 +145,8 @@ namespace BeatSaverDownloader
             _songListViewController.RefreshScreen();
 
             _loading = true;
-
-            UnityWebRequest www = UnityWebRequest.Get(String.Format("https://beatsaver.com/api/songs/{0}/{1}", sortBy, (page * _songListViewController._songsPerPage)));
+            
+            UnityWebRequest www = UnityWebRequest.Get(String.Format($"{Plugin.beatsaverURL}/api/songs/{0}/{1}", sortBy, (page * _songListViewController._songsPerPage)));
             www.timeout = 10;
             yield return www.SendWebRequest();
 
@@ -197,7 +197,7 @@ namespace BeatSaverDownloader
             _songs.Clear();
             _songListViewController.RefreshScreen();
 
-            UnityWebRequest www = UnityWebRequest.Get(String.Format("https://beatsaver.com/songs/search/all/{0}", search));
+            UnityWebRequest www = UnityWebRequest.Get(String.Format($"{Plugin.beatsaverURL}/songs/search/all/{0}", search));
             www.timeout = 10;
             yield return www.SendWebRequest();
 
@@ -218,7 +218,7 @@ namespace BeatSaverDownloader
 
                     JSONNode node = JSON.Parse(www.downloadHandler.text);
 
-                    for (int i = 0; i < node["songs"].Count; i++)
+                    for (int i = (page * _songListViewController._songsPerPage); i < Math.Min(node["songs"].Count, ((page + 1) * _songListViewController._songsPerPage)); i++)
                     {
                         _songs.Add(new Song(node["songs"][i]));
                     }

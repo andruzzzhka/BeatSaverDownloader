@@ -72,6 +72,14 @@ namespace BeatSaverDownloader
             
         }        
 
+        public void Update()
+        {
+            if (Input.GetKeyDown(KeyCode.B))
+            {
+                Plugin.LoadConfig();
+            }
+        }
+
         private void CreateBeatSaverButton()
         {
             
