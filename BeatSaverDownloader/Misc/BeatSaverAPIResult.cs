@@ -8,12 +8,13 @@ using SongLoaderPlugin;
 namespace BeatSaverDownloader
 {
 
+    public enum SongQueueState { Available, Queued, Downloading, Downloaded, Error }; 
+
     [Serializable]
     public class DifficultyLevel
     {
         public string difficulty;
         public int difficultyRank;
-        public string audioPath;
         public string jsonPath;
         public int? offset;
 
@@ -21,7 +22,6 @@ namespace BeatSaverDownloader
         {
             difficulty = difficultyLevel.difficulty;
             difficultyRank = difficultyLevel.difficultyRank;
-            audioPath = difficultyLevel.audioPath;
             jsonPath = difficultyLevel.jsonPath;
         }
 
@@ -31,11 +31,10 @@ namespace BeatSaverDownloader
             difficultyRank = difficultyLevel.difficultyRank;
         }
 
-        public DifficultyLevel(string Difficulty, int DifficultyRank, string AudioPath, string JsonPath, int Offset = 0)
+        public DifficultyLevel(string Difficulty, int DifficultyRank, string JsonPath, int Offset = 0)
         {
             difficulty = Difficulty;
             difficultyRank = DifficultyRank;
-            audioPath = AudioPath;
             jsonPath = JsonPath;
             offset = Offset;
 
@@ -50,7 +49,6 @@ namespace BeatSaverDownloader
         public string ownerid;
         public string downloads;
         public string upvotes;
-        public string downvotes;
         public string plays;
         public string beattext;
         public string uploadtime;
@@ -58,12 +56,23 @@ namespace BeatSaverDownloader
         public string songSubName;
         public string authorName;
         public string beatsPerMinute;
+        public string downvotes;
         public string coverUrl;
         public string downloadUrl;
         public DifficultyLevel[] difficultyLevels;
         public string img;
+        public string hash;
 
         public string path;
+
+        public SongQueueState songQueueState = SongQueueState.Available;
+
+        public float downloadingProgress = 0f;
+
+        public Song()
+        {
+
+        }
 
         public Song(JSONNode jsonNode)
         {
@@ -82,6 +91,7 @@ namespace BeatSaverDownloader
             beatsPerMinute = jsonNode["bpm"];
             coverUrl = jsonNode["coverUrl"];
             downloadUrl = jsonNode["downloadUrl"];
+            hash = jsonNode["hashMd5"];
 
             var difficultyNode = jsonNode["difficulties"];
 
@@ -93,9 +103,40 @@ namespace BeatSaverDownloader
             }
         }
 
+        public static Song FromSearchNode(JSONNode mainNode)
+        {
+            Song buffer = new Song();
+            buffer.id = mainNode["key"];
+            buffer.beatname = mainNode["name"];
+            buffer.ownerid = mainNode["uploaderId"];
+            buffer.downloads = mainNode["downloadCount"];
+            buffer.upvotes = mainNode["upVotes"];
+            buffer.downvotes = mainNode["downVotes"];
+            buffer.plays = mainNode["playedCount"];
+            buffer.uploadtime = mainNode["createdAt"];
+            buffer.songName = mainNode["songName"];
+            buffer.songSubName = mainNode["songSubName"];
+            buffer.authorName = mainNode["authorName"];
+            buffer.beatsPerMinute = mainNode["bpm"];
+            buffer.coverUrl = mainNode["coverUrl"];
+            buffer.downloadUrl = mainNode["downloadUrl"];
+            buffer.hash = mainNode["hashMd5"];
+            
+            var difficultyNode = mainNode["difficulties"];
+
+            buffer.difficultyLevels = new DifficultyLevel[difficultyNode.Count];
+            
+            for (int i = 0; i < difficultyNode.Count; i++)
+            {
+                buffer.difficultyLevels[i] = new DifficultyLevel(difficultyNode[i]["difficulty"], difficultyNode[i]["difficultyRank"], difficultyNode[i]["audioPath"], difficultyNode[i]["jsonPath"]);
+            }
+
+            return buffer;
+        }
+
         public Song(JSONNode jsonNode, JSONNode difficultyNode)
         {
-
+            
             id = jsonNode["key"];
             beatname = jsonNode["name"];
             ownerid = jsonNode["uploaderId"];
@@ -111,6 +152,7 @@ namespace BeatSaverDownloader
             beatsPerMinute = jsonNode["bpm"];
             coverUrl = jsonNode["coverUrl"];
             downloadUrl = jsonNode["downloadUrl"];
+            hash = jsonNode["hashMd5"];
 
             difficultyLevels = new DifficultyLevel[difficultyNode.Count];
 
@@ -118,32 +160,19 @@ namespace BeatSaverDownloader
             {
                 difficultyLevels[i] = new DifficultyLevel(difficultyNode[i]["difficulty"], difficultyNode[i]["difficultyRank"], difficultyNode[i]["audioPath"], difficultyNode[i]["jsonPath"]);
             }
-
         }
 
         public bool Compare(Song compareTo)
         {
-            if (compareTo != null)
+            if (compareTo != null && songName == compareTo.songName)
             {
-                //Logger.StaticLog("songName is " + string.IsNullOrEmpty(compareTo.songName));
-                //Logger.StaticLog("songSubName is " + string.IsNullOrEmpty(compareTo.songSubName));
-                //Logger.StaticLog("authorName is " + string.IsNullOrEmpty(compareTo.authorName));
-                //Logger.StaticLog("authorName is " + string.IsNullOrEmpty(compareTo.authorName));
-
-                if (HTML5Decode.HtmlDecode(songName) == HTML5Decode.HtmlDecode(compareTo.songName))
+                if (difficultyLevels != null && compareTo.difficultyLevels != null)
                 {
-                    if (difficultyLevels != null && compareTo.difficultyLevels != null)
-                    {
-                        return (HTML5Decode.HtmlDecode(songSubName) == HTML5Decode.HtmlDecode(compareTo.songSubName) && HTML5Decode.HtmlDecode(authorName) == HTML5Decode.HtmlDecode(compareTo.authorName) && difficultyLevels.Length == compareTo.difficultyLevels.Length);
-                    }
-                    else
-                    {
-                        return (HTML5Decode.HtmlDecode(songSubName) == HTML5Decode.HtmlDecode(compareTo.songSubName) && HTML5Decode.HtmlDecode(authorName) == HTML5Decode.HtmlDecode(compareTo.authorName));
-                    }
+                    return (songSubName == compareTo.songSubName && authorName == compareTo.authorName && difficultyLevels.Length == compareTo.difficultyLevels.Length);
                 }
                 else
                 {
-                    return false;
+                    return (songSubName == compareTo.songSubName && authorName == compareTo.authorName);
                 }
             }
             else
@@ -170,6 +199,14 @@ namespace BeatSaverDownloader
             authorName = _song.authorName;
             difficultyLevels = ConvertDifficultyLevels(_song.difficultyLevels);
             path = _song.path;
+        }
+
+        public Song(LevelStaticData _data)
+        {
+            songName = _data.songName;
+            songSubName = _data.songSubName;
+            authorName = _data.authorName;
+            difficultyLevels = ConvertDifficultyLevels(_data.difficultyLevels);
         }
 
         public DifficultyLevel[] ConvertDifficultyLevels(CustomSongInfo.DifficultyLevel[] _difficultyLevels)
@@ -200,7 +237,7 @@ namespace BeatSaverDownloader
 
                 for (int i = 0; i < _difficultyLevels.Length; i++)
                 {
-                    buffer[i] = new DifficultyLevel(_difficultyLevels[i]);
+                    buffer[i] = new DifficultyLevel(_difficultyLevels[i].difficulty.ToString(), _difficultyLevels[i].difficultyRank, string.Empty);
                 }
 
 

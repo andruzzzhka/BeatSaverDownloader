@@ -1,5 +1,4 @@
 ﻿using IllusionPlugin;
-using System.IO;
 using UnityEngine.SceneManagement;
 
 namespace BeatSaverDownloader
@@ -8,46 +7,18 @@ namespace BeatSaverDownloader
     {
         string IPlugin.Name { get { return "BeatSaver Downloader"; } }
 
-        string IPlugin.Version { get { return "1.5"; } }
+        string IPlugin.Version { get { return "2.0"; } }
 
-        static public string beatsaverURL;
-
-        public static void LoadConfig()
-        {
-            if (!Directory.Exists("UserData"))
-            {
-                Directory.CreateDirectory("UserData");
-            }
-
-            if (!ModPrefs.HasKey("BeatSaverDownloader", "beatsaverURL"))
-            {
-                ModPrefs.SetString("BeatSaverDownloader", "beatsaverURL", "https://beatsaver.com");
-                Logger.StaticLog("Created config");
-            }
-            else
-            {
-                beatsaverURL = ModPrefs.GetString("BeatSaverDownloader", "beatsaverURL");
-                if (string.IsNullOrEmpty(beatsaverURL))
-                {
-                    ModPrefs.SetString("BeatSaverDownloader", "beatsaverURL", "https://beatsaver.com");
-                    beatsaverURL = "https://beatsaver.com";
-                    Logger.StaticLog("Created config");
-                }
-                else
-                {
-                    Logger.StaticLog("Loaded config");
-                }
-                
-            }
-        }
+        
 
         public void OnApplicationQuit()
         {
+            PluginConfig.SaveConfig();
         }
         
         public void OnApplicationStart()
         {
-            LoadConfig();
+            PluginConfig.LoadOrCreateConfig();
         }
 
         public void OnFixedUpdate()
@@ -62,7 +33,8 @@ namespace BeatSaverDownloader
         {
             if (level == 1)
             {
-                BeatSaverUI.OnLoad();
+                BeatSaberUI.OnLoad();
+                PluginUI.PluginUI.OnLoad();
 
             }
         }
