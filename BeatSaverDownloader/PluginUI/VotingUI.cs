@@ -83,8 +83,7 @@ namespace BeatSaverDownloader.PluginUI
                     StartCoroutine(VoteForSong(false));
                 });
                 #endregion
-
-                log.Log($"{PluginConfig.beatsaverURL}/api/search/hash/{levelId.Substring(0, 32)}");
+                
                 UnityWebRequest www = UnityWebRequest.Get($"{PluginConfig.beatsaverURL}/api/songs/search/hash/{levelId.Substring(0, 32)}");
                 
                 yield return www.SendWebRequest();
@@ -106,14 +105,14 @@ namespace BeatSaverDownloader.PluginUI
 
                         ratingText.text = (int.Parse(votingSong.upvotes) - int.Parse(votingSong.downvotes)).ToString();
 
-                        if (!string.IsNullOrEmpty(PluginConfig.apiAccessToken))
+                        if (!string.IsNullOrEmpty(PluginConfig.apiAccessToken) && PluginConfig.apiAccessToken != PluginConfig.apiTokenPlaceholder)
                         {
                             upvoteButton.interactable = true;
                             downvoteButton.interactable = true;
                         }
                         else
                         {
-                            log.Warning("API Access Token is empty!");
+                            log.Warning("No API Access Token!");
                         }
 
                     }
@@ -137,7 +136,7 @@ namespace BeatSaverDownloader.PluginUI
 
             upvoteButton.interactable = false;
             downvoteButton.interactable = false;
-
+            
             UnityWebRequest voteWWW = UnityWebRequest.Get($"{PluginConfig.beatsaverURL}/vote/{votingSong.id}/{(upvote ? 1 : 0)}/{PluginConfig.apiAccessToken}");
             voteWWW.timeout = 30;
             yield return voteWWW.SendWebRequest();

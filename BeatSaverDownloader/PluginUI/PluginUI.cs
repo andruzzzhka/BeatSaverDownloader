@@ -456,6 +456,7 @@ namespace BeatSaverDownloader.PluginUI
                 (_beatSaverButton.transform as RectTransform).sizeDelta = new Vector2(28f, 10f);
 
                 BeatSaberUI.SetButtonText(_beatSaverButton, "BeatSaver");
+                BeatSaberUI.SetButtonIcon(_beatSaverButton, BeatSaberUI.icons.First(x => x.name == "SettingsIcon"));
 
                 _beatSaverButton.onClick.AddListener(delegate () {
 

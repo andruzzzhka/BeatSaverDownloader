@@ -19,6 +19,8 @@ namespace BeatSaverDownloader
         public static string beatsaverURL = "https://beatsaver.com";
         public static string apiAccessToken { get; private set; }
 
+        public static string apiTokenPlaceholder = "replace-this-with-your-api-token";
+
         public static void LoadOrCreateConfig()
         {
             if (!Directory.Exists("UserData"))
@@ -45,22 +47,18 @@ namespace BeatSaverDownloader
                     Logger.StaticLog("Loaded config");
                 }
             }
-
-            if (!ModPrefs.HasKey("BeatSaverDownloader", "APIAccessToken"))
+            
+            if (string.IsNullOrEmpty(ModPrefs.GetString("BeatSaverDownloader", "apiAccessToken")))
             {
-                ModPrefs.SetString("BeatSaverDownloader", "APIAccessToken", "");
+                ModPrefs.SetString("BeatSaverDownloader", "apiAccessToken", apiTokenPlaceholder);
             }
             else
             {
-                apiAccessToken = ModPrefs.GetString("BeatSaverDownloader", "APIAccessToken");
+                apiAccessToken = ModPrefs.GetString("BeatSaverDownloader", "apiAccessToken");
                 if (string.IsNullOrEmpty(beatsaverURL))
                 {
-                    ModPrefs.SetString("BeatSaverDownloader", "APIAccessToken", "");
-                    apiAccessToken = "";
-                }
-                else
-                {
-                    Logger.StaticLog("Loaded config");
+                    ModPrefs.SetString("BeatSaverDownloader", "apiAccessToken", apiTokenPlaceholder);
+                    apiAccessToken = apiTokenPlaceholder;
                 }
             }
 
