@@ -15,6 +15,8 @@ namespace BeatSaverDownloader.PluginUI
 
     class SongListUITweaks : MonoBehaviour
     {
+        static SortMode lastSortMode = SortMode.All;
+
         SearchKeyboardViewController _searchViewController;
 
         SongSelectionMasterViewController _songSelectionMasterViewController;
@@ -134,6 +136,11 @@ namespace BeatSaverDownloader.PluginUI
 
                 });
             }
+
+            if(lastSortMode != SortMode.All)
+            {
+                ShowLevels(lastSortMode);
+            }
         }
 
         public void SelectTopButtons(TopButtonsState _newState)
@@ -167,8 +174,6 @@ namespace BeatSaverDownloader.PluginUI
                         _allButton.gameObject.SetActive(false);
                         _newButton.gameObject.SetActive(false);
                     }; break;
-
-
             }
 
         }
@@ -200,6 +205,7 @@ namespace BeatSaverDownloader.PluginUI
 
         void ShowLevels(SortMode mode)
         {
+            lastSortMode = mode;
             GameplayMode gameplayMode = ReflectionUtil.GetPrivateField<GameplayMode>(_songSelectionMasterViewController, "_gameplayMode");
 
             switch (mode) {
@@ -267,6 +273,7 @@ namespace BeatSaverDownloader.PluginUI
 
             TableView _songListTableView = songListViewController.GetComponentInChildren<TableView>();
             _songListTableView.ReloadData();
+            _songListTableView.ScrollToRow(0, true);
         }
 
     }
