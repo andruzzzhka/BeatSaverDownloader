@@ -1,7 +1,5 @@
 ﻿using BeatSaverDownloader.Misc;
 using HMUI;
-using ICSharpCode.SharpZipLib.Core;
-using ICSharpCode.SharpZipLib.Zip;
 using SimpleJSON;
 using SongLoaderPlugin;
 using System;
@@ -321,10 +319,10 @@ namespace BeatSaverDownloader.PluginUI
                 }
                 
 
-                FastZip zip = new FastZip();
-
                 log.Log("Extracting...");
-                zip.ExtractZip(zipPath, customSongsPath, null);
+                
+                Unzip zip = new Unzip(zipPath);
+                zip.ExtractToDirectory(customSongsPath);
 
                 if (Directory.GetDirectories(customSongsPath).Length > 0)
                 {
