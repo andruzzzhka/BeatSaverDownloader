@@ -323,6 +323,7 @@ namespace BeatSaverDownloader.PluginUI
                 
                 Unzip zip = new Unzip(zipPath);
                 zip.ExtractToDirectory(customSongsPath);
+                zip.Dispose();
 
                 if (Directory.GetDirectories(customSongsPath).Length > 0)
                 {
@@ -362,13 +363,19 @@ namespace BeatSaverDownloader.PluginUI
                     log.Exception("Can't play preview! Exception: "+e);
                 }
 
-
-                log.Log("Downloaded!");
-                File.Delete(zipPath);
-
-
+                try
+                {
+                    File.Delete(zipPath);
+                }catch(IOException e)
+                {
+                    log.Warning($"Can't delete zip! Exception: {e}");
+                }
+                
                 songInfo.songQueueState = SongQueueState.Downloaded;
+                
+                log.Log("Downloaded!");
 
+                _downloadQueueViewController.Refresh();
                 _songListViewController._songsTableView.ReloadData();
                 _songListViewController._songsTableView.SelectRow(_selectedRow);
             }
