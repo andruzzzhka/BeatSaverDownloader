@@ -80,8 +80,11 @@ namespace BeatSaverDownloader.PluginUI
             playerId = ReflectionUtil.GetPrivateField<string>(PersistentSingleton<LeaderboardsModel>.instance, "_playerId");
             
             StartCoroutine(_votingUI.WaitForResults());
-            _votingUI.continuePressed += _votingUI_continuePressed;
-            StartCoroutine(WaitForSongListUI());
+            if (!PluginConfig.disableSongListTweaks)
+            {
+                _votingUI.continuePressed += _votingUI_continuePressed;
+                StartCoroutine(WaitForSongListUI());
+            }
 
             try
             {
@@ -91,8 +94,10 @@ namespace BeatSaverDownloader.PluginUI
                 _songSelectionMasterViewController = Resources.FindObjectsOfTypeAll<SongSelectionMasterViewController>().First();
                 _gameplayMode = ReflectionUtil.GetPrivateField<GameplayMode>(_songSelectionMasterViewController, "_gameplayMode");
 
-                ReflectionUtil.GetPrivateField<SongListViewController>(_songSelectionMasterViewController, "_songListViewController").didSelectSongEvent += PluginUI_didSelectSongEvent;
-                
+                if (!PluginConfig.disableSongListTweaks)
+                {
+                    ReflectionUtil.GetPrivateField<SongListViewController>(_songSelectionMasterViewController, "_songListViewController").didSelectSongEvent += PluginUI_didSelectSongEvent;
+                }
 
                 CreateBeatSaverButton();
             }

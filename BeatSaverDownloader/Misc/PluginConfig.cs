@@ -21,6 +21,8 @@ namespace BeatSaverDownloader
 
         public static string apiTokenPlaceholder = "replace-this-with-your-api-token";
 
+        public static bool disableSongListTweaks = false;
+
         public static void LoadOrCreateConfig()
         {
             if (!Directory.Exists("UserData"))
@@ -68,7 +70,13 @@ namespace BeatSaverDownloader
             }
 
             favoriteSongs.AddRange(File.ReadAllLines(configPath, Encoding.UTF8));
-            
+
+            if(IllusionInjector.PluginManager.Plugins.Count(x => x.Name == "Song Browser") > 0)
+            {
+                Logger.StaticLog("Song Browser installed, disabling Song List Tweaks");
+                disableSongListTweaks = true;
+                return;
+            }
 
             if (!File.Exists(songBrowserSettings))
             {

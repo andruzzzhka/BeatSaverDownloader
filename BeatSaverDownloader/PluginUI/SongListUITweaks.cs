@@ -1,6 +1,8 @@
 ﻿using HMUI;
+using SongLoaderPlugin;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using TMPro;
@@ -9,6 +11,8 @@ using UnityEngine.UI;
 
 namespace BeatSaverDownloader.PluginUI
 {
+    public enum SortMode { All, Favorites, Newest};
+
     class SongListUITweaks : MonoBehaviour
     {
         SearchKeyboardViewController _searchViewController;
@@ -21,6 +25,7 @@ namespace BeatSaverDownloader.PluginUI
         Button _sortByButton;
         Button _favButton;
         Button _allButton;
+        Button _newButton;
         Button _searchButton;
 
         public void SongListUIFound()
@@ -69,12 +74,12 @@ namespace BeatSaverDownloader.PluginUI
                 _favButton = BeatSaberUI.CreateUIButton((_tableViewRectTransform.parent as RectTransform), "ApplyButton");
                 BeatSaberUI.SetButtonText(_favButton, "Favorites");
                 BeatSaberUI.SetButtonTextSize(_favButton, 3f);
-                (_favButton.transform as RectTransform).sizeDelta = new Vector2(30f, 6f);
-                (_favButton.transform as RectTransform).anchoredPosition = new Vector2(0f, 73f);
+                (_favButton.transform as RectTransform).sizeDelta = new Vector2(20f, 6f);
+                (_favButton.transform as RectTransform).anchoredPosition = new Vector2(10f, 73f);
                 _favButton.onClick.RemoveAllListeners();
                 _favButton.onClick.AddListener(delegate ()
                 {
-                    ShowLevels(true);
+                    ShowLevels(SortMode.Favorites);
                     SelectTopButtons(TopButtonsState.Select);
                 });
                 _favButton.gameObject.SetActive(false);
@@ -85,15 +90,32 @@ namespace BeatSaverDownloader.PluginUI
                 _allButton = BeatSaberUI.CreateUIButton((_tableViewRectTransform.parent as RectTransform), "ApplyButton");
                 BeatSaberUI.SetButtonText(_allButton, "All");
                 BeatSaberUI.SetButtonTextSize(_allButton, 3f);
-                (_allButton.transform as RectTransform).sizeDelta = new Vector2(30f, 6f);
+                (_allButton.transform as RectTransform).sizeDelta = new Vector2(20f, 6f);
                 (_allButton.transform as RectTransform).anchoredPosition = new Vector2(-30f, 73f);
                 _allButton.onClick.RemoveAllListeners();
                 _allButton.onClick.AddListener(delegate ()
                 {
-                    ShowLevels(false);
+                    ShowLevels(SortMode.All);
                     SelectTopButtons(TopButtonsState.Select);
                 });
                 _allButton.gameObject.SetActive(false);
+
+            }
+
+            if (_newButton == null)
+            {
+                _newButton = BeatSaberUI.CreateUIButton((_tableViewRectTransform.parent as RectTransform), "ApplyButton");
+                BeatSaberUI.SetButtonText(_newButton, "Newest");
+                BeatSaberUI.SetButtonTextSize(_newButton, 3f);
+                (_newButton.transform as RectTransform).sizeDelta = new Vector2(20f, 6f);
+                (_newButton.transform as RectTransform).anchoredPosition = new Vector2(-10f, 73f);
+                _newButton.onClick.RemoveAllListeners();
+                _newButton.onClick.AddListener(delegate ()
+                {
+                    ShowLevels(SortMode.Newest);
+                    SelectTopButtons(TopButtonsState.Select);
+                });
+                _newButton.gameObject.SetActive(false);
 
             }
 
@@ -125,6 +147,7 @@ namespace BeatSaverDownloader.PluginUI
                         
                         _favButton.gameObject.SetActive(false);
                         _allButton.gameObject.SetActive(false);
+                        _newButton.gameObject.SetActive(false);
                     }; break;
                 case TopButtonsState.SortBy:
                     {
@@ -133,6 +156,7 @@ namespace BeatSaverDownloader.PluginUI
                         
                         _favButton.gameObject.SetActive(true);
                         _allButton.gameObject.SetActive(true);
+                        _newButton.gameObject.SetActive(true);
                     }; break;
                 case TopButtonsState.Search:
                     {
@@ -141,7 +165,7 @@ namespace BeatSaverDownloader.PluginUI
                         
                         _favButton.gameObject.SetActive(false);
                         _allButton.gameObject.SetActive(false);
-
+                        _newButton.gameObject.SetActive(false);
                     }; break;
 
 
@@ -174,17 +198,20 @@ namespace BeatSaverDownloader.PluginUI
             SearchForLevels(searchFor);
         }
 
-        void ShowLevels(bool onlyFavorites)
+        void ShowLevels(SortMode mode)
         {
             GameplayMode gameplayMode = ReflectionUtil.GetPrivateField<GameplayMode>(_songSelectionMasterViewController, "_gameplayMode");
 
-            if (onlyFavorites)
-            {
-                SetSongListLevels(PluginUI.GetLevels(gameplayMode).Where(x => PluginConfig.favoriteSongs.Contains(x.levelId)).ToArray());
-            }
-            else
-            {
-                SetSongListLevels(PluginUI.GetLevels(gameplayMode));
+            switch (mode) {
+                case SortMode.Favorites:
+                    SetSongListLevels(PluginUI.GetLevels(gameplayMode).Where(x => PluginConfig.favoriteSongs.Contains(x.levelId)).ToArray());
+                    break;
+                case SortMode.All:
+                    SetSongListLevels(PluginUI.GetLevels(gameplayMode));
+                    break;
+                case SortMode.Newest:
+                    SetSongListLevels(SortLevelsByCreationTime(gameplayMode));
+                    break;
             }
         }
 
@@ -194,6 +221,42 @@ namespace BeatSaverDownloader.PluginUI
 
             SetSongListLevels(PluginUI.GetLevels(gameplayMode).Where(x => $"{x.songName} {x.songSubName} {x.authorName}".ToLower().Contains(searchFor)).ToArray());
         }
+
+        LevelStaticData[] SortLevelsByCreationTime(GameplayMode gameplayMode)
+        {
+            DirectoryInfo customSongsFolder = new DirectoryInfo(Environment.CurrentDirectory.Replace('\\', '/') + "/CustomSongs/");
+
+            List<string> sortedFolders = customSongsFolder.GetDirectories().OrderByDescending(x => x.CreationTime.Ticks).Select(x => x.FullName.Replace('\\','/')).ToList();
+            
+            List<string> sortedLevelIDs = new List<string>();
+
+            foreach(string path in sortedFolders)
+            {
+                CustomSongInfo song = SongLoader.CustomSongInfos.FirstOrDefault(x => x.path.StartsWith(path));
+                if (song != null)
+                {
+                    sortedLevelIDs.Add(song.levelId);
+                }
+            }
+
+            List<LevelStaticData> notSorted = PluginUI.GetLevels(gameplayMode).ToList();
+
+            List<LevelStaticData> sortedLevels = new List<LevelStaticData>();
+
+            foreach(string levelId in sortedLevelIDs)
+            {
+                LevelStaticData data = notSorted.FirstOrDefault(x => x.levelId == levelId);
+                if (data != null)
+                {
+                    sortedLevels.Add(data);
+                }
+            }
+
+            sortedLevels.AddRange(notSorted.Except(sortedLevels));
+
+            return sortedLevels.ToArray();
+        }
+
 
         void SetSongListLevels(LevelStaticData[] levels)
         {
