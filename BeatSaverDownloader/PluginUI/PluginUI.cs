@@ -295,13 +295,16 @@ namespace BeatSaverDownloader.PluginUI
 
         IEnumerator DeleteSong(string levelId)
         {
-
-            LevelStaticData[] _levelsForGamemode = GetLevels(_gameplayMode);
+            LevelStaticData[] _levelsForGamemode = ReflectionUtil.GetPrivateField<LevelStaticData[]>(ReflectionUtil.GetPrivateField<SongListViewController>(_songSelectionMasterViewController, "_songListViewController"), "_levelsStaticData");
 
             if (levelId.Length > 32 && _levelsForGamemode.Count(x => x.levelId == levelId) > 0)
             {
-                
-                string nextLevelId = _levelsForGamemode[_levelsForGamemode.ToList().FindIndex(x => x.levelId == levelId)-1].levelId;
+
+                int currentSongIndex = _levelsForGamemode.ToList().FindIndex(x => x.levelId == levelId);
+
+                currentSongIndex += (currentSongIndex == 0) ? 1 : -1;
+
+                string nextLevelId = _levelsForGamemode[currentSongIndex].levelId;
                 
                 bool zippedSong = false;
                 _deleting = true;
@@ -383,16 +386,12 @@ namespace BeatSaverDownloader.PluginUI
                     SetLevels(GameplayMode.SoloStandard, prevSoloLevels.ToArray());
                     SetLevels(GameplayMode.SoloOneSaber, prevOneSaberLevels.ToArray());
 
+                    _tweaks.ShowLevels(SongListUITweaks.lastSortMode);
+
                     SongListViewController songListViewController = ReflectionUtil.GetPrivateField<SongListViewController>(_songSelectionMasterViewController, "_songListViewController");
-
-                    ReflectionUtil.SetPrivateField(songListViewController.GetComponentInChildren<SongListTableView>(), "_levels", GetLevels( _gameplayMode));
-                    ReflectionUtil.SetPrivateField(songListViewController, "_levelsStaticData", GetLevels(_gameplayMode));
-
-                    TableView _songListTableView = songListViewController.GetComponentInChildren<TableView>(); 
-                    _songListTableView.ReloadData();
-
+                    
+                    TableView _songListTableView = songListViewController.GetComponentInChildren<TableView>();
                     int row = RowNumberForLevelID(songListViewController.GetComponentInChildren<SongListTableView>(), nextLevelId);
-                    _songListTableView.SelectRow(row);
                     _songListTableView.ScrollToRow(row, true);
 
                 }

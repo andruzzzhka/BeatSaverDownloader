@@ -15,7 +15,7 @@ namespace BeatSaverDownloader.PluginUI
 
     class SongListUITweaks : MonoBehaviour
     {
-        static SortMode lastSortMode = SortMode.All;
+        public static SortMode lastSortMode = SortMode.All;
 
         SearchKeyboardViewController _searchViewController;
 
@@ -203,7 +203,7 @@ namespace BeatSaverDownloader.PluginUI
             SearchForLevels(searchFor);
         }
 
-        void ShowLevels(SortMode mode)
+        public void ShowLevels(SortMode mode)
         {
             lastSortMode = mode;
             GameplayMode gameplayMode = ReflectionUtil.GetPrivateField<GameplayMode>(_songSelectionMasterViewController, "_gameplayMode");
@@ -264,7 +264,7 @@ namespace BeatSaverDownloader.PluginUI
         }
 
 
-        void SetSongListLevels(LevelStaticData[] levels)
+        void SetSongListLevels(LevelStaticData[] levels, int scrollTo = 0)
         {
             SongListViewController songListViewController = ReflectionUtil.GetPrivateField<SongListViewController>(_songSelectionMasterViewController, "_songListViewController");
 
@@ -273,7 +273,7 @@ namespace BeatSaverDownloader.PluginUI
 
             TableView _songListTableView = songListViewController.GetComponentInChildren<TableView>();
             _songListTableView.ReloadData();
-            _songListTableView.ScrollToRow(0, true);
+            _songListTableView.ScrollToRow(scrollTo, true);
         }
 
     }
