@@ -28,6 +28,7 @@ namespace BeatSaverDownloader.PluginUI
         //BeastSaberReviewViewController reviewViewController;
 
         private string levelId;
+        private bool firstVote;
 
         public IEnumerator WaitForResults()
         {
@@ -99,6 +100,8 @@ namespace BeatSaverDownloader.PluginUI
                 {
                     try
                     {
+                        firstVote = true;
+
                         JSONNode node = JSON.Parse(www.downloadHandler.text);
 
                         votingSong = Song.FromSearchNode(node["songs"][0]);
@@ -148,33 +151,39 @@ namespace BeatSaverDownloader.PluginUI
             }
             else
             {
+                if (!firstVote)
+                {
+                    yield return new WaitForSecondsRealtime(3f);
+                }
+
+                firstVote = false;
+
                 upvoteButton.interactable = true;
                 downvoteButton.interactable = true;
-
-                int parsedInt;
-
-                if (int.TryParse(voteWWW.downloadHandler.text, out parsedInt))
+                
+                switch (voteWWW.responseCode)
                 {
-                    switch (parsedInt)
-                    {
-                        case 0:
-                            {
-                                ratingText.text = ((int.Parse(votingSong.upvotes) - int.Parse(votingSong.downvotes)) + (upvote ? 1 : -1)).ToString();
-                            }; break;
-                        case 2: break;
-                        case 1:
-                            {
-                                ratingText.text = "Error";
-                            }; break;
-                        default:
-                            {
-                                ratingText.text = "Fatal error";
-                            }; break;
-                    }
-                }
-                else
-                {
-                    ratingText.text = voteWWW.downloadHandler.text;
+                    case 200:
+                        {
+                            JSONNode node = JSON.Parse(voteWWW.downloadHandler.text);
+                            ratingText.text = ((node["upvotes"].AsInt - node["downvotes"].AsInt) + (upvote ? 1 : -1)).ToString();
+                        }; break;
+                    case 403:
+                        {
+                            ratingText.text = "Read-only token";
+                        }; break;
+                    case 401:
+                        {
+                            ratingText.text = "Token not found";
+                        }; break;
+                    case 400:
+                        {
+                            ratingText.text = "Bad token";
+                        };break;
+                    default:
+                        {
+                            ratingText.text = "Error "+voteWWW.responseCode;
+                        }; break;
                 }
             }
 
