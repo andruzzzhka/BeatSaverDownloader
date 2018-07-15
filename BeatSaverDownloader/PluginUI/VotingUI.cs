@@ -137,7 +137,7 @@ namespace BeatSaverDownloader.PluginUI
             upvoteButton.interactable = false;
             downvoteButton.interactable = false;
             
-            UnityWebRequest voteWWW = UnityWebRequest.Get($"{PluginConfig.beatsaverURL}/vote/{votingSong.id}/{(upvote ? 1 : 0)}/{PluginConfig.apiAccessToken}");
+            UnityWebRequest voteWWW = UnityWebRequest.Get($"{PluginConfig.beatsaverURL}/api/songs/vote/{votingSong.id}/{(upvote ? 1 : 0)}/{PluginConfig.apiAccessToken}");
             voteWWW.timeout = 30;
             yield return voteWWW.SendWebRequest();
 
