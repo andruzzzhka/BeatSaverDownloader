@@ -166,7 +166,7 @@ namespace BeatSaverDownloader.PluginUI
                     case 200:
                         {
                             JSONNode node = JSON.Parse(voteWWW.downloadHandler.text);
-                            ratingText.text = ((node["upvotes"].AsInt - node["downvotes"].AsInt) + (upvote ? 1 : -1)).ToString();
+                            ratingText.text = (int.Parse(node["upVotes"]) - int.Parse(node["downVotes"])).ToString();
                         }; break;
                     case 403:
                         {
