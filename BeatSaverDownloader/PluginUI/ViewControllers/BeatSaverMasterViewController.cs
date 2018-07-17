@@ -308,7 +308,7 @@ namespace BeatSaverDownloader.PluginUI
                     docPath = docPath.Substring(0, docPath.Length - 5);
                     docPath = docPath.Substring(0, docPath.LastIndexOf("/"));
                     customSongsPath = docPath + "/CustomSongs/" + songInfo.id +"/";
-                    zipPath = customSongsPath + songInfo.beatname + ".zip";
+                    zipPath = customSongsPath + songInfo.id + ".zip";
                     if (!Directory.Exists(customSongsPath)) {
                         Directory.CreateDirectory(customSongsPath);
                     }
