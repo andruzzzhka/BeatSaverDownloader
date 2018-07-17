@@ -1,11 +1,13 @@
 ﻿using BeatSaverDownloader.Misc;
 using HMUI;
+using ICSharpCode.SharpZipLib.Zip;
 using SimpleJSON;
 using SongLoaderPlugin;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
@@ -182,8 +184,7 @@ namespace BeatSaverDownloader.PluginUI
         {
             _songs.Clear();
             _songListViewController._songsTableView.ReloadData();
-
-            log.Log($"{PluginConfig.beatsaverURL}/api/songs/search/all/{search}");
+            
             UnityWebRequest www = UnityWebRequest.Get($"{PluginConfig.beatsaverURL}/api/songs/search/all/{search}");
 
             www.timeout = 30;
@@ -297,9 +298,11 @@ namespace BeatSaverDownloader.PluginUI
                 string zipPath = "";
                 string docPath = "";
                 string customSongsPath = "";
+
+                byte[] data = www.downloadHandler.data;
+
                 try
                 {
-                    byte[] data = www.downloadHandler.data;
 
                     docPath = Application.dataPath;
                     docPath = docPath.Substring(0, docPath.Length - 5);
@@ -317,13 +320,19 @@ namespace BeatSaverDownloader.PluginUI
                     songInfo.songQueueState = SongQueueState.Error;
                     yield break;
                 }
-                
 
                 log.Log("Extracting...");
-                
-                Unzip zip = new Unzip(zipPath);
-                zip.ExtractToDirectory(customSongsPath);
-                zip.Dispose();
+
+                try
+                { 
+
+                    FastZip zip = new FastZip();
+                    zip.ExtractZip(zipPath, customSongsPath, null);
+                }
+                catch(Exception e)
+                {
+                    log.Exception($"Can't extract ZIP! Exception: {e}");
+                }
 
                 if (Directory.GetDirectories(customSongsPath).Length > 0)
                 {
