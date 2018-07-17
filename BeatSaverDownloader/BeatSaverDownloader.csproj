@@ -120,13 +120,12 @@
     <Compile Include="Misc\BeatSaverAPIResult.cs" />
     <Compile Include="Misc\LoadScripts.cs" />
     <Compile Include="Misc\PluginConfig.cs" />
-    <Compile Include="Misc\Zip\Checksum\Adler32.cs" />
-    <Compile Include="Misc\Zip\Checksum\BZip2Crc.cs" />
-    <Compile Include="Misc\Zip\Checksum\Crc32.cs" />
-    <Compile Include="Misc\Zip\Checksum\IChecksum.cs" />
+    <Compile Include="Misc\Zip\Checksums\Adler32.cs" />
+    <Compile Include="Misc\Zip\Checksums\CRC32.cs" />
+    <Compile Include="Misc\Zip\Checksums\IChecksum.cs" />
+    <Compile Include="Misc\Zip\Checksums\StrangeCRC.cs" />
     <Compile Include="Misc\Zip\Core\FileSystemScanner.cs" />
     <Compile Include="Misc\Zip\Core\INameTransform.cs" />
-    <Compile Include="Misc\Zip\Core\InvalidNameException.cs" />
     <Compile Include="Misc\Zip\Core\IScanFilter.cs" />
     <Compile Include="Misc\Zip\Core\NameFilter.cs" />
     <Compile Include="Misc\Zip\Core\PathFilter.cs" />
@@ -184,12 +183,6 @@
     <Compile Include="UIFramework\BeatSaberUI.cs" />
     <Compile Include="PluginUI\ViewControllers\SearchKeyboardViewController.cs" />
     <Compile Include="Misc\SimpleJSON.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Misc\Zip\ICSharpCode.SharpZipLib.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Misc\Zip\ICSharpCode.SharpZipLib.snk" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

@@ -1,5 +1,43 @@
+// ZipEntryFactory.cs
+//
+// Copyright 2006 John Reilly
+//
+// Copyright (C) 2001 Free Software Foundation, Inc.
+//
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the Free Software
+// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+//
+// Linking this library statically or dynamically with other modules is
+// making a combined work based on this library.  Thus, the terms and
+// conditions of the GNU General Public License cover the whole
+// combination.
+// 
+// As a special exception, the copyright holders of this library give you
+// permission to link this library with independent modules to produce an
+// executable, regardless of the license terms of these independent
+// modules, and to copy and distribute the resulting executable under
+// terms of your choice, provided that you also meet, for each linked
+// independent module, the terms and conditions of the license of that
+// module.  An independent module is a module which is not derived from
+// or based on this library.  If you modify this library, you may extend
+// this exception to your version of the library, but you are not
+// obligated to do so.  If you do not wish to do so, delete this
+// exception statement from your version.
+
 using System;
 using System.IO;
+
 using ICSharpCode.SharpZipLib.Core;
 
 namespace ICSharpCode.SharpZipLib.Zip
@@ -91,12 +129,15 @@ namespace ICSharpCode.SharpZipLib.Zip
 		/// <remarks>
 		/// Setting this property to null will cause a default <see cref="ZipNameTransform">name transform</see> to be used.
 		/// </remarks>
-		public INameTransform NameTransform {
+		public INameTransform NameTransform
+		{
 			get { return nameTransform_; }
-			set {
+			set 
+			{
 				if (value == null) {
 					nameTransform_ = new ZipNameTransform();
-				} else {
+				}
+				else {
 					nameTransform_ = value;
 				}
 			}
@@ -105,7 +146,8 @@ namespace ICSharpCode.SharpZipLib.Zip
 		/// <summary>
 		/// Get / set the <see cref="TimeSetting"/> in use.
 		/// </summary>
-		public TimeSetting Setting {
+		public TimeSetting Setting
+		{
 			get { return timeSetting_; }
 			set { timeSetting_ = value; }
 		}
@@ -113,11 +155,13 @@ namespace ICSharpCode.SharpZipLib.Zip
 		/// <summary>
 		/// Get / set the <see cref="DateTime"/> value to use when <see cref="Setting"/> is set to <see cref="TimeSetting.Fixed"/>
 		/// </summary>
-		public DateTime FixedDateTime {
+		public DateTime FixedDateTime
+		{
 			get { return fixedDateTime_; }
-			set {
+			set
+			{
 				if (value.Year < 1970) {
-					throw new ArgumentException("Value is too old to be valid", nameof(value));
+					throw new ArgumentException("Value is too old to be valid", "value");
 				}
 				fixedDateTime_ = value;
 			}
@@ -127,7 +171,8 @@ namespace ICSharpCode.SharpZipLib.Zip
 		/// A bitmask defining the attributes to be retrieved from the actual file.
 		/// </summary>
 		/// <remarks>The default is to get all possible attributes from the actual file.</remarks>
-		public int GetAttributes {
+		public int GetAttributes
+		{
 			get { return getAttributes_; }
 			set { getAttributes_ = value; }
 		}
@@ -136,7 +181,8 @@ namespace ICSharpCode.SharpZipLib.Zip
 		/// A bitmask defining which attributes are to be set on.
 		/// </summary>
 		/// <remarks>By default no attributes are set on.</remarks>
-		public int SetAttributes {
+		public int SetAttributes
+		{
 			get { return setAttributes_; }
 			set { setAttributes_ = value; }
 		}
@@ -144,7 +190,8 @@ namespace ICSharpCode.SharpZipLib.Zip
 		/// <summary>
 		/// Get set a value indicating wether unidoce text should be set on.
 		/// </summary>
-		public bool IsUnicodeText {
+		public bool IsUnicodeText
+		{
 			get { return isUnicodeText_; }
 			set { isUnicodeText_ = value; }
 		}
@@ -160,48 +207,43 @@ namespace ICSharpCode.SharpZipLib.Zip
 		/// <returns>Returns a new <see cref="ZipEntry"/> based on the <paramref name="fileName"/>.</returns>
 		public ZipEntry MakeFileEntry(string fileName)
 		{
-			return MakeFileEntry(fileName, null, true);
-		}
-
-		/// <summary>
-		/// Make a new <see cref="ZipEntry"/> for a file.
-		/// </summary>
-		/// <param name="fileName">The name of the file to create a new entry for.</param>
-		/// <param name="useFileSystem">If true entry detail is retrieved from the file system if the file exists.</param>
-		/// <returns>Returns a new <see cref="ZipEntry"/> based on the <paramref name="fileName"/>.</returns>
-		public ZipEntry MakeFileEntry(string fileName, bool useFileSystem)
-		{
-			return MakeFileEntry(fileName, null, useFileSystem);
+			return MakeFileEntry(fileName, true);
 		}
 
 		/// <summary>
 		/// Make a new <see cref="ZipEntry"/> from a name.
 		/// </summary>
 		/// <param name="fileName">The name of the file to create a new entry for.</param>
-		/// <param name="entryName">An alternative name to be used for the new entry. Null if not applicable.</param>
 		/// <param name="useFileSystem">If true entry detail is retrieved from the file system if the file exists.</param>
 		/// <returns>Returns a new <see cref="ZipEntry"/> based on the <paramref name="fileName"/>.</returns>
-		public ZipEntry MakeFileEntry(string fileName, string entryName, bool useFileSystem)
+		public ZipEntry MakeFileEntry(string fileName, bool useFileSystem)
 		{
-			var result = new ZipEntry(nameTransform_.TransformFile(!string.IsNullOrEmpty(entryName) ? entryName : fileName));
+			ZipEntry result = new ZipEntry(nameTransform_.TransformFile(fileName));
 			result.IsUnicodeText = isUnicodeText_;
 
 			int externalAttributes = 0;
 			bool useAttributes = (setAttributes_ != 0);
 
 			FileInfo fi = null;
-			if (useFileSystem) {
+			if (useFileSystem)
+			{
 				fi = new FileInfo(fileName);
 			}
 
-			if ((fi != null) && fi.Exists) {
-				switch (timeSetting_) {
+			if ((fi != null) && fi.Exists)
+			{
+				switch (timeSetting_)
+				{
 					case TimeSetting.CreateTime:
 						result.DateTime = fi.CreationTime;
 						break;
 
 					case TimeSetting.CreateTimeUtc:
+#if NETCF_1_0 || NETCF_2_0
+						result.DateTime = fi.CreationTime.ToUniversalTime();
+#else
 						result.DateTime = fi.CreationTimeUtc;
+#endif
 						break;
 
 					case TimeSetting.LastAccessTime:
@@ -209,7 +251,11 @@ namespace ICSharpCode.SharpZipLib.Zip
 						break;
 
 					case TimeSetting.LastAccessTimeUtc:
+#if NETCF_1_0 || NETCF_2_0
+						result.DateTime = fi.LastAccessTime.ToUniversalTime();
+#else
 						result.DateTime = fi.LastAccessTimeUtc;
+#endif
 						break;
 
 					case TimeSetting.LastWriteTime:
@@ -217,7 +263,11 @@ namespace ICSharpCode.SharpZipLib.Zip
 						break;
 
 					case TimeSetting.LastWriteTimeUtc:
+#if NETCF_1_0 || NETCF_2_0
+						result.DateTime = fi.LastWriteTime.ToUniversalTime();
+#else
 						result.DateTime = fi.LastWriteTimeUtc;
+#endif
 						break;
 
 					case TimeSetting.Fixed:
@@ -232,17 +282,21 @@ namespace ICSharpCode.SharpZipLib.Zip
 
 				useAttributes = true;
 				externalAttributes = ((int)fi.Attributes & getAttributes_);
-			} else {
-				if (timeSetting_ == TimeSetting.Fixed) {
+			}
+			else
+			{
+				if (timeSetting_ == TimeSetting.Fixed)
+				{
 					result.DateTime = fixedDateTime_;
 				}
 			}
 
-			if (useAttributes) {
+			if (useAttributes)
+			{
 				externalAttributes |= setAttributes_;
 				result.ExternalFileAttributes = externalAttributes;
 			}
-
+			
 			return result;
 		}
 
@@ -264,28 +318,35 @@ namespace ICSharpCode.SharpZipLib.Zip
 		/// <returns>Returns a new <see cref="ZipEntry"></see> representing a directory.</returns>
 		public ZipEntry MakeDirectoryEntry(string directoryName, bool useFileSystem)
 		{
-
-			var result = new ZipEntry(nameTransform_.TransformDirectory(directoryName));
-			result.IsUnicodeText = isUnicodeText_;
-			result.Size = 0;
-
+			
+			ZipEntry result = new ZipEntry(nameTransform_.TransformDirectory(directoryName));
+            result.IsUnicodeText = isUnicodeText_;
+            result.Size = 0;
+			
 			int externalAttributes = 0;
 
 			DirectoryInfo di = null;
 
-			if (useFileSystem) {
+			if (useFileSystem)
+			{
 				di = new DirectoryInfo(directoryName);
 			}
 
 
-			if ((di != null) && di.Exists) {
-				switch (timeSetting_) {
+			if ((di != null) && di.Exists)
+			{
+				switch (timeSetting_)
+				{
 					case TimeSetting.CreateTime:
 						result.DateTime = di.CreationTime;
 						break;
 
 					case TimeSetting.CreateTimeUtc:
+#if NETCF_1_0 || NETCF_2_0
+						result.DateTime = di.CreationTime.ToUniversalTime();
+#else
 						result.DateTime = di.CreationTimeUtc;
+#endif
 						break;
 
 					case TimeSetting.LastAccessTime:
@@ -293,7 +354,11 @@ namespace ICSharpCode.SharpZipLib.Zip
 						break;
 
 					case TimeSetting.LastAccessTimeUtc:
+#if NETCF_1_0 || NETCF_2_0
+						result.DateTime = di.LastAccessTime.ToUniversalTime();
+#else
 						result.DateTime = di.LastAccessTimeUtc;
+#endif
 						break;
 
 					case TimeSetting.LastWriteTime:
@@ -301,7 +366,11 @@ namespace ICSharpCode.SharpZipLib.Zip
 						break;
 
 					case TimeSetting.LastWriteTimeUtc:
+#if NETCF_1_0 || NETCF_2_0
+						result.DateTime = di.LastWriteTime.ToUniversalTime();
+#else
 						result.DateTime = di.LastWriteTimeUtc;
+#endif
 						break;
 
 					case TimeSetting.Fixed:
@@ -313,8 +382,11 @@ namespace ICSharpCode.SharpZipLib.Zip
 				}
 
 				externalAttributes = ((int)di.Attributes & getAttributes_);
-			} else {
-				if (timeSetting_ == TimeSetting.Fixed) {
+			}
+			else
+			{
+				if (timeSetting_ == TimeSetting.Fixed)
+				{
 					result.DateTime = fixedDateTime_;
 				}
 			}
@@ -325,7 +397,7 @@ namespace ICSharpCode.SharpZipLib.Zip
 
 			return result;
 		}
-
+		
 		#endregion
 
 		#region Instance Fields

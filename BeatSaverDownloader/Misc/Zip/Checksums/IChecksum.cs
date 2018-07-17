@@ -1,9 +1,8 @@
-// ZipException.cs
-//
+// IChecksum.cs - Interface to compute a data checksum
 // Copyright (C) 2001 Mike Krueger
 //
 // This file was translated from java, it was part of the GNU Classpath
-// Copyright (C) 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
+// Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -36,59 +35,59 @@
 // obligated to do so.  If you do not wish to do so, delete this
 // exception statement from your version.
 
-using System;
-
-#if !NETCF_1_0 && !NETCF_2_0
-using System.Runtime.Serialization;
-#endif
-
-namespace ICSharpCode.SharpZipLib.Zip 
+namespace ICSharpCode.SharpZipLib.Checksums 
 {
 	
 	/// <summary>
-	/// Represents exception conditions specific to Zip archive handling
+	/// Interface to compute a data checksum used by checked input/output streams.
+	/// A data checksum can be updated by one byte or with a byte array. After each
+	/// update the value of the current checksum can be returned by calling
+	/// <code>getValue</code>. The complete checksum object can also be reset
+	/// so it can be used again with new data.
 	/// </summary>
-#if !NETCF_1_0 && !NETCF_2_0
-	[Serializable]
-#endif
-	public class ZipException : SharpZipBaseException
+	public interface IChecksum
 	{
-#if !NETCF_1_0 && !NETCF_2_0
 		/// <summary>
-		/// Deserialization constructor 
+		/// Returns the data checksum computed so far.
 		/// </summary>
-		/// <param name="info"><see cref="SerializationInfo"/> for this constructor</param>
-		/// <param name="context"><see cref="StreamingContext"/> for this constructor</param>
-		protected ZipException(SerializationInfo info, StreamingContext context )
-			: base( info, context )
+		long Value 
 		{
-		}
-#endif
-
-		/// <summary>
-		/// Initializes a new instance of the ZipException class.
-		/// </summary>
-		public ZipException()
-		{
+			get;
 		}
 		
 		/// <summary>
-		/// Initializes a new instance of the ZipException class with a specified error message.
+		/// Resets the data checksum as if no update was ever called.
 		/// </summary>
-		/// <param name="message">The error message that explains the reason for the exception.</param>
-		public ZipException(string message)
-			: base(message)
-		{
-		}
-
+		void Reset();
+		
 		/// <summary>
-		/// Initialise a new instance of ZipException.
+		/// Adds one byte to the data checksum.
 		/// </summary>
-		/// <param name="message">A message describing the error.</param>
-		/// <param name="exception">The exception that is the cause of the current exception.</param>
-		public ZipException(string message, Exception exception)
-			: base(message, exception)
-		{
-		}
+		/// <param name = "value">
+		/// the data value to add. The high byte of the int is ignored.
+		/// </param>
+		void Update(int value);
+		
+		/// <summary>
+		/// Updates the data checksum with the bytes taken from the array.
+		/// </summary>
+		/// <param name="buffer">
+		/// buffer an array of bytes
+		/// </param>
+		void Update(byte[] buffer);
+		
+		/// <summary>
+		/// Adds the byte array to the data checksum.
+		/// </summary>
+		/// <param name = "buffer">
+		/// The buffer which contains the data
+		/// </param>
+		/// <param name = "offset">
+		/// The offset in the buffer where the data starts
+		/// </param>
+		/// <param name = "count">
+		/// the number of data bytes to add.
+		/// </param>
+		void Update(byte[] buffer, int offset, int count);
 	}
 }
