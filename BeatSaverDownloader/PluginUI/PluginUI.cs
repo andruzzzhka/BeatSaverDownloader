@@ -1,6 +1,7 @@
 ﻿using HMUI;
 using SimpleJSON;
 using SongLoaderPlugin;
+using SongLoaderPlugin.OverrideClasses;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -17,7 +18,7 @@ namespace BeatSaverDownloader.PluginUI
 {
     class PluginUI : MonoBehaviour
     {
-        static PluginUI _instance;
+        public static PluginUI _instance;
         private VotingUI _votingUI;
         private SongListUITweaks _tweaks;
 
@@ -26,12 +27,12 @@ namespace BeatSaverDownloader.PluginUI
         public BeatSaverMasterViewController _beatSaverViewController;
         
         private RectTransform _mainMenuRectTransform;
-        private SongSelectionMasterViewController _songSelectionMasterViewController;
+        private StandardLevelSelectionFlowCoordinator _standardLevelSelectionFlowCoordinator;
         private GameplayMode _gameplayMode;
 
         private MainMenuViewController _mainMenuViewController;
 
-        private SongDetailViewController _songDetailViewController;
+        private StandardLevelDetailViewController _songDetailViewController;
 
         private Button _deleteButton;
         private Button _playButton;
@@ -41,6 +42,8 @@ namespace BeatSaverDownloader.PluginUI
         public static string playerId;
 
         private bool isDeleting;
+        public LevelCollectionsForGameplayModes _levelCollections;
+        public List<LevelCollectionsForGameplayModes.LevelCollectionForGameplayMode> _levelCollectionsForGameModes;
 
         private bool _deleting
         {
@@ -77,7 +80,7 @@ namespace BeatSaverDownloader.PluginUI
 
         public void Start()
         {
-            playerId = ReflectionUtil.GetPrivateField<string>(PersistentSingleton<LeaderboardsModel>.instance, "_playerId");
+            playerId = ReflectionUtil.GetPrivateField<string>(PersistentSingleton<PlatformLeaderboardsModel>.instance, "_playerId");
             
             StartCoroutine(_votingUI.WaitForResults());
             if (!PluginConfig.disableSongListTweaks)
@@ -86,17 +89,20 @@ namespace BeatSaverDownloader.PluginUI
                 StartCoroutine(WaitForSongListUI());
             }
 
+            SongLoader.SongsLoadedEvent += SongLoader_SongsLoadedEvent;
+
+
             try
             {
                 _mainMenuViewController = Resources.FindObjectsOfTypeAll<MainMenuViewController>().First();
                 _mainMenuRectTransform = _mainMenuViewController.transform as RectTransform;
 
-                _songSelectionMasterViewController = Resources.FindObjectsOfTypeAll<SongSelectionMasterViewController>().First();
-                _gameplayMode = ReflectionUtil.GetPrivateField<GameplayMode>(_songSelectionMasterViewController, "_gameplayMode");
+                _standardLevelSelectionFlowCoordinator = Resources.FindObjectsOfTypeAll<StandardLevelSelectionFlowCoordinator>().First();
+                _gameplayMode = ReflectionUtil.GetPrivateField<GameplayMode>(_standardLevelSelectionFlowCoordinator, "_gameplayMode");
 
                 if (!PluginConfig.disableSongListTweaks)
                 {
-                    ReflectionUtil.GetPrivateField<SongListViewController>(_songSelectionMasterViewController, "_songListViewController").didSelectSongEvent += PluginUI_didSelectSongEvent;
+                    ReflectionUtil.GetPrivateField<StandardLevelListViewController>(_standardLevelSelectionFlowCoordinator, "_levelListViewController").didSelectLevelEvent += PluginUI_didSelectSongEvent;
                 }
 
                 CreateBeatSaverButton();
@@ -107,48 +113,15 @@ namespace BeatSaverDownloader.PluginUI
             }
         }
 
-        public static LevelStaticData[] GetLevels(GameplayMode mode)
+        private void SongLoader_SongsLoadedEvent(SongLoader arg1, List<CustomLevel> arg2)
         {
-            switch (mode)
-            {
-                case GameplayMode.SoloStandard:
-                case GameplayMode.SoloNoArrows:
-                case GameplayMode.PartyStandard:
-                    {
-                        return PersistentSingleton<GameDataModel>.instance.gameStaticData.worldsData[0].levelsData;
-                    }
-                case GameplayMode.SoloOneSaber:
-                    {
-                        return PersistentSingleton<GameDataModel>.instance.gameStaticData.worldsData[1].levelsData;
-                    }
-                default:
-                    {
-                        return new LevelStaticData[0];
-                    }
-            }
+            _levelCollections = Resources.FindObjectsOfTypeAll<LevelCollectionsForGameplayModes>().FirstOrDefault();
+            _levelCollectionsForGameModes = ReflectionUtil.GetPrivateField<LevelCollectionsForGameplayModes.LevelCollectionForGameplayMode[]>(_levelCollections, "_collections").ToList();
         }
 
-        public static void SetLevels(GameplayMode mode, LevelStaticData[] levels)
+        private void PluginUI_didSelectSongEvent(StandardLevelListViewController sender, IStandardLevel level)
         {
-            switch (mode)
-            {
-                case GameplayMode.SoloStandard:
-                case GameplayMode.SoloNoArrows:
-                case GameplayMode.PartyStandard:
-                    {
-                        ReflectionUtil.SetPrivateField(PersistentSingleton<GameDataModel>.instance.gameStaticData.worldsData[0], "_levelsData", levels);
-                    }break;
-                case GameplayMode.SoloOneSaber:
-                    {
-                        ReflectionUtil.SetPrivateField(PersistentSingleton<GameDataModel>.instance.gameStaticData.worldsData[1], "_levelsData", levels);
-                    }
-                    break;
-            }
-        }
-
-        private void PluginUI_didSelectSongEvent(SongListViewController sender)
-        {
-            UpdateDetailsUI(sender, sender.levelId);
+            UpdateDetailsUI(sender, level.levelID);
         }
 
         public void Update()
@@ -163,11 +136,12 @@ namespace BeatSaverDownloader.PluginUI
         {
             log.Log("Waiting for song list...");
 
-            yield return new WaitUntil(delegate () { return Resources.FindObjectsOfTypeAll<SongSelectionMasterViewController>().Count() > 0; });
+            yield return new WaitUntil(delegate () { return Resources.FindObjectsOfTypeAll<StandardLevelSelectionFlowCoordinator>().Any(); });
+
+            log.Log("Found song list!");
 
             _tweaks.SongListUIFound();
 
-            log.Log("Found song list!");
         }
 
         private void _votingUI_continuePressed(string selectedLevelId)
@@ -175,7 +149,7 @@ namespace BeatSaverDownloader.PluginUI
             UpdateDetailsUI(null, selectedLevelId);
         }
 
-        private void UpdateDetailsUI(SongListViewController sender, string selectedLevel)
+        private void UpdateDetailsUI(StandardLevelListViewController sender, string selectedLevel)
         {
 
             if (_deleting)
@@ -186,7 +160,7 @@ namespace BeatSaverDownloader.PluginUI
 
             if (_songDetailViewController == null)
             {
-                _songDetailViewController = ReflectionUtil.GetPrivateField<SongDetailViewController>(_songSelectionMasterViewController, "_songDetailViewController");
+                _songDetailViewController = ReflectionUtil.GetPrivateField<StandardLevelDetailViewController>(_standardLevelSelectionFlowCoordinator, "_levelDetailViewController");
                 
             }
 
@@ -295,21 +269,21 @@ namespace BeatSaverDownloader.PluginUI
 
         IEnumerator DeleteSong(string levelId)
         {
-            LevelStaticData[] _levelsForGamemode = ReflectionUtil.GetPrivateField<LevelStaticData[]>(ReflectionUtil.GetPrivateField<SongListViewController>(_songSelectionMasterViewController, "_songListViewController"), "_levelsStaticData");
+            IStandardLevel[] _levelsForGamemode = ReflectionUtil.GetPrivateField<IStandardLevel[]>(ReflectionUtil.GetPrivateField<StandardLevelListViewController>(_standardLevelSelectionFlowCoordinator, "_levelListViewController"), "_levels");
 
-            if (levelId.Length > 32 && _levelsForGamemode.Count(x => x.levelId == levelId) > 0)
+            if (levelId.Length > 32 && _levelsForGamemode.Any(x => x.levelID == levelId) )
             {
 
-                int currentSongIndex = _levelsForGamemode.ToList().FindIndex(x => x.levelId == levelId);
+                int currentSongIndex = _levelsForGamemode.ToList().FindIndex(x => x.levelID == levelId);
 
                 currentSongIndex += (currentSongIndex == 0) ? 1 : -1;
 
-                string nextLevelId = _levelsForGamemode[currentSongIndex].levelId;
+                string nextLevelId = _levelsForGamemode[currentSongIndex].levelID;
                 
                 bool zippedSong = false;
                 _deleting = true;
 
-                string _songPath = SongLoader.CustomSongInfos.First(x => x.levelId == levelId).path;
+                string _songPath = SongLoader.CustomLevels.First(x => x.levelID == levelId).customSongInfo.path;
 
                 if (!string.IsNullOrEmpty(_songPath) && _songPath.Contains("/.cache/"))
                 {
@@ -377,21 +351,18 @@ namespace BeatSaverDownloader.PluginUI
                         }
                     }
 
-                    var prevSoloLevels = GetLevels(GameplayMode.SoloStandard).ToList();
-                    var prevOneSaberLevels = GetLevels(GameplayMode.SoloOneSaber).ToList();
-                
-                    prevSoloLevels.RemoveAll(x => x.levelId == levelId);
-                    prevOneSaberLevels.RemoveAll(x => x.levelId == levelId);
+                    SongLoader.Instance.RemoveSongWithLevelID(levelId);
 
-                    SetLevels(GameplayMode.SoloStandard, prevSoloLevels.ToArray());
-                    SetLevels(GameplayMode.SoloOneSaber, prevOneSaberLevels.ToArray());
+                    StandardLevelListViewController songListViewController = ReflectionUtil.GetPrivateField<StandardLevelListViewController>(_standardLevelSelectionFlowCoordinator, "_levelListViewController");
 
-                    _tweaks.ShowLevels(SongListUITweaks.lastSortMode);
+                    ReflectionUtil.SetPrivateField(songListViewController.GetComponentInChildren<StandardLevelListTableView>(), "_levels", _tweaks.GetSortedLevels(SongListUITweaks.lastSortMode));
+                    ReflectionUtil.SetPrivateField(songListViewController, "_levels", _tweaks.GetSortedLevels(SongListUITweaks.lastSortMode));
 
-                    SongListViewController songListViewController = ReflectionUtil.GetPrivateField<SongListViewController>(_songSelectionMasterViewController, "_songListViewController");
-                    
                     TableView _songListTableView = songListViewController.GetComponentInChildren<TableView>();
-                    int row = RowNumberForLevelID(songListViewController.GetComponentInChildren<SongListTableView>(), nextLevelId);
+                    _songListTableView.ReloadData();
+
+                    int row = songListViewController.GetComponentInChildren<StandardLevelListTableView>().RowNumberForLevelID(nextLevelId);
+                    _songListTableView.SelectRow(row, true);
                     _songListTableView.ScrollToRow(row, true);
 
                 }
@@ -403,20 +374,7 @@ namespace BeatSaverDownloader.PluginUI
             {
                 yield return null;
             }
-
-        }
-
-        public int RowNumberForLevelID(SongListTableView list, string levelID)
-        {
-            LevelStaticData[] _levels = ReflectionUtil.GetPrivateField<LevelStaticData[]>(list, "_levels");
-            for (int i = 0; i < _levels.Length; i++)
-            {
-                if (_levels[i].levelId == levelID)
-                {
-                    return i;
-                }
-            }
-            return 0;
+            
         }
 
         IEnumerator PromptDeleteFolder(string dirName)
@@ -460,7 +418,7 @@ namespace BeatSaverDownloader.PluginUI
                 (_beatSaverButton.transform as RectTransform).sizeDelta = new Vector2(28f, 10f);
 
                 BeatSaberUI.SetButtonText(_beatSaverButton, "BeatSaver");
-                BeatSaberUI.SetButtonIcon(_beatSaverButton, BeatSaberUI.icons.First(x => x.name == "SettingsIcon"));
+                //BeatSaberUI.SetButtonIcon(_beatSaverButton, BeatSaberUI.icons.First(x => x.name == "SettingsIcon"));
 
                 _beatSaverButton.onClick.AddListener(delegate () {
 

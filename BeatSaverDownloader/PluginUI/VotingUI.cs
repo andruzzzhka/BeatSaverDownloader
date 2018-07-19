@@ -42,7 +42,7 @@ namespace BeatSaverDownloader.PluginUI
             
             levelId = ReflectionUtil.GetPrivateField<string>(results, "_levelId");
 
-            results.resultsViewControllerDidPressContinueButtonEvent += Results_resultsViewControllerDidPressContinueButtonEvent;
+            results.continueButtonPressedEvent += Results_resultsViewControllerDidPressContinueButtonEvent;
 
             log.Log($"Player ID: {PluginUI.playerId}");
             log.Log($"Level ID: {levelId}");

@@ -48,7 +48,7 @@ namespace BeatSaverDownloader.PluginUI.ViewControllers
             }
         }
 
-        protected override void DidActivate()
+        protected override void DidActivate(bool firstActivation, ActivationType type)
         {
 
             TextMeshProUGUI _funFactorText = BeatSaberUI.CreateText(rectTransform, "Fun Factor", new Vector2(-29f, -10f));

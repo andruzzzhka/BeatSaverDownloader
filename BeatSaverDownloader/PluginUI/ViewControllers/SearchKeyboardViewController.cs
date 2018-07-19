@@ -24,7 +24,7 @@ namespace BeatSaverDownloader.PluginUI
         public event Action<string> searchButtonPressed;
         public event Action backButtonPressed;
 
-        protected override void DidActivate()
+        protected override void DidActivate(bool firstActivation, ActivationType type)
         {
             if (_searchKeyboard == null)
             {

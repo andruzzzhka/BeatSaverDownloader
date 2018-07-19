@@ -33,14 +33,14 @@ namespace BeatSaverDownloader.PluginUI
         public GameObject _loadingIndicator;
 
         public TableView _songsTableView;
-        SongListTableCell _songListTableCellInstance;
+        StandardLevelListTableCell _songListTableCellInstance;
 
         public int _currentPage = 0;
 
         public int _songsPerPage = 6;
 
 
-        protected override void DidActivate()
+        protected override void DidActivate(bool firstActivation, ActivationType type)
         {
             _parentMasterViewController = GetComponentInParent<BeatSaverMasterViewController>();
 
@@ -215,7 +215,7 @@ namespace BeatSaverDownloader.PluginUI
             }
 
 
-            _songListTableCellInstance = Resources.FindObjectsOfTypeAll<SongListTableCell>().First(x => (x.name == "SongListTableCell"));
+            _songListTableCellInstance = Resources.FindObjectsOfTypeAll<StandardLevelListTableCell>().First(x => (x.name == "StandardLevelListTableCell"));
 
             if (_songsTableView == null)
             {
@@ -231,7 +231,7 @@ namespace BeatSaverDownloader.PluginUI
                 (_songsTableView.transform as RectTransform).position = new Vector3(0f, 0f, 2.4f);
                 (_songsTableView.transform as RectTransform).anchoredPosition = new Vector3(0f, -3f);
 
-                _songsTableView.DidSelectRowEvent += _songsTableView_DidSelectRowEvent;
+                _songsTableView.didSelectRowEvent += _songsTableView_DidSelectRowEvent;
 
             }
             else
@@ -244,7 +244,7 @@ namespace BeatSaverDownloader.PluginUI
 
         }
 
-        protected override void DidDeactivate()
+        protected override void DidDeactivate(DeactivationType type)
         {            
         }
 
@@ -321,7 +321,7 @@ namespace BeatSaverDownloader.PluginUI
 
         public TableCell CellForRow(int row)
         {
-            SongListTableCell _tableCell = Instantiate(_songListTableCellInstance);
+            StandardLevelListTableCell _tableCell = Instantiate(_songListTableCellInstance);
 
             _tableCell.songName = string.Format("{0}\n<size=80%>{1}</size>", _parentMasterViewController._songs[row].songName, _parentMasterViewController._songs[row].songSubName);
             _tableCell.author = _parentMasterViewController._songs[row].authorName;

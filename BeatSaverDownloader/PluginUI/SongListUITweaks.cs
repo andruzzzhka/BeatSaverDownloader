@@ -1,5 +1,6 @@
 ﻿using HMUI;
 using SongLoaderPlugin;
+using SongLoaderPlugin.OverrideClasses;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -19,8 +20,8 @@ namespace BeatSaverDownloader.PluginUI
 
         SearchKeyboardViewController _searchViewController;
 
-        SongSelectionMasterViewController _songSelectionMasterViewController;
-        SongListViewController _songListViewController;
+        StandardLevelSelectionFlowCoordinator _songSelectionMasterViewController;
+        StandardLevelListViewController _songListViewController;
 
         RectTransform _tableViewRectTransform;
 
@@ -34,12 +35,12 @@ namespace BeatSaverDownloader.PluginUI
         {
             if (_songSelectionMasterViewController == null)
             {
-                _songSelectionMasterViewController = Resources.FindObjectsOfTypeAll<SongSelectionMasterViewController>().First();
+                _songSelectionMasterViewController = Resources.FindObjectsOfTypeAll<StandardLevelSelectionFlowCoordinator>().First();
             }
 
             if (_songListViewController == null)
             {
-                _songListViewController = ReflectionUtil.GetPrivateField<SongListViewController>(_songSelectionMasterViewController, "_songListViewController");
+                _songListViewController = ReflectionUtil.GetPrivateField<StandardLevelListViewController>(_songSelectionMasterViewController, "_levelListViewController");
             }
 
             if (_tableViewRectTransform == null)
@@ -137,7 +138,7 @@ namespace BeatSaverDownloader.PluginUI
                 });
             }
 
-            if(lastSortMode != SortMode.All)
+            if (lastSortMode != SortMode.All)
             {
                 ShowLevels(lastSortMode);
             }
@@ -205,30 +206,34 @@ namespace BeatSaverDownloader.PluginUI
 
         public void ShowLevels(SortMode mode)
         {
+            SetSongListLevels(GetSortedLevels(mode));
+        }
+
+        public IStandardLevel[] GetSortedLevels(SortMode mode)
+        {
             lastSortMode = mode;
             GameplayMode gameplayMode = ReflectionUtil.GetPrivateField<GameplayMode>(_songSelectionMasterViewController, "_gameplayMode");
 
-            switch (mode) {
+            switch (mode)
+            {
                 case SortMode.Favorites:
-                    SetSongListLevels(PluginUI.GetLevels(gameplayMode).Where(x => PluginConfig.favoriteSongs.Contains(x.levelId)).ToArray());
-                    break;
+                    return (PluginUI._instance._levelCollections.GetLevels(gameplayMode).Where(x => PluginConfig.favoriteSongs.Contains(x.levelID)).ToArray());
                 case SortMode.All:
-                    SetSongListLevels(PluginUI.GetLevels(gameplayMode));
-                    break;
+                    return (PluginUI._instance._levelCollections.GetLevels(gameplayMode));
                 case SortMode.Newest:
-                    SetSongListLevels(SortLevelsByCreationTime(gameplayMode));
-                    break;
+                    return (SortLevelsByCreationTime(gameplayMode));
             }
+            return null;
         }
 
         void SearchForLevels(string searchFor)
         {
             GameplayMode gameplayMode = ReflectionUtil.GetPrivateField<GameplayMode>(_songSelectionMasterViewController, "_gameplayMode");
 
-            SetSongListLevels(PluginUI.GetLevels(gameplayMode).Where(x => $"{x.songName} {x.songSubName} {x.authorName}".ToLower().Contains(searchFor)).ToArray());
+            SetSongListLevels(PluginUI._instance._levelCollections.GetLevels(gameplayMode).Where(x => $"{x.songName} {x.songSubName} {x.songAuthorName}".ToLower().Contains(searchFor)).ToArray());
         }
 
-        LevelStaticData[] SortLevelsByCreationTime(GameplayMode gameplayMode)
+        IStandardLevel[] SortLevelsByCreationTime(GameplayMode gameplayMode)
         {
             DirectoryInfo customSongsFolder = new DirectoryInfo(Environment.CurrentDirectory.Replace('\\', '/') + "/CustomSongs/");
 
@@ -238,20 +243,20 @@ namespace BeatSaverDownloader.PluginUI
 
             foreach(string path in sortedFolders)
             {
-                CustomSongInfo song = SongLoader.CustomSongInfos.FirstOrDefault(x => x.path.StartsWith(path));
+                CustomLevel song = SongLoader.CustomLevels.FirstOrDefault(x => x.customSongInfo.path.StartsWith(path));
                 if (song != null)
                 {
-                    sortedLevelIDs.Add(song.levelId);
+                    sortedLevelIDs.Add(song.levelID);
                 }
             }
 
-            List<LevelStaticData> notSorted = PluginUI.GetLevels(gameplayMode).ToList();
+            List<IStandardLevel> notSorted = PluginUI._instance._levelCollections.GetLevels(gameplayMode).Select(x => (IStandardLevel)x).ToList();
 
-            List<LevelStaticData> sortedLevels = new List<LevelStaticData>();
+            List<IStandardLevel> sortedLevels = new List<IStandardLevel>();
 
             foreach(string levelId in sortedLevelIDs)
             {
-                LevelStaticData data = notSorted.FirstOrDefault(x => x.levelId == levelId);
+                IStandardLevel data = notSorted.FirstOrDefault(x => x.levelID == levelId);
                 if (data != null)
                 {
                     sortedLevels.Add(data);
@@ -264,16 +269,16 @@ namespace BeatSaverDownloader.PluginUI
         }
 
 
-        void SetSongListLevels(LevelStaticData[] levels, int scrollTo = 0)
+        void SetSongListLevels(IStandardLevel[] levels)
         {
-            SongListViewController songListViewController = ReflectionUtil.GetPrivateField<SongListViewController>(_songSelectionMasterViewController, "_songListViewController");
+            StandardLevelListViewController songListViewController = ReflectionUtil.GetPrivateField<StandardLevelListViewController>(_songSelectionMasterViewController, "_levelListViewController");
+            
+            StandardLevelListTableView _songListTableView = songListViewController.GetComponentInChildren<StandardLevelListTableView>();
 
-            ReflectionUtil.SetPrivateField(songListViewController.GetComponentInChildren<SongListTableView>(), "_levels", levels);
-            ReflectionUtil.SetPrivateField(songListViewController, "_levelsStaticData", levels);
-
-            TableView _songListTableView = songListViewController.GetComponentInChildren<TableView>();
-            _songListTableView.ReloadData();
-            _songListTableView.ScrollToRow(scrollTo, true);
+            ReflectionUtil.SetPrivateField(_songListTableView, "_levels", levels);
+            songListViewController.Init(levels);
+            
+            ReflectionUtil.GetPrivateField<TableView>(_songListTableView, "_tableView").ReloadData();
         }
 
     }

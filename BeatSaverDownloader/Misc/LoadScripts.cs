@@ -15,10 +15,10 @@ namespace BeatSaverDownloader.Misc
         static public IEnumerator LoadSprite(string spritePath, TableCell obj)
         {
             Texture2D tex;
-
+            
             if (_cachedSprites.ContainsKey(spritePath))
             {
-                obj.GetComponentsInChildren<UnityEngine.UI.Image>()[2].sprite = _cachedSprites[spritePath];
+                obj.GetComponentsInChildren<UnityEngine.UI.Image>(true).First(x => x.name == "CoverImage").sprite = _cachedSprites[spritePath];
                 yield break;
             }
 
@@ -28,7 +28,7 @@ namespace BeatSaverDownloader.Misc
                 tex = www.texture;
                 var newSprite = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), Vector2.one * 0.5f, 100, 1);
                 _cachedSprites.Add(spritePath, newSprite);
-                obj.GetComponentsInChildren<UnityEngine.UI.Image>()[2].sprite = newSprite;
+                obj.GetComponentsInChildren<UnityEngine.UI.Image>(true).First(x => x.name == "CoverImage").sprite = newSprite;
             }
         }
 

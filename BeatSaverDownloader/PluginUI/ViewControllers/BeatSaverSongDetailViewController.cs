@@ -26,7 +26,7 @@ namespace BeatSaverDownloader.PluginUI
         VRUIViewController _leftScreen;
         VRUIViewController _rightScreen;
 
-        protected override void DidActivate()
+        protected override void DidActivate(bool firstActivation, ActivationType type)
         {
             RemoveCustomUIElements(rectTransform);
 

@@ -1,16 +1,12 @@
-﻿using BeatSaverDownloader.Misc;
-using HMUI;
-using ICSharpCode.SharpZipLib.Zip;
-using SimpleJSON;
+﻿using SimpleJSON;
 using SongLoaderPlugin;
+using SongLoaderPlugin.OverrideClasses;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -33,7 +29,7 @@ namespace BeatSaverDownloader.PluginUI
         public List<Song> _songs = new List<Song>();
         public List<Song> _alreadyDownloadedSongs = new List<Song>();
 
-        private List<LevelStaticData> _notUpdatedSongs = new List<LevelStaticData>();
+        private List<CustomLevel> _notUpdatedSongs = new List<CustomLevel>();
 
         public Button _downloadButton;
         Button _backButton;
@@ -48,11 +44,11 @@ namespace BeatSaverDownloader.PluginUI
         
         Prompt _confirmDeleteState = Prompt.NotSelected;
 
-        protected override void DidActivate()
+        protected override void DidActivate(bool firstActivation, ActivationType type)
         {    
             _songLoader = FindObjectOfType<SongLoader>();
             
-            _alreadyDownloadedSongs = SongLoader.CustomSongInfos.Select(x => new Song(x)).ToList();
+            _alreadyDownloadedSongs = SongLoader.CustomLevels.Select(x => new Song(x)).ToList();
             
             if (_songPreviewPlayer == null)
             {
@@ -96,7 +92,7 @@ namespace BeatSaverDownloader.PluginUI
                         }
                         try
                         {
-                            _songLoader.RefreshSongs();
+                            _songLoader.RefreshSongs(false);
                             _notUpdatedSongs.Clear();
                         }
                         catch (Exception e)
@@ -113,7 +109,7 @@ namespace BeatSaverDownloader.PluginUI
             
         }
 
-        protected override void DidDeactivate()
+        protected override void DidDeactivate(DeactivationType type)
         {
             ClearSearchInput();
         }
@@ -247,8 +243,6 @@ namespace BeatSaverDownloader.PluginUI
             }
 
             songInfo.songQueueState = SongQueueState.Downloading;
-
-            string downloadedSongPath = "";
             
             UnityWebRequest www = UnityWebRequest.Get(songInfo.downloadUrl);
 
@@ -324,53 +318,15 @@ namespace BeatSaverDownloader.PluginUI
                 log.Log("Extracting...");
 
                 try
-                { 
-
-                    FastZip zip = new FastZip();
-                    zip.ExtractZip(zipPath, customSongsPath, null);
+                {
+                    ZipFile.ExtractToDirectory(zipPath, customSongsPath);
                 }
                 catch(Exception e)
                 {
                     log.Exception($"Can't extract ZIP! Exception: {e}");
                 }
 
-                if (Directory.GetDirectories(customSongsPath).Length > 0)
-                {
-                    downloadedSongPath = Directory.GetDirectories(customSongsPath)[0];
-                } 
-
-                try
-                {
-                    CustomSongInfo downloadedSong = GetCustomSongInfo(downloadedSongPath);
-                    
-                    _alreadyDownloadedSongs.Add(new Song(downloadedSong));
-
-                    CustomLevelStaticData newLevel = null;
-                    try
-                    {
-                        newLevel = ScriptableObject.CreateInstance<CustomLevelStaticData>();
-                    }
-                    catch (Exception e)
-                    {
-                        //LevelStaticData.OnEnable throws null reference exception because we don't have time to set _difficultyLevels
-                    }
-
-                    ReflectionUtil.SetPrivateField(newLevel, "_levelId", downloadedSong.GetIdentifier());
-                    ReflectionUtil.SetPrivateField(newLevel, "_authorName", downloadedSong.authorName);
-                    ReflectionUtil.SetPrivateField(newLevel, "_songName", downloadedSong.songName);
-                    ReflectionUtil.SetPrivateField(newLevel, "_songSubName", downloadedSong.songSubName);
-                    ReflectionUtil.SetPrivateField(newLevel, "_previewStartTime", downloadedSong.previewStartTime);
-                    ReflectionUtil.SetPrivateField(newLevel, "_previewDuration", downloadedSong.previewDuration);
-                    ReflectionUtil.SetPrivateField(newLevel, "_beatsPerMinute", downloadedSong.beatsPerMinute);
-
-                    StartCoroutine(LoadScripts.LoadAudio("file://" + downloadedSong.path + "/" + downloadedSong.difficultyLevels[0].audioPath, newLevel, "audioClip"));
-
-                    newLevel.OnEnable();
-                    _notUpdatedSongs.Add(newLevel);
-                }catch(Exception e)
-                {
-                    log.Exception("Can't play preview! Exception: "+e);
-                }
+                songInfo.path = Directory.GetDirectories(customSongsPath).FirstOrDefault();
 
                 try
                 {
@@ -381,7 +337,9 @@ namespace BeatSaverDownloader.PluginUI
                 }
                 
                 songInfo.songQueueState = SongQueueState.Downloaded;
-                
+
+                _alreadyDownloadedSongs.Add(songInfo);
+
                 log.Log("Downloaded!");
 
                 _downloadQueueViewController.Refresh();
@@ -537,12 +495,12 @@ namespace BeatSaverDownloader.PluginUI
             if (_searchKeyboardViewController == null)
             {
                 _searchKeyboardViewController = BeatSaberUI.CreateViewController<SearchKeyboardViewController>();
-                PresentModalViewController(_searchKeyboardViewController, null);
+                PresentModalViewController(_searchKeyboardViewController, null, false);
                 
             }
             else
             {
-                PresentModalViewController(_searchKeyboardViewController, null);
+                PresentModalViewController(_searchKeyboardViewController, null, false);
                 
             }
         }
@@ -561,8 +519,8 @@ namespace BeatSaverDownloader.PluginUI
             
             if (_songDetailViewController == null)
             {
-                GameObject _songDetailGameObject = Instantiate(Resources.FindObjectsOfTypeAll<SongDetailViewController>().First(), rectTransform, false).gameObject;
-                Destroy(_songDetailGameObject.GetComponent<SongDetailViewController>());
+                GameObject _songDetailGameObject = Instantiate(Resources.FindObjectsOfTypeAll<StandardLevelDetailViewController>().First(), rectTransform, false).gameObject;
+                Destroy(_songDetailGameObject.GetComponent<StandardLevelDetailViewController>());
                 _songDetailViewController = _songDetailGameObject.AddComponent<BeatSaverSongDetailViewController>();
                 
                 PushViewController(_songDetailViewController, false);
@@ -612,13 +570,7 @@ namespace BeatSaverDownloader.PluginUI
                     {
                         StartCoroutine(DeleteSong(_songs[row]));
                     }
-
-                });
-
-                LevelStaticData _songData = GetLevelStaticDataForSong(_songs[row]);
-                
-                PlayPreview(_songData);
-                
+                });                
 
                 string _songPath = GetDownloadedSongPath(_songs[row]);
                 
@@ -660,85 +612,9 @@ namespace BeatSaverDownloader.PluginUI
             }
         }
 
-        void PlayPreview(LevelStaticData _songData)
-        {
-            if (_songData != null)
-            {
-                log.Log("Playing preview for " + _songData.songName);
-                if (_songData.previewAudioClip != null)
-                {
-                    if (_songPreviewPlayer != null && _songData != null)
-                    {
-                        try
-                        {
-                            _songPreviewPlayer.CrossfadeTo(_songData.previewAudioClip, _songData.previewStartTime, _songData.previewDuration, 1f);
-                        }
-                        catch (Exception e)
-                        {
-                            log.Error("Can't play preview! Exception: " + e);
-                        }
-                    }
-                }
-                else
-                {
-                    StartCoroutine(PlayPreviewCoroutine(_songData));
-                }
-            }
-            else
-            {
-                log.Error($"PLAY PREVIEW: SongData is null!");
-            }
-        }
-
-        IEnumerator PlayPreviewCoroutine(LevelStaticData _songData)
-        {
-            yield return new WaitWhile(delegate () { return _songData.previewAudioClip != null; });
-
-            if (_songPreviewPlayer != null && _songData != null && _songData.previewAudioClip != null)
-            {
-                try
-                {
-                    _songPreviewPlayer.CrossfadeTo(_songData.previewAudioClip, _songData.previewStartTime, _songData.previewDuration, 1f);
-                }
-                catch (Exception e)
-                {
-                    log.Error("Can't play preview! Exception: " + e);
-                }
-            }
-        }
-
         public bool IsSongAlreadyDownloaded(Song _song)
         {
-            bool alreadyDownloaded = false;
-
-            foreach (Song song in _alreadyDownloadedSongs)
-            {
-                alreadyDownloaded = alreadyDownloaded || song.Compare(_song);
-            }
-
-            return alreadyDownloaded;
-        }
-
-        public LevelStaticData GetLevelStaticDataForSong(Song _song)
-        {
-            foreach (WorldStaticData world in PersistentSingleton<GameDataModel>.instance.gameStaticData.worldsData) {
-                foreach (LevelStaticData data in world.levelsData)
-                {
-                    if ((new Song(data)).Compare(_song))
-                    {
-                        return data;
-                    }
-                }
-            }
-            
-            foreach (CustomLevelStaticData data in _notUpdatedSongs)
-            {
-                if ((new Song(data)).Compare(_song))
-                {
-                    return data;
-                }
-            }
-            return null;
+            return _alreadyDownloadedSongs.Any(x => x.Compare(_song));
         }
 
         public string GetDownloadedSongPath(Song _song)
@@ -747,49 +623,14 @@ namespace BeatSaverDownloader.PluginUI
             {
                 if (song.Compare(_song))
                 {
-                    return song.path;
+                    if (Directory.Exists(song.path))
+                    {
+                        return song.path;
+                    }
                 }
             }
 
             return null;
-        }
-
-        private CustomSongInfo GetCustomSongInfo(string _songPath)
-        {
-            string songPath = _songPath;
-            if(songPath.Contains("/autosaves"))
-            {
-                songPath = songPath.Replace("/autosaves","");
-            }
-            var infoText = File.ReadAllText(songPath + "/info.json");
-            CustomSongInfo songInfo;
-            try
-            {
-                songInfo = JsonUtility.FromJson<CustomSongInfo>(infoText);
-            }
-            catch (Exception e)
-            {
-                log.Warning("Error parsing song: " + songPath);
-                return null;
-            }
-            songInfo.path = songPath;
-            
-            var diffLevels = new List<CustomSongInfo.DifficultyLevel>();
-            var n = JSON.Parse(infoText);
-            var diffs = n["difficultyLevels"];
-            for (int i = 0; i < diffs.AsArray.Count; i++)
-            {
-                n = diffs[i];
-                diffLevels.Add(new CustomSongInfo.DifficultyLevel()
-                {
-                    difficulty = n["difficulty"],
-                    difficultyRank = n["difficultyRank"].AsInt,
-                    audioPath = n["audioPath"],
-                    jsonPath = n["jsonPath"]
-                });
-            }
-            songInfo.difficultyLevels = diffLevels.ToArray();
-            return songInfo;
         }
 
     }

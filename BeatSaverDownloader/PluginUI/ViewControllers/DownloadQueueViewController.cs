@@ -19,12 +19,12 @@ namespace BeatSaverDownloader.PluginUI
         TextMeshProUGUI _titleText;
 
         TableView _queuedSongsTableView;
-        SongListTableCell _songListTableCellInstance;
+        StandardLevelListTableCell _songListTableCellInstance;
 
-        protected override void DidActivate()
+        protected override void DidActivate(bool firstActivation, ActivationType type)
         {
 
-            _songListTableCellInstance = Resources.FindObjectsOfTypeAll<SongListTableCell>().First(x => (x.name == "SongListTableCell"));
+            _songListTableCellInstance = Resources.FindObjectsOfTypeAll<StandardLevelListTableCell>().First(x => (x.name == "StandardLevelListTableCell"));
 
             if (_titleText == null)
             {
@@ -46,7 +46,7 @@ namespace BeatSaverDownloader.PluginUI
                 (_queuedSongsTableView.transform as RectTransform).sizeDelta = new Vector2(0f, 60f);
                 (_queuedSongsTableView.transform as RectTransform).anchoredPosition = new Vector3(0f, -3f);
 
-                _queuedSongsTableView.DidSelectRowEvent += _queuedSongsTableView_DidSelectRowEvent;
+                _queuedSongsTableView.didSelectRowEvent += _queuedSongsTableView_DidSelectRowEvent;
             }
             else
             {
@@ -59,7 +59,7 @@ namespace BeatSaverDownloader.PluginUI
 
         }
 
-        protected override void DidDeactivate()
+        protected override void DidDeactivate(DeactivationType type)
         {
 
         }
@@ -105,7 +105,7 @@ namespace BeatSaverDownloader.PluginUI
 
         public TableCell CellForRow(int row)
         {
-            SongListTableCell _tableCell = Instantiate(_songListTableCellInstance);
+            StandardLevelListTableCell _tableCell = Instantiate(_songListTableCellInstance);
 
             DownloadQueueTableCell _queueCell = _tableCell.gameObject.AddComponent<DownloadQueueTableCell>();
 

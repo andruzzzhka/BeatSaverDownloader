@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace BeatSaverDownloader.PluginUI
 {
-    class DownloadQueueTableCell : SongListTableCell
+    class DownloadQueueTableCell : StandardLevelListTableCell
     {
 
         Song song;
@@ -21,7 +21,7 @@ namespace BeatSaverDownloader.PluginUI
 
         public void Init(Song _song)
         {
-            SongListTableCell cell = GetComponent<SongListTableCell>();
+            StandardLevelListTableCell cell = GetComponent<StandardLevelListTableCell>();
             
             foreach (FieldInfo info in cell.GetType().GetFields(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic))
             {

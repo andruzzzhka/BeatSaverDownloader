@@ -65,7 +65,7 @@ namespace BeatSaverDownloader.PluginUI
 
             for (int i = 0; i < array.Length; i++)
             {
-                TextButton textButton = Instantiate(_keyButtonPrefab);
+                TextMeshProButton textButton = Instantiate(_keyButtonPrefab);
                 textButton.text.text = array[i];
                 if (i < array.Length - 2)
                 {
@@ -104,7 +104,7 @@ namespace BeatSaverDownloader.PluginUI
             
             for (int i = 1; i <= 10; i++)
             {
-                TextButton textButton = Instantiate(_keyButtonPrefab);
+                TextMeshProButton textButton = Instantiate(_keyButtonPrefab);
                 textButton.text.text = i.ToString().Last().ToString();
 
                 string key = i.ToString().Last().ToString();
