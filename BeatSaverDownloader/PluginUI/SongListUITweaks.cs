@@ -138,10 +138,6 @@ namespace BeatSaverDownloader.PluginUI
                 });
             }
 
-            if (lastSortMode != SortMode.All)
-            {
-                ShowLevels(lastSortMode);
-            }
         }
 
         public void SelectTopButtons(TopButtonsState _newState)
@@ -206,13 +202,26 @@ namespace BeatSaverDownloader.PluginUI
 
         public void ShowLevels(SortMode mode)
         {
-            SetSongListLevels(GetSortedLevels(mode));
+            if (_songListViewController != null && _songListViewController.selectedLevel != null)
+            {
+                SetSongListLevels(GetSortedLevels(mode), _songListViewController.selectedLevel.levelID);
+            }
+            else
+            {
+                SetSongListLevels(GetSortedLevels(mode));
+            }
         }
 
         public IStandardLevel[] GetSortedLevels(SortMode mode)
         {
             lastSortMode = mode;
+            
+            if (_songSelectionMasterViewController == null)
+            {
+                _songSelectionMasterViewController = Resources.FindObjectsOfTypeAll<StandardLevelSelectionFlowCoordinator>().First();
+            }
             GameplayMode gameplayMode = ReflectionUtil.GetPrivateField<GameplayMode>(_songSelectionMasterViewController, "_gameplayMode");
+            
 
             switch (mode)
             {
@@ -269,16 +278,21 @@ namespace BeatSaverDownloader.PluginUI
         }
 
 
-        void SetSongListLevels(IStandardLevel[] levels)
+        void SetSongListLevels(IStandardLevel[] levels, string selectedLevelID = "")
         {
             StandardLevelListViewController songListViewController = ReflectionUtil.GetPrivateField<StandardLevelListViewController>(_songSelectionMasterViewController, "_levelListViewController");
             
             StandardLevelListTableView _songListTableView = songListViewController.GetComponentInChildren<StandardLevelListTableView>();
 
             ReflectionUtil.SetPrivateField(_songListTableView, "_levels", levels);
-            songListViewController.Init(levels);
+            ReflectionUtil.SetPrivateField(songListViewController, "_levels", levels);
             
             ReflectionUtil.GetPrivateField<TableView>(_songListTableView, "_tableView").ReloadData();
+
+            if (!string.IsNullOrEmpty(selectedLevelID))
+            {
+                _songListTableView.SelectAndScrollToLevel(selectedLevelID);
+            }
         }
 
     }

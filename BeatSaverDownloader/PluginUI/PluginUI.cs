@@ -89,7 +89,14 @@ namespace BeatSaverDownloader.PluginUI
                 StartCoroutine(WaitForSongListUI());
             }
 
-            SongLoader.SongsLoadedEvent += SongLoader_SongsLoadedEvent;
+            if (SongLoader.AreSongsLoaded)
+            {
+                SongLoader_SongsLoadedEvent(null, SongLoader.CustomLevels);
+            }
+            else
+            {
+                SongLoader.SongsLoadedEvent += SongLoader_SongsLoadedEvent;
+            }
 
 
             try
@@ -147,6 +154,10 @@ namespace BeatSaverDownloader.PluginUI
         private void _votingUI_continuePressed(string selectedLevelId)
         {
             UpdateDetailsUI(null, selectedLevelId);
+            if (SongListUITweaks.lastSortMode != SortMode.All)
+            {
+                _tweaks.ShowLevels(SongListUITweaks.lastSortMode);
+            }
         }
 
         private void UpdateDetailsUI(StandardLevelListViewController sender, string selectedLevel)

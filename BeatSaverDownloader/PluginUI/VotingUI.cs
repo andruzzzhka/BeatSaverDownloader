@@ -34,13 +34,18 @@ namespace BeatSaverDownloader.PluginUI
         {
             
             log.Log("Waiting for results view controller");
-            yield return new WaitUntil(delegate () { return Resources.FindObjectsOfTypeAll<ResultsViewController>().Count() > 0; });
+            yield return new WaitUntil(delegate () { return Resources.FindObjectsOfTypeAll<ResultsViewController>().Any(); });
 
             log.Log("Found results view controller!");
 
-            ResultsViewController results = Resources.FindObjectsOfTypeAll<ResultsViewController>().First();
-            
-            levelId = ReflectionUtil.GetPrivateField<string>(results, "_levelId");
+            ResultsViewController results = Resources.FindObjectsOfTypeAll<ResultsViewController>().FirstOrDefault();
+
+            if(results == null)
+            {
+                yield break;
+            }
+
+            levelId = results.difficultyLevel.level.levelID;
 
             results.continueButtonPressedEvent += Results_resultsViewControllerDidPressContinueButtonEvent;
 
