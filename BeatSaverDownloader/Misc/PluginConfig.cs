@@ -22,6 +22,7 @@ namespace BeatSaverDownloader
         public static string apiTokenPlaceholder = "replace-this-with-your-api-token";
 
         public static bool disableSongListTweaks = false;
+        public static bool disableDeleteButton = false;
 
         public static void LoadOrCreateConfig()
         {
@@ -33,7 +34,6 @@ namespace BeatSaverDownloader
             if (!ModPrefs.HasKey("BeatSaverDownloader", "beatsaverURL"))
             {
                 ModPrefs.SetString("BeatSaverDownloader", "beatsaverURL", "https://beatsaver.com");
-                ModPrefs.SetBool("BeatSaverDownloader", "DisableDeleteButton", false);
                 Logger.StaticLog("Created config");
             }
             else
@@ -63,6 +63,16 @@ namespace BeatSaverDownloader
                     ModPrefs.SetString("BeatSaverDownloader", "apiAccessToken", apiTokenPlaceholder);
                     apiAccessToken = apiTokenPlaceholder;
                 }
+            }
+
+            if (!ModPrefs.HasKey("BeatSaverDownloader", "disableDeleteButton"))
+            {
+                ModPrefs.SetBool("BeatSaverDownloader", "disableDeleteButton", false);
+                Logger.StaticLog("Created config");
+            }
+            else
+            {
+                disableDeleteButton = ModPrefs.GetBool("BeatSaverDownloader", "disableDeleteButton", false, true);
             }
 
             if (!File.Exists(configPath))
