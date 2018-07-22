@@ -78,7 +78,7 @@ namespace BeatSaverDownloader.PluginUI
             _instance = this;
             _votingUI = gameObject.AddComponent<VotingUI>();
             _tweaks = gameObject.AddComponent<SongListUITweaks>();
-            _disableDeleteButton = ModPrefs.GetBool("BeatSaverDownloader", "DisableDeleteButton", false);
+            _disableDeleteButton = ModPrefs.GetBool("BeatSaverDownloader", "DisableDeleteButton", false, true);
         }
 
         public void Start()
