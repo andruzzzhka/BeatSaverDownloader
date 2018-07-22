@@ -189,12 +189,17 @@ namespace BeatSaverDownloader.PluginUI
                 (_deleteButton.transform as RectTransform).anchoredPosition = new Vector2(27f, 11f);
                 (_deleteButton.transform as RectTransform).sizeDelta = new Vector2(18f, 10f);
 
-                _deleteButton.onClick.RemoveAllListeners();
-                _deleteButton.onClick.AddListener(delegate ()
+                if (selectedLevel.Length > 32)
                 {
-                    StartCoroutine(DeleteSong(selectedLevel));
-                });
-                if (selectedLevel.Length <= 32)
+                    _deleteButton.onClick.RemoveAllListeners();
+                    _deleteButton.onClick.AddListener(delegate ()
+                    {
+                        StartCoroutine(DeleteSong(selectedLevel));
+                    });
+
+                    _deleteButton.interactable = !_disableDeleteButton;
+                }
+                else
                 {
                     _deleteButton.interactable = false;
                 }

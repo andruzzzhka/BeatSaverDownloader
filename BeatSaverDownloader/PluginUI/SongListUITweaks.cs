@@ -291,8 +291,23 @@ namespace BeatSaverDownloader.PluginUI
 
             if (!string.IsNullOrEmpty(selectedLevelID))
             {
-                _songListTableView.SelectAndScrollToLevel(selectedLevelID);
+                if (levels.Any(x => x.levelID == selectedLevelID))
+                {
+                    SelectAndScrollToLevel(_songListTableView, selectedLevelID);
+                }
+                else
+                {
+                    SelectAndScrollToLevel(_songListTableView, levels.FirstOrDefault().levelID);
+                }
             }
+        }
+
+        void SelectAndScrollToLevel(StandardLevelListTableView table, string levelID)
+        {
+            int row = table.RowNumberForLevelID(levelID);
+            TableView _tableView = table.GetComponentInChildren<TableView>();
+            _tableView.SelectRow(row, true);
+            _tableView.ScrollToRow(row, true);
         }
 
     }
