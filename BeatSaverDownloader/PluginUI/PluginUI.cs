@@ -29,6 +29,7 @@ namespace BeatSaverDownloader.PluginUI
         
         private RectTransform _mainMenuRectTransform;
         private StandardLevelSelectionFlowCoordinator _standardLevelSelectionFlowCoordinator;
+        private StandardLevelListViewController _standardLevelListViewController;
         private GameplayMode _gameplayMode;
 
         private MainMenuViewController _mainMenuViewController;
@@ -86,7 +87,6 @@ namespace BeatSaverDownloader.PluginUI
             StartCoroutine(_votingUI.WaitForResults());
             if (!PluginConfig.disableSongListTweaks)
             {
-                _votingUI.continuePressed += _votingUI_continuePressed;
                 StartCoroutine(WaitForSongListUI());
             }
 
@@ -110,7 +110,13 @@ namespace BeatSaverDownloader.PluginUI
 
                 if (!PluginConfig.disableSongListTweaks)
                 {
-                    ReflectionUtil.GetPrivateField<StandardLevelListViewController>(_standardLevelSelectionFlowCoordinator, "_levelListViewController").didSelectLevelEvent += PluginUI_didSelectSongEvent;
+                    _standardLevelListViewController = ReflectionUtil.GetPrivateField<StandardLevelListViewController>(_standardLevelSelectionFlowCoordinator, "_levelListViewController");
+                    _standardLevelListViewController.didSelectLevelEvent += PluginUI_didSelectSongEvent;
+
+                    if(_standardLevelListViewController.selectedLevel != null)
+                    {
+                        UpdateDetailsUI(null, _standardLevelListViewController.selectedLevel.levelID);
+                    }
                 }
 
                 CreateBeatSaverButton();
@@ -150,15 +156,11 @@ namespace BeatSaverDownloader.PluginUI
 
             _tweaks.SongListUIFound();
 
-        }
-
-        private void _votingUI_continuePressed(string selectedLevelId)
-        {
-            UpdateDetailsUI(null, selectedLevelId);
             if (SongListUITweaks.lastSortMode != SortMode.All)
             {
                 _tweaks.ShowLevels(SongListUITweaks.lastSortMode);
             }
+
         }
 
         private void UpdateDetailsUI(StandardLevelListViewController sender, string selectedLevel)
