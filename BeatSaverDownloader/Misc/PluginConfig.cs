@@ -33,6 +33,7 @@ namespace BeatSaverDownloader
             if (!ModPrefs.HasKey("BeatSaverDownloader", "beatsaverURL"))
             {
                 ModPrefs.SetString("BeatSaverDownloader", "beatsaverURL", "https://beatsaver.com");
+                ModPrefs.SetBool("BeatSaverDownloader", "DisableDeleteButton", false);
                 Logger.StaticLog("Created config");
             }
             else

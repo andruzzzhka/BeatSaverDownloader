@@ -1,4 +1,5 @@
 ﻿using HMUI;
+using IllusionPlugin;
 using SimpleJSON;
 using SongLoaderPlugin;
 using SongLoaderPlugin.OverrideClasses;
@@ -34,6 +35,7 @@ namespace BeatSaverDownloader.PluginUI
 
         private StandardLevelDetailViewController _songDetailViewController;
 
+        private bool _disableDeleteButton = true;
         private Button _deleteButton;
         private Button _playButton;
         private Button _favButton;
@@ -76,6 +78,7 @@ namespace BeatSaverDownloader.PluginUI
             _instance = this;
             _votingUI = gameObject.AddComponent<VotingUI>();
             _tweaks = gameObject.AddComponent<SongListUITweaks>();
+            _disableDeleteButton = ModPrefs.GetBool("BeatSaverDownloader", "DisableDeleteButton", false);
         }
 
         public void Start()
@@ -206,7 +209,7 @@ namespace BeatSaverDownloader.PluginUI
                         StartCoroutine(DeleteSong(selectedLevel));
                     });
 
-                    _deleteButton.interactable = true;
+                    _deleteButton.interactable = !_disableDeleteButton;
                 }
                 else
                 {
