@@ -78,7 +78,7 @@ namespace BeatSaverDownloader.PluginUI
                 BeatSaberUI.SetButtonText(_favButton, "Favorites");
                 BeatSaberUI.SetButtonTextSize(_favButton, 3f);
                 (_favButton.transform as RectTransform).sizeDelta = new Vector2(20f, 6f);
-                (_favButton.transform as RectTransform).anchoredPosition = new Vector2(10f, 73f);
+                (_favButton.transform as RectTransform).anchoredPosition = new Vector2(0f, 73f);
                 _favButton.onClick.RemoveAllListeners();
                 _favButton.onClick.AddListener(delegate ()
                 {
@@ -94,7 +94,7 @@ namespace BeatSaverDownloader.PluginUI
                 BeatSaberUI.SetButtonText(_allButton, "All");
                 BeatSaberUI.SetButtonTextSize(_allButton, 3f);
                 (_allButton.transform as RectTransform).sizeDelta = new Vector2(20f, 6f);
-                (_allButton.transform as RectTransform).anchoredPosition = new Vector2(-30f, 73f);
+                (_allButton.transform as RectTransform).anchoredPosition = new Vector2(-40f, 73f);
                 _allButton.onClick.RemoveAllListeners();
                 _allButton.onClick.AddListener(delegate ()
                 {
@@ -111,7 +111,7 @@ namespace BeatSaverDownloader.PluginUI
                 BeatSaberUI.SetButtonText(_newButton, "Newest");
                 BeatSaberUI.SetButtonTextSize(_newButton, 3f);
                 (_newButton.transform as RectTransform).sizeDelta = new Vector2(20f, 6f);
-                (_newButton.transform as RectTransform).anchoredPosition = new Vector2(-10f, 73f);
+                (_newButton.transform as RectTransform).anchoredPosition = new Vector2(-20f, 73f);
                 _newButton.onClick.RemoveAllListeners();
                 _newButton.onClick.AddListener(delegate ()
                 {

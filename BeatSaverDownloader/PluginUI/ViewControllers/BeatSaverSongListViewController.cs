@@ -93,7 +93,7 @@ namespace BeatSaverDownloader.PluginUI
                 BeatSaberUI.SetButtonText(_sortByButton, "Sort by");
                 BeatSaberUI.SetButtonTextSize(_sortByButton, 3f);
                 (_sortByButton.transform as RectTransform).sizeDelta = new Vector2(30f, 6f);
-                (_sortByButton.transform as RectTransform).anchoredPosition = new Vector2(0f, 73f);
+                (_sortByButton.transform as RectTransform).anchoredPosition = new Vector2(-2f, 73f);
                 _sortByButton.onClick.RemoveAllListeners();
                 _sortByButton.onClick.AddListener(delegate ()
                 {
@@ -104,7 +104,7 @@ namespace BeatSaverDownloader.PluginUI
 
             if (_sortByText == null)
             {
-                _sortByText = BeatSaberUI.CreateText(rectTransform, "SORT BY", new Vector2(-36f, -4.75f));
+                _sortByText = BeatSaberUI.CreateText(rectTransform, "SORT BY", new Vector2(-38f, -4.75f));
                 _sortByText.fontSize = 3.5f;
                 _sortByText.rectTransform.sizeDelta = new Vector2(10f, 6f);
                 _sortByText.gameObject.SetActive(false);
@@ -116,7 +116,7 @@ namespace BeatSaverDownloader.PluginUI
                 BeatSaberUI.SetButtonText(_topButton, "Downloads");
                 BeatSaberUI.SetButtonTextSize(_topButton, 3f);
                 (_topButton.transform as RectTransform).sizeDelta = new Vector2(20f, 6f);
-                (_topButton.transform as RectTransform).anchoredPosition = new Vector2(-30f, 73f);
+                (_topButton.transform as RectTransform).anchoredPosition = new Vector2(-42f, 73f);
                 _topButton.onClick.RemoveAllListeners();
                 _topButton.onClick.AddListener(delegate ()
                 {
@@ -139,7 +139,7 @@ namespace BeatSaverDownloader.PluginUI
                 BeatSaberUI.SetButtonText(_newButton, "Upload Time");
                 BeatSaberUI.SetButtonTextSize(_newButton, 3f);
                 (_newButton.transform as RectTransform).sizeDelta = new Vector2(20f, 6f);
-                (_newButton.transform as RectTransform).anchoredPosition = new Vector2(-10f, 73f);
+                (_newButton.transform as RectTransform).anchoredPosition = new Vector2(-22f, 73f);
                 _newButton.onClick.RemoveAllListeners();
                 _newButton.onClick.AddListener(delegate ()
                 {
@@ -163,7 +163,7 @@ namespace BeatSaverDownloader.PluginUI
                 BeatSaberUI.SetButtonText(_starButton, "Plays");
                 BeatSaberUI.SetButtonTextSize(_starButton, 3f);
                 (_starButton.transform as RectTransform).sizeDelta = new Vector2(20f, 6f);
-                (_starButton.transform as RectTransform).anchoredPosition = new Vector2(10f, 73f);
+                (_starButton.transform as RectTransform).anchoredPosition = new Vector2(-2f, 73f);
                 _starButton.onClick.RemoveAllListeners();
                 _starButton.onClick.AddListener(delegate ()
                 {
@@ -185,7 +185,7 @@ namespace BeatSaverDownloader.PluginUI
                 BeatSaberUI.SetButtonText(_searchButton, "Search");
                 BeatSaberUI.SetButtonTextSize(_searchButton, 3f);
                 (_searchButton.transform as RectTransform).sizeDelta = new Vector2(30f, 6f);
-                (_searchButton.transform as RectTransform).anchoredPosition = new Vector2(-30f, 73f);
+                (_searchButton.transform as RectTransform).anchoredPosition = new Vector2(-32f, 73f);
                 _searchButton.onClick.RemoveAllListeners();
                 _searchButton.onClick.AddListener(delegate ()
                 {
