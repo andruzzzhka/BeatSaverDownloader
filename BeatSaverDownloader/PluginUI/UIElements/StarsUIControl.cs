@@ -21,19 +21,19 @@ namespace BeatSaverDownloader.PluginUI
         {
             rect = parent ?? throw new ArgumentNullException("parent");
             
-            _starButtons[0] = BeatSaberUI.CreateUIButton(rect, "ApplyButton");
+            _starButtons[0] = BeatSaberUI.CreateUIButton(rect, "SettingsButton");
             TransformButton(_starButtons[0], position, 0);
 
-            _starButtons[1] = BeatSaberUI.CreateUIButton(rect, "ApplyButton");
+            _starButtons[1] = BeatSaberUI.CreateUIButton(rect, "SettingsButton");
             TransformButton(_starButtons[1], position, 1);
 
-            _starButtons[2] = BeatSaberUI.CreateUIButton(rect, "ApplyButton");
+            _starButtons[2] = BeatSaberUI.CreateUIButton(rect, "SettingsButton");
             TransformButton(_starButtons[2], position, 2);
 
-            _starButtons[3] = BeatSaberUI.CreateUIButton(rect, "ApplyButton");
+            _starButtons[3] = BeatSaberUI.CreateUIButton(rect, "SettingsButton");
             TransformButton(_starButtons[3], position, 3);
 
-            _starButtons[4] = BeatSaberUI.CreateUIButton(rect, "ApplyButton");
+            _starButtons[4] = BeatSaberUI.CreateUIButton(rect, "SettingsButton");
             TransformButton(_starButtons[4], position, 4);
 
             starPressed += StarsUIControl_starPressed;

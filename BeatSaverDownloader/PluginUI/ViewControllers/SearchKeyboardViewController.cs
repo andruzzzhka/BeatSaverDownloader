@@ -50,7 +50,7 @@ namespace BeatSaverDownloader.PluginUI
 
             if(_searchButton == null)
             {
-                _searchButton = BeatSaberUI.CreateUIButton(rectTransform, "ApplyButton");
+                _searchButton = BeatSaberUI.CreateUIButton(rectTransform, "SettingsButton");
                 BeatSaberUI.SetButtonText(_searchButton, "Search");
                 (_searchButton.transform as RectTransform).sizeDelta = new Vector2(30f, 10f);
                 (_searchButton.transform as RectTransform).anchoredPosition = new Vector2(-15f, 1.5f);

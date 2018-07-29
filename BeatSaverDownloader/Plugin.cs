@@ -1,4 +1,5 @@
 ﻿using IllusionPlugin;
+using System;
 using UnityEngine.SceneManagement;
 
 namespace BeatSaverDownloader
@@ -31,7 +32,7 @@ namespace BeatSaverDownloader
 
         public void OnLevelWasLoaded(int level)
         {
-            if (level == 1)
+            if (SceneManager.GetSceneByBuildIndex(level).name == "Menu")
             {
                 BeatSaberUI.OnLoad();
                 PluginUI.PluginUI.OnLoad();

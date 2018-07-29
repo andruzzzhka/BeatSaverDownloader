@@ -64,30 +64,7 @@ namespace BeatSaverDownloader.PluginUI
                 ratingText.alignment = TextAlignmentOptions.Center;
                 ratingText.fontSize = 7f;
 
-                upvoteButton = BeatSaberUI.CreateUIButton(results.rectTransform, "ApplyButton");
-                BeatSaberUI.SetButtonText(upvoteButton, "+");
-                BeatSaberUI.SetButtonTextSize(upvoteButton, 7f);
-                (upvoteButton.transform as RectTransform).anchoredPosition = new Vector2(40f, 45f);
-                upvoteButton.interactable = false;
-
-
-                upvoteButton.onClick.RemoveAllListeners();
-                upvoteButton.onClick.AddListener(delegate ()
-                {
-                    StartCoroutine(VoteForSong(true));
-                });
-
-                downvoteButton = BeatSaberUI.CreateUIButton(results.rectTransform, "ApplyButton");
-                BeatSaberUI.SetButtonText(downvoteButton, "-");
-                BeatSaberUI.SetButtonTextSize(downvoteButton, 7f);
-                (downvoteButton.transform as RectTransform).anchoredPosition = new Vector2(40f, 26f);
-                downvoteButton.interactable = false;
-
-                downvoteButton.onClick.RemoveAllListeners();
-                downvoteButton.onClick.AddListener(delegate ()
-                {
-                    StartCoroutine(VoteForSong(false));
-                });
+                CreateButtons(results.rectTransform);
                 #endregion
                 
                 UnityWebRequest www = UnityWebRequest.Get($"{PluginConfig.beatsaverURL}/api/songs/search/hash/{levelId.Substring(0, 32)}");
@@ -115,6 +92,7 @@ namespace BeatSaverDownloader.PluginUI
 
                         if (!string.IsNullOrEmpty(PluginConfig.apiAccessToken) && PluginConfig.apiAccessToken != PluginConfig.apiTokenPlaceholder)
                         {
+                            CreateButtons(results.rectTransform);
                             upvoteButton.interactable = true;
                             downvoteButton.interactable = true;
                         }
@@ -130,6 +108,40 @@ namespace BeatSaverDownloader.PluginUI
                     }
                 }
 
+            }
+        }
+
+        private void CreateButtons(RectTransform parent)
+        {
+            if (upvoteButton == null)
+            {
+                upvoteButton = BeatSaberUI.CreateUIButton(parent, "SettingsButton");
+                BeatSaberUI.SetButtonText(upvoteButton, "+");
+                BeatSaberUI.SetButtonTextSize(upvoteButton, 7f);
+                (upvoteButton.transform as RectTransform).anchoredPosition = new Vector2(-14f, 45f);
+                upvoteButton.interactable = false;
+
+
+                upvoteButton.onClick.RemoveAllListeners();
+                upvoteButton.onClick.AddListener(delegate ()
+                {
+                    StartCoroutine(VoteForSong(true));
+                });
+            }
+
+            if (downvoteButton == null)
+            {
+                downvoteButton = BeatSaberUI.CreateUIButton(parent, "SettingsButton");
+                BeatSaberUI.SetButtonText(downvoteButton, "-");
+                BeatSaberUI.SetButtonTextSize(downvoteButton, 7f);
+                (downvoteButton.transform as RectTransform).anchoredPosition = new Vector2(-14f, 26f);
+                downvoteButton.interactable = false;
+
+                downvoteButton.onClick.RemoveAllListeners();
+                downvoteButton.onClick.AddListener(delegate ()
+                {
+                    StartCoroutine(VoteForSong(false));
+                });
             }
         }
 

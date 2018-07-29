@@ -87,7 +87,7 @@ namespace BeatSaverDownloader.PluginUI.ViewControllers
             _levelDesignControl = new GameObject("LevelDesignUIControl").AddComponent<StarsUIControl>();
             _levelDesignControl.Init(rectTransform, new Vector2(10f, 17.5f));
 
-            submitButton = BeatSaberUI.CreateUIButton(rectTransform, "ApplyButton");
+            submitButton = BeatSaberUI.CreateUIButton(rectTransform, "SettingsButton");
             (submitButton.transform as RectTransform).anchoredPosition = new Vector2(-15f, 5f);
             (submitButton.transform as RectTransform).sizeDelta = new Vector2(30f, 10f);
             BeatSaberUI.SetButtonText(submitButton, "Submit");

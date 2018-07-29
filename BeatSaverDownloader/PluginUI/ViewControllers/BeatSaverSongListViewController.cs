@@ -89,7 +89,7 @@ namespace BeatSaverDownloader.PluginUI
 
             if (_sortByButton == null)
             {
-                _sortByButton = BeatSaberUI.CreateUIButton(rectTransform, "ApplyButton");
+                _sortByButton = BeatSaberUI.CreateUIButton(rectTransform, "SettingsButton");
                 BeatSaberUI.SetButtonText(_sortByButton, "Sort by");
                 BeatSaberUI.SetButtonTextSize(_sortByButton, 3f);
                 (_sortByButton.transform as RectTransform).sizeDelta = new Vector2(30f, 6f);
@@ -112,7 +112,7 @@ namespace BeatSaverDownloader.PluginUI
 
             if (_topButton == null)
             {
-                _topButton = BeatSaberUI.CreateUIButton(rectTransform, "ApplyButton");
+                _topButton = BeatSaberUI.CreateUIButton(rectTransform, "SettingsButton");
                 BeatSaberUI.SetButtonText(_topButton, "Downloads");
                 BeatSaberUI.SetButtonTextSize(_topButton, 3f);
                 (_topButton.transform as RectTransform).sizeDelta = new Vector2(20f, 6f);
@@ -135,7 +135,7 @@ namespace BeatSaverDownloader.PluginUI
 
             if (_newButton == null)
             {
-                _newButton = BeatSaberUI.CreateUIButton(rectTransform, "ApplyButton");
+                _newButton = BeatSaberUI.CreateUIButton(rectTransform, "SettingsButton");
                 BeatSaberUI.SetButtonText(_newButton, "Upload Time");
                 BeatSaberUI.SetButtonTextSize(_newButton, 3f);
                 (_newButton.transform as RectTransform).sizeDelta = new Vector2(20f, 6f);
@@ -159,7 +159,7 @@ namespace BeatSaverDownloader.PluginUI
 
             if (_starButton == null)
             {
-                _starButton = BeatSaberUI.CreateUIButton(rectTransform, "ApplyButton");
+                _starButton = BeatSaberUI.CreateUIButton(rectTransform, "SettingsButton");
                 BeatSaberUI.SetButtonText(_starButton, "Plays");
                 BeatSaberUI.SetButtonTextSize(_starButton, 3f);
                 (_starButton.transform as RectTransform).sizeDelta = new Vector2(20f, 6f);
@@ -181,7 +181,7 @@ namespace BeatSaverDownloader.PluginUI
 
             if (_searchButton == null)
             {
-                _searchButton = BeatSaberUI.CreateUIButton(rectTransform, "ApplyButton");
+                _searchButton = BeatSaberUI.CreateUIButton(rectTransform, "SettingsButton");
                 BeatSaberUI.SetButtonText(_searchButton, "Search");
                 BeatSaberUI.SetButtonTextSize(_searchButton, 3f);
                 (_searchButton.transform as RectTransform).sizeDelta = new Vector2(30f, 6f);

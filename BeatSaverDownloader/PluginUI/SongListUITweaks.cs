@@ -60,7 +60,7 @@ namespace BeatSaverDownloader.PluginUI
 
             if (_sortByButton == null)
             {
-                _sortByButton = BeatSaberUI.CreateUIButton((_tableViewRectTransform.parent as RectTransform), "ApplyButton");
+                _sortByButton = BeatSaberUI.CreateUIButton((_tableViewRectTransform.parent as RectTransform), "SettingsButton");
                 BeatSaberUI.SetButtonText(_sortByButton, "Sort by");
                 BeatSaberUI.SetButtonTextSize(_sortByButton, 3f);
                 (_sortByButton.transform as RectTransform).sizeDelta = new Vector2(30f, 6f);
@@ -74,7 +74,7 @@ namespace BeatSaverDownloader.PluginUI
 
             if (_favButton == null)
             {
-                _favButton = BeatSaberUI.CreateUIButton((_tableViewRectTransform.parent as RectTransform), "ApplyButton");
+                _favButton = BeatSaberUI.CreateUIButton((_tableViewRectTransform.parent as RectTransform), "SettingsButton");
                 BeatSaberUI.SetButtonText(_favButton, "Favorites");
                 BeatSaberUI.SetButtonTextSize(_favButton, 3f);
                 (_favButton.transform as RectTransform).sizeDelta = new Vector2(20f, 6f);
@@ -90,7 +90,7 @@ namespace BeatSaverDownloader.PluginUI
 
             if (_allButton == null)
             {
-                _allButton = BeatSaberUI.CreateUIButton((_tableViewRectTransform.parent as RectTransform), "ApplyButton");
+                _allButton = BeatSaberUI.CreateUIButton((_tableViewRectTransform.parent as RectTransform), "SettingsButton");
                 BeatSaberUI.SetButtonText(_allButton, "All");
                 BeatSaberUI.SetButtonTextSize(_allButton, 3f);
                 (_allButton.transform as RectTransform).sizeDelta = new Vector2(20f, 6f);
@@ -107,7 +107,7 @@ namespace BeatSaverDownloader.PluginUI
 
             if (_newButton == null)
             {
-                _newButton = BeatSaberUI.CreateUIButton((_tableViewRectTransform.parent as RectTransform), "ApplyButton");
+                _newButton = BeatSaberUI.CreateUIButton((_tableViewRectTransform.parent as RectTransform), "SettingsButton");
                 BeatSaberUI.SetButtonText(_newButton, "Newest");
                 BeatSaberUI.SetButtonTextSize(_newButton, 3f);
                 (_newButton.transform as RectTransform).sizeDelta = new Vector2(20f, 6f);
@@ -124,7 +124,7 @@ namespace BeatSaverDownloader.PluginUI
 
             if (_searchButton == null)
             {
-                _searchButton = BeatSaberUI.CreateUIButton((_tableViewRectTransform.parent as RectTransform), "ApplyButton");
+                _searchButton = BeatSaberUI.CreateUIButton((_tableViewRectTransform.parent as RectTransform), "SettingsButton");
                 BeatSaberUI.SetButtonText(_searchButton, "Search");
                 BeatSaberUI.SetButtonTextSize(_searchButton, 3f);
                 (_searchButton.transform as RectTransform).sizeDelta = new Vector2(30f, 6f);

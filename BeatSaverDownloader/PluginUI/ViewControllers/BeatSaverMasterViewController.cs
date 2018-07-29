@@ -450,14 +450,14 @@ namespace BeatSaverDownloader.PluginUI
         {
             TextMeshProUGUI _deleteText = BeatSaberUI.CreateText(_songDetailViewController.rectTransform, String.Format("Delete folder \"{0}\"?", dirName.Substring(dirName.LastIndexOf('/')).Trim('/')), new Vector2(18f, -64f));
 
-            Button _confirmDelete = BeatSaberUI.CreateUIButton(_songDetailViewController.rectTransform, "ApplyButton");
+            Button _confirmDelete = BeatSaberUI.CreateUIButton(_songDetailViewController.rectTransform, "SettingsButton");
 
             BeatSaberUI.SetButtonText(_confirmDelete, "Yes");
             (_confirmDelete.transform as RectTransform).sizeDelta = new Vector2(15f, 10f);
             (_confirmDelete.transform as RectTransform).anchoredPosition = new Vector2(-13f, 6f);
             _confirmDelete.onClick.AddListener(delegate () { _confirmDeleteState = Prompt.Yes; });
 
-            Button _discardDelete = BeatSaberUI.CreateUIButton(_songDetailViewController.rectTransform, "ApplyButton");
+            Button _discardDelete = BeatSaberUI.CreateUIButton(_songDetailViewController.rectTransform, "SettingsButton");
 
             BeatSaberUI.SetButtonText(_discardDelete, "No");
             (_discardDelete.transform as RectTransform).sizeDelta = new Vector2(15f, 10f);
