@@ -32,8 +32,8 @@ namespace BeatSaverDownloader.PluginUI
 
                 _searchKeyboard = _searchKeyboardGO.AddComponent<CustomUIKeyboard>();
 
-                _searchKeyboard.uiKeyboardKeyEvent = delegate (char input) { _inputString += input; UpdateInputText(); };
-                _searchKeyboard.uiKeyboardDeleteEvent = delegate () { _inputString = _inputString.Substring(0, _inputString.Length - 1); UpdateInputText(); };
+                _searchKeyboard.uiKeyboardKeyEvent += delegate (char input) { _inputString += input; UpdateInputText(); };
+                _searchKeyboard.uiKeyboardDeleteEvent += delegate () { _inputString = _inputString.Substring(0, _inputString.Length - 1); UpdateInputText(); };
             }
 
             if(_inputText == null)

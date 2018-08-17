@@ -98,7 +98,7 @@ namespace BeatSaverDownloader.PluginUI
             difficulty3Text.text = (newSongInfo.difficultyLevels.Where(x => (x.difficulty == "Easy" || x.difficulty == "Normal")).Count() > 0) ? "Yes" : "No";
         }
 
-        protected void LeftAndRightScreenViewControllers(out VRUIViewController leftScreenViewController, out VRUIViewController rightScreenViewController)
+        protected override void LeftAndRightScreenViewControllers(out VRUIViewController leftScreenViewController, out VRUIViewController rightScreenViewController)
         {
 
             if(_parentMasterViewController == null)

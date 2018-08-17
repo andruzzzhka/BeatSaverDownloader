@@ -35,7 +35,6 @@ namespace BeatSaverDownloader.PluginUI
         Button _backButton;
 
         SongPreviewPlayer _songPreviewPlayer;
-        public SongLoader _songLoader;
 
         public string _sortBy = "top";
         private bool isLoading = false;
@@ -45,18 +44,12 @@ namespace BeatSaverDownloader.PluginUI
         Prompt _confirmDeleteState = Prompt.NotSelected;
 
         protected override void DidActivate(bool firstActivation, ActivationType type)
-        {    
-            _songLoader = FindObjectOfType<SongLoader>();
-            
+        {
             _alreadyDownloadedSongs = SongLoader.CustomLevels.Select(x => new Song(x)).ToList();
             
             if (_songPreviewPlayer == null)
             {
-                ObjectProvider[] providers = Resources.FindObjectsOfTypeAll<ObjectProvider>().Where(x => x.name == "SongPreviewPlayerProvider").ToArray();
-
-                if (providers.Length > 0) {
-                    _songPreviewPlayer = providers[0].GetProvidedObject<SongPreviewPlayer>();
-                }
+                _songPreviewPlayer = Resources.FindObjectsOfTypeAll<SongPreviewPlayer>().First();
             }
 
             if (_songListViewController == null)
@@ -92,7 +85,7 @@ namespace BeatSaverDownloader.PluginUI
                         }
                         try
                         {
-                            _songLoader.RefreshSongs(false);
+                            SongLoader.Instance.RefreshSongs(false);
                             _notUpdatedSongs.Clear();
                         }
                         catch (Exception e)
