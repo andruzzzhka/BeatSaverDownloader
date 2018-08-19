@@ -16,14 +16,10 @@ namespace BeatSaverDownloader
 {
     class BeatSaberUI : MonoBehaviour
     {
-
-        private Button _buttonInstance;
         private Button _backButtonInstance;
         private GameObject _loadingIndicatorInstance;
 
         public static BeatSaberUI _instance;
-
-        public static List<Sprite> icons = new List<Sprite>();
 
         public static bool initialized = false;
 
@@ -39,15 +35,11 @@ namespace BeatSaverDownloader
 
         private void Awake()
         {
+            
             _instance = this;
 
-            foreach (Sprite sprite in Resources.FindObjectsOfTypeAll<Sprite>())
-            {
-                icons.Add(sprite);
-            }
             try
             {
-                _buttonInstance = Resources.FindObjectsOfTypeAll<Button>().First(x => (x.name == "QuitButton"));
                 _backButtonInstance = Resources.FindObjectsOfTypeAll<Button>().First(x => (x.name == "BackArrowButton"));
                 _loadingIndicatorInstance = Resources.FindObjectsOfTypeAll<GameObject>().Where(x => x.name == "LoadingIndicator").First();
             }

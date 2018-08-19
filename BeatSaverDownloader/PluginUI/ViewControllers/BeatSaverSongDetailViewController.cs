@@ -9,10 +9,11 @@ namespace BeatSaverDownloader.PluginUI
 {
     internal class BeatSaverSongDetailViewController : VRUIViewController
     {
-        BeatSaverMasterViewController _parentMasterViewController;
+        BeatSaverNavigationController _parentMasterViewController;
         
         private Logger log = new Logger("BeatSaverDownloader");
 
+        Button _downloadButton;
 
         TextMeshProUGUI songNameText;
         TextMeshProUGUI downloadsText;
@@ -103,7 +104,7 @@ namespace BeatSaverDownloader.PluginUI
 
             if(_parentMasterViewController == null)
             {
-                _parentMasterViewController = GetComponentInParent<BeatSaverMasterViewController>();
+                _parentMasterViewController = GetComponentInParent<BeatSaverNavigationController>();
             }
             if (_parentMasterViewController._downloadQueueViewController == null)
             {

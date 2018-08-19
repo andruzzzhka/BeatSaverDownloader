@@ -52,7 +52,7 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Beat Saber\Beat Saber_Data\Managed\IllusionPlugin.dll</HintPath>
     </Reference>
-    <Reference Include="SongLoaderPlugin, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="SongLoaderPlugin, Version=4.3.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Beat Saber\Plugins\SongLoaderPlugin.dll</HintPath>
     </Reference>
@@ -118,9 +118,10 @@
     <Compile Include="Misc\Base64Sprites.cs" />
     <Compile Include="Misc\BeatSaverAPIResult.cs" />
     <Compile Include="Misc\LoadScripts.cs" />
+    <Compile Include="Misc\Playlist.cs" />
     <Compile Include="Misc\PluginConfig.cs" />
     <Compile Include="PluginUI\ViewControllers\BeastSaberReviewViewController.cs" />
-    <Compile Include="PluginUI\ViewControllers\BeatSaverMasterViewController.cs" />
+    <Compile Include="PluginUI\ViewControllers\BeatSaverNavigationController.cs" />
     <Compile Include="PluginUI\ViewControllers\BeatSaverSongDetailViewController.cs" />
     <Compile Include="PluginUI\ViewControllers\BeatSaverSongListViewController.cs" />
     <Compile Include="Misc\Logger.cs" />
@@ -131,12 +132,18 @@
     <Compile Include="PluginUI\PluginUI.cs" />
     <Compile Include="PluginUI\SongListUITweaks.cs" />
     <Compile Include="PluginUI\UIElements\StarsUIControl.cs" />
+    <Compile Include="PluginUI\ViewControllers\PlaylistDetailViewController.cs" />
+    <Compile Include="PluginUI\ViewControllers\PlaylistNavigationController.cs" />
+    <Compile Include="PluginUI\ViewControllers\PlaylistsListViewController.cs" />
     <Compile Include="PluginUI\VotingUI.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Misc\ReflectionUtil.cs" />
     <Compile Include="Misc\SongBrowserSettings.cs" />
     <Compile Include="UIFramework\BeatSaberUI.cs" />
     <Compile Include="PluginUI\ViewControllers\SearchKeyboardViewController.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <WCFMetadata Include="Connected Services\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

@@ -11,10 +11,11 @@ using VRUI;
 
 namespace BeatSaverDownloader.PluginUI
 {
-    enum TopButtonsState { Select, SortBy, Search };
+    enum TopButtonsState { Select, SortBy, Search, Playlists };
+
     class BeatSaverSongListViewController : VRUIViewController, TableView.IDataSource
     {
-        BeatSaverMasterViewController _parentMasterViewController;
+        BeatSaverNavigationController _parentMasterViewController;
         
         private Logger log = new Logger("BeatSaverDownloader");
 
@@ -42,7 +43,7 @@ namespace BeatSaverDownloader.PluginUI
 
         protected override void DidActivate(bool firstActivation, ActivationType type)
         {
-            _parentMasterViewController = GetComponentInParent<BeatSaverMasterViewController>();
+            _parentMasterViewController = GetComponentInParent<BeatSaverNavigationController>();
 
             if (_pageUpButton == null)
             {

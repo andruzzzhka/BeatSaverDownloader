@@ -1,4 +1,6 @@
-﻿using HMUI;
+﻿using BeatSaverDownloader.Misc;
+using BeatSaverDownloader.PluginUI.ViewControllers;
+using HMUI;
 using SongLoaderPlugin;
 using SongLoaderPlugin.OverrideClasses;
 using System;
@@ -12,24 +14,30 @@ using UnityEngine.UI;
 
 namespace BeatSaverDownloader.PluginUI
 {
-    public enum SortMode { All, Favorites, Newest};
+    public enum SortMode { Default, Author, Newest};
 
     class SongListUITweaks : MonoBehaviour
     {
-        public static SortMode lastSortMode = SortMode.All;
+        public static SortMode lastSortMode = SortMode.Default;
+        public static Playlist lastPlaylist;
 
         SearchKeyboardViewController _searchViewController;
 
         StandardLevelSelectionFlowCoordinator _songSelectionMasterViewController;
         StandardLevelListViewController _songListViewController;
+        StandardLevelSelectionNavigationController _levelSelectionNavController;
+
+        PlaylistNavigationController _playlistNavController;
 
         RectTransform _tableViewRectTransform;
 
-        Button _sortByButton;
-        Button _favButton;
-        Button _allButton;
-        Button _newButton;
         Button _searchButton;
+        Button _sortByButton;
+        Button _playlistsButton;
+        Button _authorButton;
+        Button _defButton;
+        Button _newButton;
+
 
         public void SongListUIFound()
         {
@@ -41,6 +49,16 @@ namespace BeatSaverDownloader.PluginUI
             if (_songListViewController == null)
             {
                 _songListViewController = ReflectionUtil.GetPrivateField<StandardLevelListViewController>(_songSelectionMasterViewController, "_levelListViewController");
+            }
+
+            if (_levelSelectionNavController == null)
+            {
+                _levelSelectionNavController = ReflectionUtil.GetPrivateField<StandardLevelSelectionNavigationController>(_songSelectionMasterViewController, "_levelSelectionNavigationController");
+            }
+
+            if (_playlistNavController == null)
+            {
+                _playlistNavController = BeatSaberUI.CreateViewController<PlaylistNavigationController>();
             }
 
             if (_tableViewRectTransform == null)
@@ -56,15 +74,30 @@ namespace BeatSaverDownloader.PluginUI
                 RectTransform _pageDown = _tableViewRectTransform.GetComponentsInChildren<RectTransform>().First(x => x.name == "PageDownButton");
                 _pageDown.anchoredPosition = new Vector2(0f, 1f);
             }
-                        
+
+            if (_searchButton == null)
+            {
+                _searchButton = BeatSaberUI.CreateUIButton((_tableViewRectTransform.parent as RectTransform), "SettingsButton");
+                BeatSaberUI.SetButtonText(_searchButton, "Search");
+                BeatSaberUI.SetButtonTextSize(_searchButton, 3f);
+                (_searchButton.transform as RectTransform).sizeDelta = new Vector2(20f, 6f);
+                (_searchButton.transform as RectTransform).anchoredPosition = new Vector2(-40f, 73f);
+                _searchButton.onClick.RemoveAllListeners();
+                _searchButton.onClick.AddListener(delegate ()
+                {
+                    ShowSearchKeyboard();
+                    SelectTopButtons(TopButtonsState.Search);
+
+                });
+            }
 
             if (_sortByButton == null)
             {
                 _sortByButton = BeatSaberUI.CreateUIButton((_tableViewRectTransform.parent as RectTransform), "SettingsButton");
                 BeatSaberUI.SetButtonText(_sortByButton, "Sort by");
                 BeatSaberUI.SetButtonTextSize(_sortByButton, 3f);
-                (_sortByButton.transform as RectTransform).sizeDelta = new Vector2(30f, 6f);
-                (_sortByButton.transform as RectTransform).anchoredPosition = new Vector2(0f, 73f);
+                (_sortByButton.transform as RectTransform).sizeDelta = new Vector2(20f, 6f);
+                (_sortByButton.transform as RectTransform).anchoredPosition = new Vector2(-20f, 73f);
                 _sortByButton.onClick.RemoveAllListeners();
                 _sortByButton.onClick.AddListener(delegate ()
                 {
@@ -72,36 +105,52 @@ namespace BeatSaverDownloader.PluginUI
                 });
             }
 
-            if (_favButton == null)
+            if (_playlistsButton == null)
             {
-                _favButton = BeatSaberUI.CreateUIButton((_tableViewRectTransform.parent as RectTransform), "SettingsButton");
-                BeatSaberUI.SetButtonText(_favButton, "Favorites");
-                BeatSaberUI.SetButtonTextSize(_favButton, 3f);
-                (_favButton.transform as RectTransform).sizeDelta = new Vector2(20f, 6f);
-                (_favButton.transform as RectTransform).anchoredPosition = new Vector2(0f, 73f);
-                _favButton.onClick.RemoveAllListeners();
-                _favButton.onClick.AddListener(delegate ()
+                _playlistsButton = BeatSaberUI.CreateUIButton((_tableViewRectTransform.parent as RectTransform), "SettingsButton");
+                BeatSaberUI.SetButtonText(_playlistsButton, "Playlists");
+                BeatSaberUI.SetButtonTextSize(_playlistsButton, 3f);
+                (_playlistsButton.transform as RectTransform).sizeDelta = new Vector2(20f, 6f);
+                (_playlistsButton.transform as RectTransform).anchoredPosition = new Vector2(0f, 73f);
+                _playlistsButton.onClick.RemoveAllListeners();
+                _playlistsButton.onClick.AddListener(delegate ()
                 {
-                    ShowLevels(SortMode.Favorites);
-                    SelectTopButtons(TopButtonsState.Select);
+                    SelectTopButtons(TopButtonsState.Playlists);
+                    _levelSelectionNavController.PresentModalViewController(_playlistNavController, null);
                 });
-                _favButton.gameObject.SetActive(false);
+                _playlistNavController.finished += SelectedPlaylist;
             }
 
-            if (_allButton == null)
+            if (_authorButton == null)
             {
-                _allButton = BeatSaberUI.CreateUIButton((_tableViewRectTransform.parent as RectTransform), "SettingsButton");
-                BeatSaberUI.SetButtonText(_allButton, "All");
-                BeatSaberUI.SetButtonTextSize(_allButton, 3f);
-                (_allButton.transform as RectTransform).sizeDelta = new Vector2(20f, 6f);
-                (_allButton.transform as RectTransform).anchoredPosition = new Vector2(-40f, 73f);
-                _allButton.onClick.RemoveAllListeners();
-                _allButton.onClick.AddListener(delegate ()
+                _authorButton = BeatSaberUI.CreateUIButton((_tableViewRectTransform.parent as RectTransform), "SettingsButton");
+                BeatSaberUI.SetButtonText(_authorButton, "Author");
+                BeatSaberUI.SetButtonTextSize(_authorButton, 3f);
+                (_authorButton.transform as RectTransform).sizeDelta = new Vector2(20f, 6f);
+                (_authorButton.transform as RectTransform).anchoredPosition = new Vector2(0f, 73f);
+                _authorButton.onClick.RemoveAllListeners();
+                _authorButton.onClick.AddListener(delegate ()
                 {
-                    ShowLevels(SortMode.All);
+                    ShowLevels(SortMode.Author);
                     SelectTopButtons(TopButtonsState.Select);
                 });
-                _allButton.gameObject.SetActive(false);
+                _authorButton.gameObject.SetActive(false);
+            }
+
+            if (_defButton == null)
+            {
+                _defButton = BeatSaberUI.CreateUIButton((_tableViewRectTransform.parent as RectTransform), "SettingsButton");
+                BeatSaberUI.SetButtonText(_defButton, "Default");
+                BeatSaberUI.SetButtonTextSize(_defButton, 3f);
+                (_defButton.transform as RectTransform).sizeDelta = new Vector2(20f, 6f);
+                (_defButton.transform as RectTransform).anchoredPosition = new Vector2(-40f, 73f);
+                _defButton.onClick.RemoveAllListeners();
+                _defButton.onClick.AddListener(delegate ()
+                {
+                    ShowLevels(SortMode.Default);
+                    SelectTopButtons(TopButtonsState.Select);
+                });
+                _defButton.gameObject.SetActive(false);
 
             }
 
@@ -122,22 +171,23 @@ namespace BeatSaverDownloader.PluginUI
 
             }
 
-            if (_searchButton == null)
+            if(lastPlaylist != null)
             {
-                _searchButton = BeatSaberUI.CreateUIButton((_tableViewRectTransform.parent as RectTransform), "SettingsButton");
-                BeatSaberUI.SetButtonText(_searchButton, "Search");
-                BeatSaberUI.SetButtonTextSize(_searchButton, 3f);
-                (_searchButton.transform as RectTransform).sizeDelta = new Vector2(30f, 6f);
-                (_searchButton.transform as RectTransform).anchoredPosition = new Vector2(-30f, 73f);
-                _searchButton.onClick.RemoveAllListeners();
-                _searchButton.onClick.AddListener(delegate ()
-                {
-                    ShowSearchKeyboard();
-                    SelectTopButtons(TopButtonsState.Search);
+                SelectedPlaylist(lastPlaylist);
+            }
+        }
 
-                });
+        private void SelectedPlaylist(Playlist playlist)
+        {
+            lastPlaylist = playlist;
+            SelectTopButtons(TopButtonsState.Select);
+
+            if(!lastPlaylist.songs.All(x => x.level != null))
+            {
+                lastPlaylist.songs.ForEach(x => x.level = SongLoader.CustomLevels.FirstOrDefault(y => y.customSongInfo.path.Contains(x.key)));
             }
 
+            ShowLevels(SortMode.Default);
         }
 
         public void SelectTopButtons(TopButtonsState _newState)
@@ -148,27 +198,31 @@ namespace BeatSaverDownloader.PluginUI
                     {
                         _sortByButton.gameObject.SetActive(true);
                         _searchButton.gameObject.SetActive(true);
-                        
-                        _favButton.gameObject.SetActive(false);
-                        _allButton.gameObject.SetActive(false);
+                        _playlistsButton.gameObject.SetActive(true);
+
+                        _authorButton.gameObject.SetActive(false);
+                        _defButton.gameObject.SetActive(false);
                         _newButton.gameObject.SetActive(false);
                     }; break;
                 case TopButtonsState.SortBy:
                     {
                         _sortByButton.gameObject.SetActive(false);
                         _searchButton.gameObject.SetActive(false);
-                        
-                        _favButton.gameObject.SetActive(true);
-                        _allButton.gameObject.SetActive(true);
+                        _playlistsButton.gameObject.SetActive(false);
+
+                        _authorButton.gameObject.SetActive(true);
+                        _defButton.gameObject.SetActive(true);
                         _newButton.gameObject.SetActive(true);
                     }; break;
                 case TopButtonsState.Search:
+                case TopButtonsState.Playlists:
                     {
                         _sortByButton.gameObject.SetActive(false);
                         _searchButton.gameObject.SetActive(false);
-                        
-                        _favButton.gameObject.SetActive(false);
-                        _allButton.gameObject.SetActive(false);
+                        _playlistsButton.gameObject.SetActive(false);
+
+                        _authorButton.gameObject.SetActive(false);
+                        _defButton.gameObject.SetActive(false);
                         _newButton.gameObject.SetActive(false);
                     }; break;
             }
@@ -215,20 +269,15 @@ namespace BeatSaverDownloader.PluginUI
         public IStandardLevel[] GetSortedLevels(SortMode mode)
         {
             lastSortMode = mode;
-            
-            if (_songSelectionMasterViewController == null)
-            {
-                _songSelectionMasterViewController = Resources.FindObjectsOfTypeAll<StandardLevelSelectionFlowCoordinator>().First();
-            }
-            GameplayMode gameplayMode = ReflectionUtil.GetPrivateField<GameplayMode>(_songSelectionMasterViewController, "_gameplayMode");
-            
+
+            GameplayMode gameplayMode = GetCurrentGameplayMode();
 
             switch (mode)
             {
-                case SortMode.Favorites:
-                    return (PluginUI._instance._levelCollections.GetLevels(gameplayMode).Where(x => PluginConfig.favoriteSongs.Contains(x.levelID)).ToArray());
-                case SortMode.All:
-                    return (PluginUI._instance._levelCollections.GetLevels(gameplayMode));
+                case SortMode.Author:
+                    return (GetLevels(gameplayMode).OrderBy(x => x.songAuthorName).ThenBy(x => x.songName + " " + x.songSubName).ToArray());
+                case SortMode.Default:
+                    return (GetLevels(gameplayMode).ToArray());
                 case SortMode.Newest:
                     return (SortLevelsByCreationTime(gameplayMode));
             }
@@ -237,9 +286,9 @@ namespace BeatSaverDownloader.PluginUI
 
         void SearchForLevels(string searchFor)
         {
-            GameplayMode gameplayMode = ReflectionUtil.GetPrivateField<GameplayMode>(_songSelectionMasterViewController, "_gameplayMode");
+            GameplayMode gameplayMode = GetCurrentGameplayMode();
 
-            SetSongListLevels(PluginUI._instance._levelCollections.GetLevels(gameplayMode).Where(x => $"{x.songName} {x.songSubName} {x.songAuthorName}".ToLower().Contains(searchFor)).ToArray());
+            SetSongListLevels(GetLevels(gameplayMode).Where(x => $"{x.songName} {x.songSubName} {x.songAuthorName}".ToLower().IndexOf(searchFor) >= 0).ToArray());
         }
 
         IStandardLevel[] SortLevelsByCreationTime(GameplayMode gameplayMode)
@@ -259,7 +308,7 @@ namespace BeatSaverDownloader.PluginUI
                 }
             }
 
-            List<IStandardLevel> notSorted = PluginUI._instance._levelCollections.GetLevels(gameplayMode).Select(x => (IStandardLevel)x).ToList();
+            List<IStandardLevel> notSorted = GetLevels(gameplayMode).Select(x => (IStandardLevel)x).ToList();
 
             List<IStandardLevel> sortedLevels = new List<IStandardLevel>();
 
@@ -308,6 +357,27 @@ namespace BeatSaverDownloader.PluginUI
             TableView _tableView = table.GetComponentInChildren<TableView>();
             _tableView.SelectRow(row, true);
             _tableView.ScrollToRow(row, true);
+        }
+
+        public GameplayMode GetCurrentGameplayMode()
+        {
+            if (_songSelectionMasterViewController == null)
+            {
+                _songSelectionMasterViewController = Resources.FindObjectsOfTypeAll<StandardLevelSelectionFlowCoordinator>().First();
+            }
+            return ReflectionUtil.GetPrivateField<GameplayMode>(_songSelectionMasterViewController, "_gameplayMode");
+        }
+
+        public List<IStandardLevel> GetLevels(GameplayMode mode)
+        {
+            if(lastPlaylist != null)
+            {
+                return lastPlaylist.songs.Where(x => (x.level != null) && (x.oneSaber == (mode == GameplayMode.SoloOneSaber))).Select(x => x.level).ToList();
+            }
+            else
+            {
+                return PluginUI._instance._levelCollections.GetLevels(mode).Cast<IStandardLevel>().ToList();
+            }
         }
 
     }

@@ -6,18 +6,20 @@ using System.Linq;
 using System.Text;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 using VRUI;
 
 namespace BeatSaverDownloader.PluginUI
 {
     class DownloadQueueViewController : VRUIViewController, TableView.IDataSource
     {
-        public BeatSaverMasterViewController _parentMasterViewController;
+        public BeatSaverNavigationController _parentMasterViewController;
 
         public List<Song> _queuedSongs = new List<Song>();
 
         TextMeshProUGUI _titleText;
 
+        Button _cancelButton;
         TableView _queuedSongsTableView;
         StandardLevelListTableCell _songListTableCellInstance;
 
@@ -51,6 +53,15 @@ namespace BeatSaverDownloader.PluginUI
             else
             {
                 Refresh();
+            }
+
+            if(_cancelButton == null)
+            {
+                _cancelButton = BeatSaberUI.CreateUIButton(rectTransform, "SettingsButton");
+                BeatSaberUI.SetButtonText(_cancelButton, "Cancel");
+
+                (_cancelButton.transform as RectTransform).sizeDelta = new Vector2(30f, 10f);
+                (_cancelButton.transform as RectTransform).anchoredPosition = new Vector2(2f, 6f);
             }
         }
 

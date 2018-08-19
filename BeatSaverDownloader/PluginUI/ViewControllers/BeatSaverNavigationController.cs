@@ -17,7 +17,7 @@ namespace BeatSaverDownloader.PluginUI
 {
     enum Prompt { NotSelected, Yes, No};
 
-    class BeatSaverMasterViewController : VRUINavigationController
+    class BeatSaverNavigationController : VRUINavigationController
     {
         private Logger log = new Logger("BeatSaverDownloader");
 

@@ -40,7 +40,7 @@ namespace BeatSaverDownloader.PluginUI
 
             ResultsViewController results = Resources.FindObjectsOfTypeAll<ResultsViewController>().FirstOrDefault();
 
-            if(results == null)
+            if(results == null || results.difficultyLevel == null)
             {
                 yield break;
             }

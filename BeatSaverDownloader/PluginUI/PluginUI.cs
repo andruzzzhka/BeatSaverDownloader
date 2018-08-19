@@ -1,4 +1,5 @@
-﻿using HMUI;
+﻿using BeatSaverDownloader.Misc;
+using HMUI;
 using IllusionPlugin;
 using SimpleJSON;
 using SongLoaderPlugin;
@@ -25,8 +26,8 @@ namespace BeatSaverDownloader.PluginUI
 
         private Logger log = new Logger("BeatSaverDownloader");
 
-        public BeatSaverMasterViewController _beatSaverViewController;
-        
+        public BeatSaverNavigationController _beatSaverViewController;
+
         private RectTransform _mainMenuRectTransform;
         private StandardLevelSelectionFlowCoordinator _standardLevelSelectionFlowCoordinator;
         private StandardLevelListViewController _standardLevelListViewController;
@@ -35,7 +36,8 @@ namespace BeatSaverDownloader.PluginUI
         private MainMenuViewController _mainMenuViewController;
 
         private StandardLevelDetailViewController _songDetailViewController;
-        
+
+        private Button _beatSaverButton;
         private Button _deleteButton;
         private Button _playButton;
         private Button _favButton;
@@ -82,23 +84,66 @@ namespace BeatSaverDownloader.PluginUI
 
         public void Start()
         {
-            playerId = ReflectionUtil.GetPrivateField<string>(PersistentSingleton<PlatformLeaderboardsModel>.instance, "_playerId");
-            
-            StartCoroutine(_votingUI.WaitForResults());
-            if (!PluginConfig.disableSongListTweaks)
-            {
-                StartCoroutine(WaitForSongListUI());
-            }
-
             if (SongLoader.AreSongsLoaded)
             {
-                SongLoader_SongsLoadedEvent(null, SongLoader.CustomLevels);
+                SongLoader_SongsLoadedEvent(null, null);
             }
             else
             {
                 SongLoader.SongsLoadedEvent += SongLoader_SongsLoadedEvent;
             }
+        }
 
+
+        private void SongLoader_SongsLoadedEvent(SongLoader arg1, List<CustomLevel> arg2)
+        {
+            _levelCollections = Resources.FindObjectsOfTypeAll<LevelCollectionsForGameplayModes>().FirstOrDefault();
+            _levelCollectionsForGameModes = ReflectionUtil.GetPrivateField<LevelCollectionsForGameplayModes.LevelCollectionForGameplayMode[]>(_levelCollections, "_collections").ToList();
+
+            try
+            {
+                List<CustomLevel> customLevels = SongLoader.CustomLevels;
+                List<IStandardLevel> oneSaberLevels = _levelCollections.GetLevels(GameplayMode.SoloOneSaber).Where(x => !customLevels.Cast<IStandardLevel>().Contains(x)).Cast<IStandardLevel>().ToList();
+                List<IStandardLevel> regularLevels = _levelCollections.GetLevels(GameplayMode.SoloStandard).Where(x => !customLevels.Cast<IStandardLevel>().Contains(x)).Cast<IStandardLevel>().ToList();
+
+                Playlist _allPlaylist = new Playlist() { playlistTitle = "All songs", playlistAuthor = "You", image = Base64Sprites.BeastSaberLogo, icon = Base64ToSprite(Base64Sprites.BeastSaberLogo), fileLoc = "" };
+                _allPlaylist.songs = new List<PlaylistSong>();
+                _allPlaylist.songs.AddRange(regularLevels.Select(x => new PlaylistSong() { songName = $"{x.songName} {x.songSubName}", level = x, oneSaber = false, path = "", key = "" }));
+                _allPlaylist.songs.AddRange(oneSaberLevels.Select(x => new PlaylistSong() { songName = $"{x.songName} {x.songSubName}", level = x, oneSaber = true, path = "", key = "" }));
+                _allPlaylist.songs.AddRange(customLevels.Select(x => new PlaylistSong() { songName = $"{x.songName} {x.songSubName}", level = x, oneSaber = false, path = x.customSongInfo.path, key = "" }));
+
+                Playlist _favPlaylist = new Playlist() { playlistTitle = "Your favorite songs", playlistAuthor = "You", image = Base64Sprites.BeastSaberLogo, icon = Base64ToSprite(Base64Sprites.BeastSaberLogo), fileLoc = "" };
+                _favPlaylist.songs = new List<PlaylistSong>();
+                _favPlaylist.songs.AddRange(regularLevels.Where(x => PluginConfig.favoriteSongs.Contains(x.levelID)).Select(x => new PlaylistSong() { songName = $"{x.songName} {x.songSubName}", level = x, oneSaber = false, path = "", key = "" }));
+                _favPlaylist.songs.AddRange(oneSaberLevels.Where(x => PluginConfig.favoriteSongs.Contains(x.levelID)).Select(x => new PlaylistSong() { songName = $"{x.songName} {x.songSubName}", level = x, oneSaber = true, path = "", key = "" }));
+                _favPlaylist.songs.AddRange(customLevels.Where(x => PluginConfig.favoriteSongs.Contains(x.levelID)).Select(x => new PlaylistSong() { songName = $"{x.songName} {x.songSubName}", level = x, oneSaber = false, path = x.customSongInfo.path, key = "" }));
+
+                if (PluginConfig.playlists.Any(x => x.playlistTitle == "All songs" || x.playlistTitle == "Your favorite songs"))
+                {
+                    PluginConfig.playlists.RemoveAt(0);
+                    PluginConfig.playlists.RemoveAt(0);
+                }
+
+                PluginConfig.playlists.Insert(0, _favPlaylist);
+                PluginConfig.playlists.Insert(0, _allPlaylist);
+
+                if (SongListUITweaks.lastPlaylist == null)
+                {
+                    SongListUITweaks.lastPlaylist = _allPlaylist;
+                }
+            }catch(Exception e)
+            {
+                log.Exception($"Can't create playlists! Exception: {e}");
+            }
+
+            playerId = ReflectionUtil.GetPrivateField<string>(PersistentSingleton<PlatformLeaderboardsModel>.instance, "_playerId");
+
+            StartCoroutine(_votingUI.WaitForResults());
+
+            if (!PluginConfig.disableSongListTweaks)
+            {
+                StartCoroutine(WaitForSongListUI());
+            }
 
             try
             {
@@ -113,7 +158,7 @@ namespace BeatSaverDownloader.PluginUI
                     _standardLevelListViewController = ReflectionUtil.GetPrivateField<StandardLevelListViewController>(_standardLevelSelectionFlowCoordinator, "_levelListViewController");
                     _standardLevelListViewController.didSelectLevelEvent += PluginUI_didSelectSongEvent;
 
-                    if(_standardLevelListViewController.selectedLevel != null)
+                    if (_standardLevelListViewController.selectedLevel != null)
                     {
                         UpdateDetailsUI(null, _standardLevelListViewController.selectedLevel.levelID);
                     }
@@ -125,12 +170,6 @@ namespace BeatSaverDownloader.PluginUI
             {
                 log.Exception("EXCEPTION ON AWAKE(TRY CREATE BUTTON): " + e);
             }
-        }
-
-        private void SongLoader_SongsLoadedEvent(SongLoader arg1, List<CustomLevel> arg2)
-        {
-            _levelCollections = Resources.FindObjectsOfTypeAll<LevelCollectionsForGameplayModes>().FirstOrDefault();
-            _levelCollectionsForGameModes = ReflectionUtil.GetPrivateField<LevelCollectionsForGameplayModes.LevelCollectionForGameplayMode[]>(_levelCollections, "_collections").ToList();
         }
 
         private void PluginUI_didSelectSongEvent(StandardLevelListViewController sender, IStandardLevel level)
@@ -156,8 +195,9 @@ namespace BeatSaverDownloader.PluginUI
 
             _tweaks.SongListUIFound();
 
-            if (SongListUITweaks.lastSortMode != SortMode.All)
+            if (SongListUITweaks.lastSortMode != SortMode.Default)
             {
+                log.Log("Called ShowLevels, lastSortMode="+ SongListUITweaks.lastSortMode);
                 _tweaks.ShowLevels(SongListUITweaks.lastSortMode);
             }
 
@@ -250,17 +290,7 @@ namespace BeatSaverDownloader.PluginUI
                 _favButton.onClick.RemoveAllListeners();
                 _favButton.onClick.AddListener(delegate ()
                 {
-                    if (PluginConfig.favoriteSongs.Contains(selectedLevel))
-                    {
-
-                        PluginConfig.favoriteSongs.Remove(selectedLevel);
-                    }
-                    else
-                    {
-                        PluginConfig.favoriteSongs.Add(selectedLevel);
-                    }
-                    BeatSaberUI.SetButtonIcon(_favButton, Base64ToSprite(PluginConfig.favoriteSongs.Contains(selectedLevel) ? Base64Sprites.RemoveFromFavorites : Base64Sprites.AddToFavorites));
-                    PluginConfig.SaveConfig();
+                    ToggleFavoriteSong(selectedLevel);
                 });
             }
             else
@@ -270,22 +300,43 @@ namespace BeatSaverDownloader.PluginUI
                 _favButton.onClick.RemoveAllListeners();
                 _favButton.onClick.AddListener(delegate ()
                 {
-                    if (PluginConfig.favoriteSongs.Contains(selectedLevel))
-                    {
-
-                        PluginConfig.favoriteSongs.Remove(selectedLevel);
-                    }
-                    else
-                    {
-                        PluginConfig.favoriteSongs.Add(selectedLevel);
-                    }
-                    BeatSaberUI.SetButtonIcon(_favButton, Base64ToSprite(PluginConfig.favoriteSongs.Contains(selectedLevel) ? Base64Sprites.RemoveFromFavorites : Base64Sprites.AddToFavorites));
-                    PluginConfig.SaveConfig();
+                    ToggleFavoriteSong(selectedLevel);
                 });
             }
 
         }
         
+        public void ToggleFavoriteSong(string selectedLevel)
+        {
+            if (PluginConfig.favoriteSongs.Contains(selectedLevel))
+            {
+
+                PluginConfig.favoriteSongs.Remove(selectedLevel);
+                PluginConfig.playlists.FirstOrDefault(x => x.playlistTitle == "Your favorite songs")?.songs.RemoveAll(x => x.level.levelID == selectedLevel);
+            }
+            else
+            {
+                PluginConfig.favoriteSongs.Add(selectedLevel);
+
+                CustomLevel customSong = SongLoader.CustomLevels.FirstOrDefault(x => x.levelID == selectedLevel);
+                IStandardLevel regularSong = _levelCollections.GetLevels(GameplayMode.SoloStandard).FirstOrDefault(x => x.levelID == selectedLevel);
+                IStandardLevel oneSaberSong = _levelCollections.GetLevels(GameplayMode.SoloOneSaber).FirstOrDefault(x => x.levelID == selectedLevel);
+
+                if (customSong != null)
+                {
+                    PluginConfig.playlists.FirstOrDefault(x => x.playlistTitle == "Your favorite songs")?.songs.Add(new PlaylistSong() { songName = $"{customSong.songName} {customSong.songSubName}", level = customSong, oneSaber = false, path = customSong.customSongInfo.path, key = "" });
+                }
+                else if(regularSong != null)
+                {
+                    PluginConfig.playlists.FirstOrDefault(x => x.playlistTitle == "Your favorite songs")?.songs.Add(new PlaylistSong() { songName = $"{regularSong.songName} {regularSong.songSubName}", level = regularSong, oneSaber = false, path = "", key = "" });
+                }else if(oneSaberSong != null)
+                {
+                    PluginConfig.playlists.FirstOrDefault(x => x.playlistTitle == "Your favorite songs")?.songs.Add(new PlaylistSong() { songName = $"{oneSaberSong.songName} {oneSaberSong.songSubName}", level = oneSaberSong, oneSaber = true, path = "", key = "" });
+                }
+            }
+            BeatSaberUI.SetButtonIcon(_favButton, Base64ToSprite(PluginConfig.favoriteSongs.Contains(selectedLevel) ? Base64Sprites.RemoveFromFavorites : Base64Sprites.AddToFavorites));
+            PluginConfig.SaveConfig();
+        }
 
         IEnumerator DeleteSong(string levelId)
         {
@@ -430,7 +481,7 @@ namespace BeatSaverDownloader.PluginUI
 
         private void CreateBeatSaverButton()
         {
-            Button _beatSaverButton = BeatSaberUI.CreateUIButton(_mainMenuRectTransform, "QuitButton");
+            _beatSaverButton = BeatSaberUI.CreateUIButton(_mainMenuRectTransform, "QuitButton");
 
             try
             {
@@ -438,30 +489,21 @@ namespace BeatSaverDownloader.PluginUI
                 (_beatSaverButton.transform as RectTransform).sizeDelta = new Vector2(28f, 10f);
 
                 BeatSaberUI.SetButtonText(_beatSaverButton, "BeatSaver");
-                //BeatSaberUI.SetButtonIcon(_beatSaverButton, BeatSaberUI.icons.First(x => x.name == "SettingsIcon"));
-
+                
                 _beatSaverButton.onClick.AddListener(delegate () {
-
-                    try
+                    
+                    if (_beatSaverViewController == null)
                     {
-                        if (_beatSaverViewController == null)
-                        {
-                            _beatSaverViewController = BeatSaberUI.CreateViewController<BeatSaverMasterViewController>();
-                        }
-                        _mainMenuViewController.PresentModalViewController(_beatSaverViewController, null, false);
-
+                        _beatSaverViewController = BeatSaberUI.CreateViewController<BeatSaverNavigationController>();
                     }
-                    catch (Exception e)
-                    {
-                        log.Exception("EXCETPION IN BUTTON: " + e.Message);
-                    }
+                    _mainMenuViewController.PresentModalViewController(_beatSaverViewController, null, false);
 
                 });
 
             }
             catch (Exception e)
             {
-                log.Exception("EXCEPTION: " + e.Message);
+                log.Exception("Can't create button! Exception: " + e);
             }
 
         }
@@ -498,25 +540,11 @@ namespace BeatSaverDownloader.PluginUI
         {
             byte[] imageData = Convert.FromBase64String(encodedData);
 
-            int width, height;
-            GetImageSize(imageData, out width, out height);
-
-            Texture2D texture = new Texture2D(width, height, TextureFormat.ARGB32, false, true);
+            Texture2D texture = new Texture2D(0, 0, TextureFormat.ARGB32, false, true);
             texture.hideFlags = HideFlags.HideAndDontSave;
             texture.filterMode = FilterMode.Trilinear;
             texture.LoadImage(imageData);
             return texture;
-        }
-
-        private static void GetImageSize(byte[] imageData, out int width, out int height)
-        {
-            width = ReadInt(imageData, 3 + 15);
-            height = ReadInt(imageData, 3 + 15 + 2 + 2);
-        }
-
-        private static int ReadInt(byte[] imageData, int offset)
-        {
-            return (imageData[offset] << 8) | imageData[offset + 1];
         }
     }
 }
