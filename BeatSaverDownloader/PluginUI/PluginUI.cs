@@ -92,6 +92,42 @@ namespace BeatSaverDownloader.PluginUI
             {
                 SongLoader.SongsLoadedEvent += SongLoader_SongsLoadedEvent;
             }
+
+            playerId = ReflectionUtil.GetPrivateField<string>(PersistentSingleton<PlatformLeaderboardsModel>.instance, "_playerId");
+
+            StartCoroutine(_votingUI.WaitForResults());
+
+            if (!PluginConfig.disableSongListTweaks)
+            {
+                StartCoroutine(WaitForSongListUI());
+            }
+
+            try
+            {
+                _mainMenuViewController = Resources.FindObjectsOfTypeAll<MainMenuViewController>().First();
+                _mainMenuRectTransform = _mainMenuViewController.transform as RectTransform;
+
+                _standardLevelSelectionFlowCoordinator = Resources.FindObjectsOfTypeAll<StandardLevelSelectionFlowCoordinator>().First();
+                _gameplayMode = ReflectionUtil.GetPrivateField<GameplayMode>(_standardLevelSelectionFlowCoordinator, "_gameplayMode");
+
+                if (!PluginConfig.disableSongListTweaks)
+                {
+                    _standardLevelListViewController = ReflectionUtil.GetPrivateField<StandardLevelListViewController>(_standardLevelSelectionFlowCoordinator, "_levelListViewController");
+                    _standardLevelListViewController.didSelectLevelEvent += PluginUI_didSelectSongEvent;
+
+                    if (_standardLevelListViewController.selectedLevel != null)
+                    {
+                        UpdateDetailsUI(null, _standardLevelListViewController.selectedLevel.levelID);
+                    }
+                }
+
+                CreateBeatSaverButton();
+                _beatSaverButton.interactable = false;
+            }
+            catch (Exception e)
+            {
+                log.Exception("EXCEPTION ON AWAKE(TRY CREATE BUTTON): " + e);
+            }
         }
 
 
@@ -99,6 +135,8 @@ namespace BeatSaverDownloader.PluginUI
         {
             _levelCollections = Resources.FindObjectsOfTypeAll<LevelCollectionsForGameplayModes>().FirstOrDefault();
             _levelCollectionsForGameModes = ReflectionUtil.GetPrivateField<LevelCollectionsForGameplayModes.LevelCollectionForGameplayMode[]>(_levelCollections, "_collections").ToList();
+
+            _beatSaverButton.interactable = true;
 
             try
             {
@@ -136,40 +174,7 @@ namespace BeatSaverDownloader.PluginUI
                 log.Exception($"Can't create playlists! Exception: {e}");
             }
 
-            playerId = ReflectionUtil.GetPrivateField<string>(PersistentSingleton<PlatformLeaderboardsModel>.instance, "_playerId");
-
-            StartCoroutine(_votingUI.WaitForResults());
-
-            if (!PluginConfig.disableSongListTweaks)
-            {
-                StartCoroutine(WaitForSongListUI());
-            }
-
-            try
-            {
-                _mainMenuViewController = Resources.FindObjectsOfTypeAll<MainMenuViewController>().First();
-                _mainMenuRectTransform = _mainMenuViewController.transform as RectTransform;
-
-                _standardLevelSelectionFlowCoordinator = Resources.FindObjectsOfTypeAll<StandardLevelSelectionFlowCoordinator>().First();
-                _gameplayMode = ReflectionUtil.GetPrivateField<GameplayMode>(_standardLevelSelectionFlowCoordinator, "_gameplayMode");
-
-                if (!PluginConfig.disableSongListTweaks)
-                {
-                    _standardLevelListViewController = ReflectionUtil.GetPrivateField<StandardLevelListViewController>(_standardLevelSelectionFlowCoordinator, "_levelListViewController");
-                    _standardLevelListViewController.didSelectLevelEvent += PluginUI_didSelectSongEvent;
-
-                    if (_standardLevelListViewController.selectedLevel != null)
-                    {
-                        UpdateDetailsUI(null, _standardLevelListViewController.selectedLevel.levelID);
-                    }
-                }
-
-                CreateBeatSaverButton();
-            }
-            catch (Exception e)
-            {
-                log.Exception("EXCEPTION ON AWAKE(TRY CREATE BUTTON): " + e);
-            }
+            
         }
 
         private void PluginUI_didSelectSongEvent(StandardLevelListViewController sender, IStandardLevel level)
@@ -226,7 +231,7 @@ namespace BeatSaverDownloader.PluginUI
 
                 BeatSaberUI.SetButtonText(_deleteButton, "Delete");
 
-                (_deleteButton.transform as RectTransform).anchoredPosition = new Vector2(27f, 6f);
+                (_deleteButton.transform as RectTransform).anchoredPosition = new Vector2(27f, 10.75f);
                 (_deleteButton.transform as RectTransform).sizeDelta = new Vector2(18f, 10f);
 
                 if (selectedLevel.Length > 32)
@@ -456,14 +461,14 @@ namespace BeatSaverDownloader.PluginUI
 
             BeatSaberUI.SetButtonText(_confirmDelete, "Yes");
             (_confirmDelete.transform as RectTransform).sizeDelta = new Vector2(15f, 10f);
-            (_confirmDelete.transform as RectTransform).anchoredPosition = new Vector2(-13f, 6f);
+            (_confirmDelete.transform as RectTransform).anchoredPosition = new Vector2(-23f, 6f);
             _confirmDelete.onClick.AddListener(delegate () { _confirmDeleteState = Prompt.Yes; });
 
             Button _discardDelete = BeatSaberUI.CreateUIButton(_songDetailViewController.rectTransform, "SettingsButton");
 
             BeatSaberUI.SetButtonText(_discardDelete, "No");
             (_discardDelete.transform as RectTransform).sizeDelta = new Vector2(15f, 10f);
-            (_discardDelete.transform as RectTransform).anchoredPosition = new Vector2(2f, 6f);
+            (_discardDelete.transform as RectTransform).anchoredPosition = new Vector2(-8f, 6f);
             _discardDelete.onClick.AddListener(delegate () { _confirmDeleteState = Prompt.No; });
 
 

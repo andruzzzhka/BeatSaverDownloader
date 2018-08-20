@@ -19,7 +19,7 @@ namespace BeatSaverDownloader.PluginUI
 
         TextMeshProUGUI _titleText;
 
-        Button _cancelButton;
+        Button _abortButton;
         TableView _queuedSongsTableView;
         StandardLevelListTableCell _songListTableCellInstance;
 
@@ -47,27 +47,34 @@ namespace BeatSaverDownloader.PluginUI
                 (_queuedSongsTableView.transform as RectTransform).anchorMax = new Vector2(0.7f, 0.5f);
                 (_queuedSongsTableView.transform as RectTransform).sizeDelta = new Vector2(0f, 60f);
                 (_queuedSongsTableView.transform as RectTransform).anchoredPosition = new Vector3(0f, -3f);
-
-                _queuedSongsTableView.didSelectRowEvent += _queuedSongsTableView_DidSelectRowEvent;
             }
             else
             {
                 Refresh();
             }
 
-            if(_cancelButton == null)
+            if(_abortButton == null)
             {
-                _cancelButton = BeatSaberUI.CreateUIButton(rectTransform, "SettingsButton");
-                BeatSaberUI.SetButtonText(_cancelButton, "Cancel");
+                _abortButton = BeatSaberUI.CreateUIButton(rectTransform, "SettingsButton");
+                BeatSaberUI.SetButtonText(_abortButton, "Abort All");
 
-                (_cancelButton.transform as RectTransform).sizeDelta = new Vector2(30f, 10f);
-                (_cancelButton.transform as RectTransform).anchoredPosition = new Vector2(2f, 6f);
+                (_abortButton.transform as RectTransform).sizeDelta = new Vector2(30f, 10f);
+                (_abortButton.transform as RectTransform).anchoredPosition = new Vector2(-4f, 6f);
+
+                _abortButton.onClick.AddListener(delegate() {
+                    AbortDownloads();
+                });
             }
         }
 
-        private void _queuedSongsTableView_DidSelectRowEvent(TableView arg1, int arg2)
+        public void AbortDownloads()
         {
-
+            Logger.StaticLog("Cancelling downloads...");
+            foreach(Song song in _queuedSongs.Where(x => x.songQueueState == SongQueueState.Downloading || x.songQueueState == SongQueueState.Queued))
+            {
+                song.songQueueState = SongQueueState.Error;
+                song.downloadingProgress = 1f;
+            }
         }
 
         protected override void DidDeactivate(DeactivationType type)

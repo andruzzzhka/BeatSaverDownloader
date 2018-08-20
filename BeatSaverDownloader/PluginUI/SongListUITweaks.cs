@@ -173,11 +173,18 @@ namespace BeatSaverDownloader.PluginUI
 
             if(lastPlaylist != null)
             {
-                SelectedPlaylist(lastPlaylist);
+                ShowPlaylist(lastPlaylist);
             }
         }
 
         private void SelectedPlaylist(Playlist playlist)
+        {
+            lastSortMode = SortMode.Default;
+
+            ShowPlaylist(playlist);
+        }
+
+        public void ShowPlaylist(Playlist playlist)
         {
             lastPlaylist = playlist;
             SelectTopButtons(TopButtonsState.Select);
@@ -187,7 +194,7 @@ namespace BeatSaverDownloader.PluginUI
                 lastPlaylist.songs.ForEach(x => x.level = SongLoader.CustomLevels.FirstOrDefault(y => y.customSongInfo.path.Contains(x.key)));
             }
 
-            ShowLevels(SortMode.Default);
+            ShowLevels(lastSortMode);
         }
 
         public void SelectTopButtons(TopButtonsState _newState)

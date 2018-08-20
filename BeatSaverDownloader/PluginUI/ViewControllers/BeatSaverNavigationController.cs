@@ -244,13 +244,13 @@ namespace BeatSaverDownloader.PluginUI
 
             UnityWebRequestAsyncOperation asyncRequest = www.SendWebRequest();
 
-            while (!asyncRequest.isDone || asyncRequest.progress < 1f)
+            while ((!asyncRequest.isDone || songInfo.downloadingProgress != 1f) && songInfo.songQueueState != SongQueueState.Error )
             {
                 yield return null;
 
                 time += Time.deltaTime;
 
-                if(time >= 15f && asyncRequest.progress == 0f)
+                if((time >= 15f && asyncRequest.progress == 0f) || songInfo.songQueueState == SongQueueState.Error)
                 {
                     www.Abort();
                     timeout = true;
@@ -260,7 +260,7 @@ namespace BeatSaverDownloader.PluginUI
             }
 
 
-            if (www.isNetworkError || www.isHttpError || timeout)
+            if (www.isNetworkError || www.isHttpError || timeout || songInfo.songQueueState == SongQueueState.Error)
             {
                 if (timeout)
                 {
@@ -320,6 +320,11 @@ namespace BeatSaverDownloader.PluginUI
                 }
 
                 songInfo.path = Directory.GetDirectories(customSongsPath).FirstOrDefault();
+
+                if (string.IsNullOrEmpty(songInfo.path))
+                {
+                    songInfo.path = customSongsPath;
+                }
 
                 try
                 {
@@ -386,10 +391,17 @@ namespace BeatSaverDownloader.PluginUI
 
                     string songHash = Directory.GetParent(_songPath).Name;
 
-                    if (Directory.GetFileSystemEntries(_songPath.Substring(0, _songPath.LastIndexOf('/'))).Length == 0)
+                    try
                     {
-                        log.Log("Deleting empty folder \"" + _songPath.Substring(0, _songPath.LastIndexOf('/')) + "\"...");
-                        Directory.Delete(_songPath.Substring(0, _songPath.LastIndexOf('/')), false);
+                        if (Directory.GetFileSystemEntries(_songPath.Substring(0, _songPath.LastIndexOf('/'))).Length == 0)
+                        {
+                            log.Log("Deleting empty folder \"" + _songPath.Substring(0, _songPath.LastIndexOf('/')) + "\"...");
+                            Directory.Delete(_songPath.Substring(0, _songPath.LastIndexOf('/')), false);
+                        }
+                    }
+                    catch
+                    {
+                        log.Warning("Can't find or delete empty folder!");
                     }
 
                     string docPath = Application.dataPath;
@@ -416,24 +428,28 @@ namespace BeatSaverDownloader.PluginUI
                 {
                     log.Log("Deleting \"" + _songPath.Substring(_songPath.LastIndexOf('/')) + "\"...");
                     Directory.Delete(_songPath, true);
-                    if (Directory.GetFileSystemEntries(_songPath.Substring(0, _songPath.LastIndexOf('/'))).Length == 0)
-                    {
+
+                    try { 
+                        if (Directory.GetFileSystemEntries(_songPath.Substring(0, _songPath.LastIndexOf('/'))).Length == 0)
+                        {
                         log.Log("Deleting empty folder \"" + _songPath.Substring(0, _songPath.LastIndexOf('/')) + "\"...");
                         Directory.Delete(_songPath.Substring(0, _songPath.LastIndexOf('/')), false);
+                        }
+                    }
+                    catch
+                    {
+                        log.Warning("Can't find or delete empty folder!");
                     }
                 }
+
+                log.Log($"{_alreadyDownloadedSongs.RemoveAll(x => x.Compare(_songInfo))} song removed");
+
+                _songListViewController._songsTableView.ReloadData();
+                _songListViewController._songsTableView.SelectRow(_selectedRow);
+                RefreshDetails(_selectedRow);
             }
             _confirmDeleteState = Prompt.NotSelected;
-
-
-
-            log.Log($"{_alreadyDownloadedSongs.RemoveAll(x => x.Compare(_songInfo))} song removed");
-
-
-            _songListViewController._songsTableView.ReloadData();
-            _songListViewController._songsTableView.SelectRow(_selectedRow);
-            RefreshDetails(_selectedRow);
-
+            
             _loading = false;
             _downloadButton.interactable = true;
         }
@@ -447,14 +463,14 @@ namespace BeatSaverDownloader.PluginUI
 
             BeatSaberUI.SetButtonText(_confirmDelete, "Yes");
             (_confirmDelete.transform as RectTransform).sizeDelta = new Vector2(15f, 10f);
-            (_confirmDelete.transform as RectTransform).anchoredPosition = new Vector2(-13f, 6f);
+            (_confirmDelete.transform as RectTransform).anchoredPosition = new Vector2(-23f, 6f);
             _confirmDelete.onClick.AddListener(delegate () { _confirmDeleteState = Prompt.Yes; });
 
             Button _discardDelete = BeatSaberUI.CreateUIButton(_songDetailViewController.rectTransform, "SettingsButton");
 
             BeatSaberUI.SetButtonText(_discardDelete, "No");
             (_discardDelete.transform as RectTransform).sizeDelta = new Vector2(15f, 10f);
-            (_discardDelete.transform as RectTransform).anchoredPosition = new Vector2(2f, 6f);
+            (_discardDelete.transform as RectTransform).anchoredPosition = new Vector2(-8f, 6f);
             _discardDelete.onClick.AddListener(delegate () { _confirmDeleteState = Prompt.No; });
 
 
