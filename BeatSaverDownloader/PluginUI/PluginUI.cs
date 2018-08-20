@@ -84,15 +84,6 @@ namespace BeatSaverDownloader.PluginUI
 
         public void Start()
         {
-            if (SongLoader.AreSongsLoaded)
-            {
-                SongLoader_SongsLoadedEvent(null, null);
-            }
-            else
-            {
-                SongLoader.SongsLoadedEvent += SongLoader_SongsLoadedEvent;
-            }
-
             playerId = ReflectionUtil.GetPrivateField<string>(PersistentSingleton<PlatformLeaderboardsModel>.instance, "_playerId");
 
             StartCoroutine(_votingUI.WaitForResults());
@@ -128,6 +119,16 @@ namespace BeatSaverDownloader.PluginUI
             {
                 log.Exception("EXCEPTION ON AWAKE(TRY CREATE BUTTON): " + e);
             }
+
+
+            if (SongLoader.AreSongsLoaded)
+            {
+                SongLoader_SongsLoadedEvent(null, null);
+            }
+            else
+            {
+                SongLoader.SongsLoadedEvent += SongLoader_SongsLoadedEvent;
+            }
         }
 
 
@@ -135,7 +136,7 @@ namespace BeatSaverDownloader.PluginUI
         {
             _levelCollections = Resources.FindObjectsOfTypeAll<LevelCollectionsForGameplayModes>().FirstOrDefault();
             _levelCollectionsForGameModes = ReflectionUtil.GetPrivateField<LevelCollectionsForGameplayModes.LevelCollectionForGameplayMode[]>(_levelCollections, "_collections").ToList();
-
+            
             _beatSaverButton.interactable = true;
 
             try
