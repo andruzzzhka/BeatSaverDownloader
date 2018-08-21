@@ -23,7 +23,7 @@ namespace BeatSaverDownloader.PluginUI
 
         SearchKeyboardViewController _searchViewController;
 
-        StandardLevelSelectionFlowCoordinator _songSelectionMasterViewController;
+        StandardLevelSelectionFlowCoordinator _songSelectionFlowCoordinator;
         StandardLevelListViewController _songListViewController;
         StandardLevelSelectionNavigationController _levelSelectionNavController;
 
@@ -41,19 +41,19 @@ namespace BeatSaverDownloader.PluginUI
 
         public void SongListUIFound()
         {
-            if (_songSelectionMasterViewController == null)
+            if (_songSelectionFlowCoordinator == null)
             {
-                _songSelectionMasterViewController = Resources.FindObjectsOfTypeAll<StandardLevelSelectionFlowCoordinator>().First();
+                _songSelectionFlowCoordinator = Resources.FindObjectsOfTypeAll<StandardLevelSelectionFlowCoordinator>().First();
             }
 
             if (_songListViewController == null)
             {
-                _songListViewController = ReflectionUtil.GetPrivateField<StandardLevelListViewController>(_songSelectionMasterViewController, "_levelListViewController");
+                _songListViewController = ReflectionUtil.GetPrivateField<StandardLevelListViewController>(_songSelectionFlowCoordinator, "_levelListViewController");
             }
 
             if (_levelSelectionNavController == null)
             {
-                _levelSelectionNavController = ReflectionUtil.GetPrivateField<StandardLevelSelectionNavigationController>(_songSelectionMasterViewController, "_levelSelectionNavigationController");
+                _levelSelectionNavController = ReflectionUtil.GetPrivateField<StandardLevelSelectionNavigationController>(_songSelectionFlowCoordinator, "_levelSelectionNavigationController");
             }
 
             if (_playlistNavController == null)
@@ -180,6 +180,7 @@ namespace BeatSaverDownloader.PluginUI
         private void SelectedPlaylist(Playlist playlist)
         {
             lastSortMode = SortMode.Default;
+            SelectTopButtons(TopButtonsState.Select);
 
             ShowPlaylist(playlist);
         }
@@ -187,11 +188,14 @@ namespace BeatSaverDownloader.PluginUI
         public void ShowPlaylist(Playlist playlist)
         {
             lastPlaylist = playlist;
-            SelectTopButtons(TopButtonsState.Select);
 
             if(!lastPlaylist.songs.All(x => x.level != null))
             {
-                lastPlaylist.songs.ForEach(x => x.level = SongLoader.CustomLevels.FirstOrDefault(y => y.customSongInfo.path.Contains(x.key)));
+                lastPlaylist.songs.ForEach(x =>
+                {
+                    if (x.level == null)
+                        x.level = SongLoader.CustomLevels.FirstOrDefault(y => y.customSongInfo.path.Contains(x.key));
+                });
             }
 
             ShowLevels(lastSortMode);
@@ -336,25 +340,38 @@ namespace BeatSaverDownloader.PluginUI
 
         void SetSongListLevels(IStandardLevel[] levels, string selectedLevelID = "")
         {
-            StandardLevelListViewController songListViewController = ReflectionUtil.GetPrivateField<StandardLevelListViewController>(_songSelectionMasterViewController, "_levelListViewController");
-            
-            StandardLevelListTableView _songListTableView = songListViewController.GetComponentInChildren<StandardLevelListTableView>();
-
-            ReflectionUtil.SetPrivateField(_songListTableView, "_levels", levels);
-            ReflectionUtil.SetPrivateField(songListViewController, "_levels", levels);
-            
-            ReflectionUtil.GetPrivateField<TableView>(_songListTableView, "_tableView").ReloadData();
-
-            if (!string.IsNullOrEmpty(selectedLevelID))
+            if (_songSelectionFlowCoordinator != null)
             {
-                if (levels.Any(x => x.levelID == selectedLevelID))
+                Logger.StaticLog($"Trying to set song list levels, got {levels.Length} levels");
+                StandardLevelListViewController songListViewController = ReflectionUtil.GetPrivateField<StandardLevelListViewController>(_songSelectionFlowCoordinator, "_levelListViewController");
+
+                StandardLevelListTableView _songListTableView = songListViewController.GetComponentInChildren<StandardLevelListTableView>();
+
+                ReflectionUtil.SetPrivateField(_songListTableView, "_levels", levels);
+                ReflectionUtil.SetPrivateField(songListViewController, "_levels", levels);
+
+                TableView songsTableView = ReflectionUtil.GetPrivateField<TableView>(_songListTableView, "_tableView");
+                bool initialized = ReflectionUtil.GetPrivateField<bool>(songsTableView, "_isInitialized");
+                if (songsTableView != null && initialized)
                 {
-                    SelectAndScrollToLevel(_songListTableView, selectedLevelID);
+                    songsTableView.ReloadData();
+
+                    if (!string.IsNullOrEmpty(selectedLevelID))
+                    {
+                        if (levels.Any(x => x.levelID == selectedLevelID))
+                        {
+                            SelectAndScrollToLevel(_songListTableView, selectedLevelID);
+                        }
+                        else
+                        {
+                            SelectAndScrollToLevel(_songListTableView, levels.FirstOrDefault().levelID);
+                        }
+                    }
                 }
-                else
-                {
-                    SelectAndScrollToLevel(_songListTableView, levels.FirstOrDefault().levelID);
-                }
+            }
+            else
+            {
+                Logger.StaticLog("Can't set song list! LevelSelectionFlowCoordinator is null!");
             }
         }
 
@@ -368,11 +385,11 @@ namespace BeatSaverDownloader.PluginUI
 
         public GameplayMode GetCurrentGameplayMode()
         {
-            if (_songSelectionMasterViewController == null)
+            if (_songSelectionFlowCoordinator == null)
             {
-                _songSelectionMasterViewController = Resources.FindObjectsOfTypeAll<StandardLevelSelectionFlowCoordinator>().First();
+                _songSelectionFlowCoordinator = Resources.FindObjectsOfTypeAll<StandardLevelSelectionFlowCoordinator>().First();
             }
-            return ReflectionUtil.GetPrivateField<GameplayMode>(_songSelectionMasterViewController, "_gameplayMode");
+            return ReflectionUtil.GetPrivateField<GameplayMode>(_songSelectionFlowCoordinator, "_gameplayMode");
         }
 
         public List<IStandardLevel> GetLevels(GameplayMode mode)

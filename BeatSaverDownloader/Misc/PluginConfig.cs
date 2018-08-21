@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security;
 using System.Text;
 using System.Xml.Serialization;
 using UnityEngine;
@@ -35,25 +36,6 @@ namespace BeatSaverDownloader
 
         public static void LoadOrCreateConfig()
         {
-            if (Registry.CurrentUser.OpenSubKey(@"Software").GetSubKeyNames().Contains("178eef3d-4cea-5a1b-bfd0-07a21d068990"))
-            {
-                beatDropInstallLocation = (string)Registry.CurrentUser.OpenSubKey(@"Software\178eef3d-4cea-5a1b-bfd0-07a21d068990").GetValue("InstallLocation", "");
-                if (Directory.Exists(beatDropInstallLocation))
-                {
-                    beatDropInstalled = true;
-                }
-                else
-                {
-                    beatDropInstalled = false;
-                    beatDropInstallLocation = "";
-                }
-            }
-            
-            if (!Directory.Exists("Playlists"))
-            {
-                Directory.CreateDirectory("Playlists");
-            }
-
             if (!Directory.Exists("UserData"))
             {
                 Directory.CreateDirectory("UserData");
@@ -116,7 +98,47 @@ namespace BeatSaverDownloader
                 disableSongListTweaks = true;
                 return;
             }
-            
+
+            try
+            {
+                if (Registry.CurrentUser.OpenSubKey(@"Software").GetSubKeyNames().Contains("178eef3d-4cea-5a1b-bfd0-07a21d068990"))
+                {
+                    beatDropInstallLocation = (string)Registry.CurrentUser.OpenSubKey(@"Software\178eef3d-4cea-5a1b-bfd0-07a21d068990").GetValue("InstallLocation", "");
+                    if (Directory.Exists(beatDropInstallLocation))
+                    {
+                        beatDropInstalled = true;
+                    }
+                    else if (Directory.Exists("%LocalAppData%\\Programs\\BeatDrop\\playlists"))
+                    {
+                        beatDropInstalled = true;
+                        beatDropInstallLocation = "%LocalAppData%\\Programs\\BeatDrop\\playlists";
+                    }
+                    else
+                    {
+                        beatDropInstalled = false;
+                        beatDropInstallLocation = "";                        
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Logger.StaticLog($"Can't open registry key! Exception: {e}");
+                if (Directory.Exists("%LocalAppData%\\Programs\\BeatDrop\\playlists"))
+                {
+                    beatDropInstalled = true;
+                    beatDropInstallLocation = "%LocalAppData%\\Programs\\BeatDrop\\playlists";
+                }
+                else
+                {
+                    Logger.StaticLog("Can't find the BeatDrop installation folder!");
+                }
+            }
+
+            if (!Directory.Exists("Playlists"))
+            {
+                Directory.CreateDirectory("Playlists");
+            }
+
             LoadPlaylists();
             LoadSongBrowserConfig();
         }
