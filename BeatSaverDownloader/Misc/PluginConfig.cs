@@ -5,10 +5,12 @@ using SimpleJSON;
 using SongBrowserPlugin;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Security;
 using System.Text;
+using System.Windows.Forms;
 using System.Xml.Serialization;
 using UnityEngine;
 
@@ -61,17 +63,23 @@ namespace BeatSaverDownloader
                 }
             }
             
-            if (string.IsNullOrEmpty(ModPrefs.GetString("BeatSaverDownloader", "apiAccessToken")))
+            if (!ModPrefs.HasKey("BeatSaverDownloader", "apiAccessToken"))
             {
-                ModPrefs.SetString("BeatSaverDownloader", "apiAccessToken", apiTokenPlaceholder);
+                if (!AskForAccessToken())
+                {
+                    ModPrefs.SetString("BeatSaverDownloader", "apiAccessToken", apiTokenPlaceholder);
+                }
             }
             else
             {
                 apiAccessToken = ModPrefs.GetString("BeatSaverDownloader", "apiAccessToken");
-                if (string.IsNullOrEmpty(beatsaverURL))
+                if (string.IsNullOrEmpty(apiAccessToken) || apiAccessToken == apiTokenPlaceholder)
                 {
-                    ModPrefs.SetString("BeatSaverDownloader", "apiAccessToken", apiTokenPlaceholder);
-                    apiAccessToken = apiTokenPlaceholder;
+                    if (!AskForAccessToken())
+                    {
+                        ModPrefs.SetString("BeatSaverDownloader", "apiAccessToken", apiTokenPlaceholder);
+                        apiAccessToken = apiTokenPlaceholder;
+                    }
                 }
             }
 
@@ -143,6 +151,49 @@ namespace BeatSaverDownloader
             LoadSongBrowserConfig();
         }
         
+        public static bool AskForAccessToken()
+        {
+            if (ModPrefs.GetBool("BeatSaverDownloader", "doNotRemindAboutAccessToken", false, true))
+                return false;
+
+            switch (MessageBox.Show("Would you like to set an access token for BeatSaver.com?\n(Cancel - don't remind me again)", "No Access Token", MessageBoxButtons.YesNoCancel))
+            {
+                case DialogResult.Yes:
+                    {
+                        Process.Start($"{beatsaverURL}/profile/token");
+
+                        InputBox.SetLanguage(InputBox.Language.English);
+                        if(InputBox.ShowDialog("Create a read/write token on the opened page and place it below:", "No Access Token", buttons: InputBox.Buttons.OkCancel, type: InputBox.Type.TextBox, ShowInTaskBar: true) == DialogResult.OK)
+                        {
+                            apiAccessToken = InputBox.ResultValue;
+                            if (string.IsNullOrEmpty(apiAccessToken))
+                            {
+                                return false;
+                            }
+                            else
+                            {
+                                ModPrefs.SetString("BeatSaverDownloader", "apiAccessToken", apiAccessToken);
+                                return true;
+                            }
+                        }
+                        else
+                        {
+                            return false;
+                        }
+                    }
+                case DialogResult.Cancel:
+                    {
+                        ModPrefs.SetBool("BeatSaverDownloader", "doNotRemindAboutAccessToken", true);
+                        return false;
+                    }
+                case DialogResult.No:
+                default:
+                    {
+                        return false;
+                    }
+            }
+        }
+
         public static void LoadSongBrowserConfig()
         {
             if (!File.Exists(songBrowserSettings))
