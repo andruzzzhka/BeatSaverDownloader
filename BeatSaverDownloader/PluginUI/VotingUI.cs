@@ -14,10 +14,7 @@ namespace BeatSaverDownloader.PluginUI
 {
     class VotingUI : MonoBehaviour
     {
-
         private Logger log = new Logger("BeatSaverDownloader");
-
-        public event Action<string> continuePressed;
 
         Button upvoteButton;
         Button downvoteButton;
@@ -46,8 +43,6 @@ namespace BeatSaverDownloader.PluginUI
             }
 
             levelId = results.difficultyLevel.level.levelID;
-
-            results.continueButtonPressedEvent += Results_resultsViewControllerDidPressContinueButtonEvent;
 
             log.Log($"Player ID: {PluginUI.playerId}");
             log.Log($"Level ID: {levelId}");
@@ -143,11 +138,6 @@ namespace BeatSaverDownloader.PluginUI
                     StartCoroutine(VoteForSong(false));
                 });
             }
-        }
-
-        private void Results_resultsViewControllerDidPressContinueButtonEvent(ResultsViewController obj)
-        {
-            continuePressed.Invoke(levelId);
         }
 
         IEnumerator VoteForSong(bool upvote)

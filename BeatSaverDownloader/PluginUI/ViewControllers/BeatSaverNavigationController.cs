@@ -143,7 +143,7 @@ namespace BeatSaverDownloader.PluginUI
                 try
                 {
                     JSONNode node = JSON.Parse(www.downloadHandler.text);
-                    
+
                     for (int i = 0; i < node["songs"].Count; i++)
                     {
                         _songs.Add(new Song(node["songs"][i]));
@@ -158,7 +158,7 @@ namespace BeatSaverDownloader.PluginUI
                     }
 
                     _songListViewController._pageUpButton.interactable = (page == 0) ? false : true;
-                    _songListViewController._pageDownButton.interactable = (_songs.Count < _songListViewController._songsPerPage) ? false : true;
+                    _songListViewController._pageDownButton.interactable = (_songs.Count == 0) ? false : true;
 
                 }
                 catch (Exception e)
@@ -207,7 +207,7 @@ namespace BeatSaverDownloader.PluginUI
                     }
 
                     _songListViewController._pageUpButton.interactable = (page == 0) ? false : true;
-                    _songListViewController._pageDownButton.interactable = (_songs.Count < _songListViewController._songsPerPage) ? false : true;
+                    _songListViewController._pageDownButton.interactable = (_songs.Count == 0) ? false : true;
 
                 }
                 catch (Exception e)
