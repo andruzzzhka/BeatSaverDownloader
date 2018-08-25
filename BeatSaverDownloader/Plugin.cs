@@ -8,7 +8,7 @@ namespace BeatSaverDownloader
     {
         string IPlugin.Name { get { return "BeatSaver Downloader"; } }
 
-        string IPlugin.Version { get { return "2.5"; } }
+        string IPlugin.Version { get { return "2.5.3"; } }
 
         
 
