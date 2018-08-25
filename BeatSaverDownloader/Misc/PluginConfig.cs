@@ -156,7 +156,7 @@ namespace BeatSaverDownloader
             if (ModPrefs.GetBool("BeatSaverDownloader", "doNotRemindAboutAccessToken", false, true))
                 return false;
 
-            switch (MessageBox.Show("Would you like to set an access token for BeatSaver.com?\n(Cancel - don't remind me again)", "No Access Token", MessageBoxButtons.YesNoCancel))
+            switch (MessageBox.Show("Would you like to set an access token for BeatSaver.com to activate the voting buttons?\n(Cancel - don't remind me again)", "No Access Token", MessageBoxButtons.YesNoCancel))
             {
                 case DialogResult.Yes:
                     {
