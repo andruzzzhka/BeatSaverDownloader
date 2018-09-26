@@ -75,7 +75,7 @@ namespace BeatSaverDownloader.PluginUI
             }
             catch (Exception e)
             {
-                log.Exception("EXCEPTION: " + e);
+                Logger.Exception("EXCEPTION: " + e);
             }
 
             LeftAndRightScreenViewControllers(out _leftScreen, out _rightScreen);
@@ -109,7 +109,6 @@ namespace BeatSaverDownloader.PluginUI
             if (_parentMasterViewController._downloadQueueViewController == null)
             {
                 _parentMasterViewController._downloadQueueViewController = BeatSaberUI.CreateViewController<DownloadQueueViewController>();
-                _parentMasterViewController._downloadQueueViewController._parentMasterViewController = _parentMasterViewController;
             }
             leftScreenViewController = _parentMasterViewController._downloadQueueViewController;
             rightScreenViewController = null;

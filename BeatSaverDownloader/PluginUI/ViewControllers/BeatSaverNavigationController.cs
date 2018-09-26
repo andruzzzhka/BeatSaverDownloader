@@ -90,13 +90,15 @@ namespace BeatSaverDownloader.PluginUI
                         }
                         catch (Exception e)
                         {
-                            log.Exception("Can't refresh songs! EXCEPTION: " + e);
+                            Logger.Exception("Can't refresh songs! EXCEPTION: " + e);
                         }
                         DismissModalViewController(null, false);
                     }
                 });
             }
 
+            PluginUI._instance.downloadStarted += DownloadStarted;
+            PluginUI._instance.downloadFinished += DownloadFinished;
 
             GetPage(_songListViewController._currentPage);
             
@@ -133,7 +135,7 @@ namespace BeatSaverDownloader.PluginUI
             
             if (www.isNetworkError || www.isHttpError)
             {
-                log.Error(www.error);
+                Logger.Error(www.error);
                 TextMeshProUGUI _errorText = BeatSaberUI.CreateText(rectTransform, www.error, new Vector2(0f, -48f));
                 _errorText.alignment = TextAlignmentOptions.Center;
                 Destroy(_errorText.gameObject, 2f);
@@ -163,7 +165,7 @@ namespace BeatSaverDownloader.PluginUI
                 }
                 catch (Exception e)
                 {
-                    log.Exception("EXCEPTION(GET SONGS): " + e);
+                    Logger.Exception("EXCEPTION(GET SONGS): " + e);
                 }
             }
             _loading = false;
@@ -183,7 +185,7 @@ namespace BeatSaverDownloader.PluginUI
 
             if (www.isNetworkError || www.isHttpError)
             {
-                log.Error(www.error);
+                Logger.Error(www.error);
                 TextMeshProUGUI _errorText = BeatSaberUI.CreateText(rectTransform, www.error, new Vector2(0f, -48f));
                 _errorText.alignment = TextAlignmentOptions.Center;
                 Destroy(_errorText.gameObject, 2f);
@@ -212,7 +214,7 @@ namespace BeatSaverDownloader.PluginUI
                 }
                 catch (Exception e)
                 {
-                    log.Exception("EXCEPTION(GET SEARCH RESULTS): " + e);
+                    Logger.Exception("EXCEPTION(GET SEARCH RESULTS): " + e);
                 }
             }
             _loading = false;
@@ -220,7 +222,7 @@ namespace BeatSaverDownloader.PluginUI
 
         public void DownloadSong(int buttonId)
         {
-            log.Log("Downloading "+_songs[buttonId].beatname);
+            Logger.Log("Downloading "+_songs[buttonId].beatname);
 
             if (!_downloadQueueViewController._queuedSongs.Contains(_songs[buttonId]))
             {
@@ -228,128 +230,27 @@ namespace BeatSaverDownloader.PluginUI
             }
         }
 
-        public IEnumerator DownloadSongCoroutine(Song songInfo)
+
+        private void DownloadFinished(Song song)
         {
-            if(_songs[_selectedRow].Compare(songInfo))
+            _alreadyDownloadedSongs.Add(song);
+
+            _downloadQueueViewController.Refresh();
+            _songListViewController._songsTableView.ReloadData();
+            _songListViewController._songsTableView.SelectRow(_selectedRow);
+
+            if (_songs[_selectedRow].Compare(song))
             {
                 RefreshDetails(_selectedRow);
             }
+        }
 
-            songInfo.songQueueState = SongQueueState.Downloading;
-            
-            UnityWebRequest www = UnityWebRequest.Get(songInfo.downloadUrl);
-
-            bool timeout = false;
-            float time = 0f;
-
-            UnityWebRequestAsyncOperation asyncRequest = www.SendWebRequest();
-
-            while ((!asyncRequest.isDone || songInfo.downloadingProgress != 1f) && songInfo.songQueueState != SongQueueState.Error )
-            {
-                yield return null;
-
-                time += Time.deltaTime;
-
-                if((time >= 15f && asyncRequest.progress == 0f) || songInfo.songQueueState == SongQueueState.Error)
-                {
-                    www.Abort();
-                    timeout = true;
-                }
-
-                songInfo.downloadingProgress = asyncRequest.progress;
-            }
-
-
-            if (www.isNetworkError || www.isHttpError || timeout || songInfo.songQueueState == SongQueueState.Error)
-            {
-                if (timeout)
-                {
-                    songInfo.songQueueState = SongQueueState.Error;
-                    TextMeshProUGUI _errorText = BeatSaberUI.CreateText(_songDetailViewController.rectTransform, "Request timeout", new Vector2(18f, -64f));
-                    Destroy(_errorText.gameObject, 2f);
-                }
-                else
-                {
-                    songInfo.songQueueState = SongQueueState.Error;
-                    log.Error($"Downloading error: {www.error}");
-                    TextMeshProUGUI _errorText = BeatSaberUI.CreateText(_songDetailViewController.rectTransform, www.error, new Vector2(18f, -64f));
-                    Destroy(_errorText.gameObject, 2f);
-                }
-                
-            }
-            else
-            {
-
-                log.Log("Received response from BeatSaver.com...");
-
-                string zipPath = "";
-                string docPath = "";
-                string customSongsPath = "";
-
-                byte[] data = www.downloadHandler.data;
-
-                try
-                {
-
-                    docPath = Application.dataPath;
-                    docPath = docPath.Substring(0, docPath.Length - 5);
-                    docPath = docPath.Substring(0, docPath.LastIndexOf("/"));
-                    customSongsPath = docPath + "/CustomSongs/" + songInfo.id +"/";
-                    zipPath = customSongsPath + songInfo.id + ".zip";
-                    if (!Directory.Exists(customSongsPath)) {
-                        Directory.CreateDirectory(customSongsPath);
-                    }
-                    File.WriteAllBytes(zipPath, data);
-                    log.Log("Downloaded zip file!");
-                }catch(Exception e)
-                {
-                    log.Exception("EXCEPTION: "+e);
-                    songInfo.songQueueState = SongQueueState.Error;
-                    yield break;
-                }
-
-                log.Log("Extracting...");
-
-                try
-                {
-                    ZipFile.ExtractToDirectory(zipPath, customSongsPath);
-                }
-                catch(Exception e)
-                {
-                    log.Exception($"Can't extract ZIP! Exception: {e}");
-                }
-
-                songInfo.path = Directory.GetDirectories(customSongsPath).FirstOrDefault();
-
-                if (string.IsNullOrEmpty(songInfo.path))
-                {
-                    songInfo.path = customSongsPath;
-                }
-
-                try
-                {
-                    File.Delete(zipPath);
-                }catch(IOException e)
-                {
-                    log.Warning($"Can't delete zip! Exception: {e}");
-                }
-                
-                songInfo.songQueueState = SongQueueState.Downloaded;
-
-                _alreadyDownloadedSongs.Add(songInfo);
-
-                log.Log("Downloaded!");
-
-                _downloadQueueViewController.Refresh();
-                _songListViewController._songsTableView.ReloadData();
-                _songListViewController._songsTableView.SelectRow(_selectedRow);
-            }
-
-            if (_songs[_selectedRow].Compare(songInfo))
+        private void DownloadStarted(Song song)
+        {
+            if (_songs[_selectedRow].Compare(song))
             {
                 RefreshDetails(_selectedRow);
             }
-
         }
 
         IEnumerator DeleteSong(Song _songInfo)
@@ -367,14 +268,14 @@ namespace BeatSaverDownloader.PluginUI
 
             if (string.IsNullOrEmpty(_songPath))
             {
-                log.Error("Song path is null or empty!");
+                Logger.Error("Song path is null or empty!");
                 _loading = false;
                 _downloadButton.interactable = true;
                 yield break;
             }
             if (!Directory.Exists(_songPath))
             {
-                log.Error("Song folder does not exists!");
+                Logger.Error("Song folder does not exists!");
                 _loading = false;
                 _downloadButton.interactable = true;
                 yield break;
@@ -386,7 +287,7 @@ namespace BeatSaverDownloader.PluginUI
             {
                 if (zippedSong)
                 {
-                    log.Log("Deleting \"" + _songPath.Substring(_songPath.LastIndexOf('/')) + "\"...");
+                    Logger.Log("Deleting \"" + _songPath.Substring(_songPath.LastIndexOf('/')) + "\"...");
                     Directory.Delete(_songPath, true);
 
                     string songHash = Directory.GetParent(_songPath).Name;
@@ -395,13 +296,13 @@ namespace BeatSaverDownloader.PluginUI
                     {
                         if (Directory.GetFileSystemEntries(_songPath.Substring(0, _songPath.LastIndexOf('/'))).Length == 0)
                         {
-                            log.Log("Deleting empty folder \"" + _songPath.Substring(0, _songPath.LastIndexOf('/')) + "\"...");
+                            Logger.Log("Deleting empty folder \"" + _songPath.Substring(0, _songPath.LastIndexOf('/')) + "\"...");
                             Directory.Delete(_songPath.Substring(0, _songPath.LastIndexOf('/')), false);
                         }
                     }
                     catch
                     {
-                        log.Warning("Can't find or delete empty folder!");
+                        Logger.Warning("Can't find or delete empty folder!");
                     }
 
                     string docPath = Application.dataPath;
@@ -426,23 +327,23 @@ namespace BeatSaverDownloader.PluginUI
                 }
                 else
                 {
-                    log.Log("Deleting \"" + _songPath.Substring(_songPath.LastIndexOf('/')) + "\"...");
+                    Logger.Log("Deleting \"" + _songPath.Substring(_songPath.LastIndexOf('/')) + "\"...");
                     Directory.Delete(_songPath, true);
 
                     try { 
                         if (Directory.GetFileSystemEntries(_songPath.Substring(0, _songPath.LastIndexOf('/'))).Length == 0)
                         {
-                        log.Log("Deleting empty folder \"" + _songPath.Substring(0, _songPath.LastIndexOf('/')) + "\"...");
-                        Directory.Delete(_songPath.Substring(0, _songPath.LastIndexOf('/')), false);
+                            Logger.Log("Deleting empty folder \"" + _songPath.Substring(0, _songPath.LastIndexOf('/')) + "\"...");
+                            Directory.Delete(_songPath.Substring(0, _songPath.LastIndexOf('/')), false);
                         }
                     }
                     catch
                     {
-                        log.Warning("Can't find or delete empty folder!");
+                        Logger.Warning("Can't find or delete empty folder!");
                     }
                 }
 
-                log.Log($"{_alreadyDownloadedSongs.RemoveAll(x => x.Compare(_songInfo))} song removed");
+                Logger.Log($"{_alreadyDownloadedSongs.RemoveAll(x => x.Compare(_songInfo))} song removed");
 
                 _songListViewController._songsTableView.ReloadData();
                 _songListViewController._songsTableView.SelectRow(_selectedRow);

@@ -30,6 +30,8 @@ namespace BeatSaverDownloader.PluginUI
             
             Destroy(cell);
             
+            reuseIdentifier = "DownloadCell";
+
             song = _song;
             
             songName = string.Format("{0}\n<size=80%>{1}</size>", song.songName, song.songSubName);
@@ -40,15 +42,59 @@ namespace BeatSaverDownloader.PluginUI
             _bgImage.sprite = Sprite.Create((new Texture2D(1, 1)), new Rect(0, 0, 1, 1), Vector2.one / 2f);
             _bgImage.type = UnityEngine.UI.Image.Type.Filled;
             _bgImage.fillMethod = UnityEngine.UI.Image.FillMethod.Horizontal;
-            _bgImage.fillAmount = song.downloadingProgress;
-            _bgImage.color = new Color(1f, 1f, 1f, 0.35f);
+
+            switch (song.songQueueState)
+            {
+                case SongQueueState.Queued:
+                case SongQueueState.Downloading:
+                    {
+                        _bgImage.color = new Color(1f, 1f, 1f, 0.35f);
+                        _bgImage.fillAmount = song.downloadingProgress;
+                    }
+                    break;
+                case SongQueueState.Available:
+                case SongQueueState.Downloaded:
+                    {
+                        _bgImage.color = new Color(1f, 1f, 1f, 0.35f);
+                        _bgImage.fillAmount = 1f;
+                    }
+                    break;
+                case SongQueueState.Error:
+                    {
+                        _bgImage.color = new Color(1f, 0f, 0f, 0.35f);
+                        _bgImage.fillAmount = 1f;
+                    }
+                    break;
+            }
         }
 
         public void Update()
         {
 
             _bgImage.enabled = true;
-            _bgImage.fillAmount = song.downloadingProgress;
+            switch (song.songQueueState)
+            {
+                case SongQueueState.Queued:
+                case SongQueueState.Downloading:
+                    {
+                        _bgImage.color = new Color(1f, 1f, 1f, 0.35f);
+                        _bgImage.fillAmount = song.downloadingProgress;
+                    }
+                    break;
+                case SongQueueState.Available:
+                case SongQueueState.Downloaded:
+                    {
+                        _bgImage.color = new Color(1f, 1f, 1f, 0.35f);
+                        _bgImage.fillAmount = 1f;
+                    }
+                    break;
+                case SongQueueState.Error:
+                    {
+                        _bgImage.color = new Color(1f, 0f, 0f, 0.35f);
+                        _bgImage.fillAmount = 1f;
+                    }
+                    break;
+            }
         }
 
     }

@@ -46,7 +46,7 @@ namespace BeatSaverDownloader
             if (!ModPrefs.HasKey("BeatSaverDownloader", "beatsaverURL"))
             {
                 ModPrefs.SetString("BeatSaverDownloader", "beatsaverURL", "https://beatsaver.com");
-                Logger.StaticLog("Created config");
+                Logger.Log("Created config");
             }
             else
             {
@@ -55,11 +55,11 @@ namespace BeatSaverDownloader
                 {
                     ModPrefs.SetString("BeatSaverDownloader", "beatsaverURL", "https://beatsaver.com");
                     beatsaverURL = "https://beatsaver.com";
-                    Logger.StaticLog("Created config");
+                    Logger.Log("Created config");
                 }
                 else
                 {
-                    Logger.StaticLog("Loaded config");
+                    Logger.Log("Loaded config");
                 }
             }
             
@@ -80,7 +80,7 @@ namespace BeatSaverDownloader
             if (!ModPrefs.HasKey("BeatSaverDownloader", "disableDeleteButton"))
             {
                 ModPrefs.SetBool("BeatSaverDownloader", "disableDeleteButton", false);
-                Logger.StaticLog("Created config");
+                Logger.Log("Created config");
             }
             else
             {
@@ -96,7 +96,7 @@ namespace BeatSaverDownloader
 
             if(IllusionInjector.PluginManager.Plugins.Count(x => x.Name == "Song Browser") > 0)
             {
-                Logger.StaticLog("Song Browser installed, disabling Song List Tweaks");
+                Logger.Log("Song Browser installed, disabling Song List Tweaks");
                 disableSongListTweaks = true;
                 return;
             }
@@ -124,7 +124,7 @@ namespace BeatSaverDownloader
             }
             catch (Exception e)
             {
-                Logger.StaticLog($"Can't open registry key! Exception: {e}");
+                Logger.Log($"Can't open registry key! Exception: {e}");
                 if (Directory.Exists("%LocalAppData%\\Programs\\BeatDrop\\playlists"))
                 {
                     beatDropInstalled = true;
@@ -132,7 +132,7 @@ namespace BeatSaverDownloader
                 }
                 else
                 {
-                    Logger.StaticLog("Can't find the BeatDrop installation folder!");
+                    Logger.Log("Can't find the BeatDrop installation folder!");
                 }
             }
 
@@ -169,7 +169,7 @@ namespace BeatSaverDownloader
             }
             catch (Exception e)
             {
-                Logger.StaticLog($"Can't parse BeatSaberSongBrowser settings file! Exception: {e}");
+                Logger.Log($"Can't parse BeatSaberSongBrowser settings file! Exception: {e}");
                 if (fs != null) { fs.Close(); }
             }
         }
@@ -183,11 +183,11 @@ namespace BeatSaverDownloader
                 {
                     string[] beatDropPlaylists = Directory.GetFiles(Path.Combine(beatDropInstallLocation, "playlists"), "*.json");
                     playlistFiles.AddRange(beatDropPlaylists);
-                    Logger.StaticLog($"Found {beatDropPlaylists.Length} playlists in BeatDrop folder");
+                    Logger.Log($"Found {beatDropPlaylists.Length} playlists in BeatDrop folder");
                 }
                 string[] localPlaylists = Directory.GetFiles(Path.Combine(Environment.CurrentDirectory, "Playlists"), "*.json");
                 playlistFiles.AddRange(localPlaylists);
-                Logger.StaticLog($"Found {localPlaylists.Length} playlists in Playlists folder");
+                Logger.Log($"Found {localPlaylists.Length} playlists in Playlists folder");
                 
                 foreach(string path in playlistFiles)
                 {
@@ -215,16 +215,16 @@ namespace BeatSaverDownloader
                         playlist.fileLoc = path;
 
                         playlists.Add(playlist);
-                        Logger.StaticLog($"Found \"{playlist.playlistTitle}\" by {playlist.playlistAuthor}");
+                        Logger.Log($"Found \"{playlist.playlistTitle}\" by {playlist.playlistAuthor}");
                     } catch (Exception e)
                     {
-                        Logger.StaticLog($"Can't parse playlist at {path}! Exception: {e}");
+                        Logger.Log($"Can't parse playlist at {path}! Exception: {e}");
                     }
                 }
             }
             catch (Exception e)
             {
-                Logger.StaticLog("Can't load playlists! Exception: " + e);
+                Logger.Log("Can't load playlists! Exception: " + e);
             }
         }
 

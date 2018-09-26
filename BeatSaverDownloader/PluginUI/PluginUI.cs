@@ -8,6 +8,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
@@ -20,6 +21,9 @@ namespace BeatSaverDownloader.PluginUI
 {
     class PluginUI : MonoBehaviour
     {
+        public Action<Song> downloadStarted;
+        public Action<Song> downloadFinished;
+
         public static PluginUI _instance;
         private VotingUI _votingUI;
         private SongListUITweaks _tweaks;
@@ -117,7 +121,7 @@ namespace BeatSaverDownloader.PluginUI
             }
             catch (Exception e)
             {
-                log.Exception("EXCEPTION ON AWAKE(TRY CREATE BUTTON): " + e);
+                Logger.Exception("EXCEPTION ON AWAKE(TRY CREATE BUTTON): " + e);
             }
 
 
@@ -141,7 +145,7 @@ namespace BeatSaverDownloader.PluginUI
 
             try
             {
-                log.Log("Creating default playlists...");
+                Logger.Log("Creating default playlists...");
 
                 List<CustomLevel> customLevels = SongLoader.CustomLevels;
                 List<IStandardLevel> oneSaberLevels = _levelCollections.GetLevels(GameplayMode.SoloOneSaber).Where(x => !customLevels.Cast<IStandardLevel>().Contains(x)).Cast<IStandardLevel>().ToList();
@@ -152,14 +156,14 @@ namespace BeatSaverDownloader.PluginUI
                 _allPlaylist.songs.AddRange(regularLevels.Select(x => new PlaylistSong() { songName = $"{x.songName} {x.songSubName}", level = x, oneSaber = false, path = "", key = "" }));
                 _allPlaylist.songs.AddRange(oneSaberLevels.Select(x => new PlaylistSong() { songName = $"{x.songName} {x.songSubName}", level = x, oneSaber = true, path = "", key = "" }));
                 _allPlaylist.songs.AddRange(customLevels.Select(x => new PlaylistSong() { songName = $"{x.songName} {x.songSubName}", level = x, oneSaber = false, path = x.customSongInfo.path, key = "" }));
-                log.Log($"Created \"{_allPlaylist.playlistTitle}\" playlist with {_allPlaylist.songs.Count} songs!");
+                Logger.Log($"Created \"{_allPlaylist.playlistTitle}\" playlist with {_allPlaylist.songs.Count} songs!");
 
                 Playlist _favPlaylist = new Playlist() { playlistTitle = "Your favorite songs", playlistAuthor = "You", image = Base64Sprites.BeastSaberLogo, icon = Base64ToSprite(Base64Sprites.BeastSaberLogo), fileLoc = "" };
                 _favPlaylist.songs = new List<PlaylistSong>();
                 _favPlaylist.songs.AddRange(regularLevels.Where(x => PluginConfig.favoriteSongs.Contains(x.levelID)).Select(x => new PlaylistSong() { songName = $"{x.songName} {x.songSubName}", level = x, oneSaber = false, path = "", key = "" }));
                 _favPlaylist.songs.AddRange(oneSaberLevels.Where(x => PluginConfig.favoriteSongs.Contains(x.levelID)).Select(x => new PlaylistSong() { songName = $"{x.songName} {x.songSubName}", level = x, oneSaber = true, path = "", key = "" }));
                 _favPlaylist.songs.AddRange(customLevels.Where(x => PluginConfig.favoriteSongs.Contains(x.levelID)).Select(x => new PlaylistSong() { songName = $"{x.songName} {x.songSubName}", level = x, oneSaber = false, path = x.customSongInfo.path, key = "" }));
-                log.Log($"Created \"{_favPlaylist.playlistTitle}\" playlist with {_favPlaylist.songs.Count} songs!");
+                Logger.Log($"Created \"{_favPlaylist.playlistTitle}\" playlist with {_favPlaylist.songs.Count} songs!");
 
                 if (PluginConfig.playlists.Any(x => x.playlistTitle == "All songs" || x.playlistTitle == "Your favorite songs"))
                 {
@@ -177,10 +181,8 @@ namespace BeatSaverDownloader.PluginUI
                 _tweaks.ShowPlaylist(SongListUITweaks.lastPlaylist);
             }catch(Exception e)
             {
-                log.Exception($"Can't create default playlists! Exception: {e}");
+                Logger.Exception($"Can't create default playlists! Exception: {e}");
             }
-
-            
         }
 
         private void PluginUI_didSelectSongEvent(StandardLevelListViewController sender, IStandardLevel level)
@@ -198,17 +200,17 @@ namespace BeatSaverDownloader.PluginUI
 
         private IEnumerator WaitForSongListUI()
         {
-            log.Log("Waiting for song list...");
+            Logger.Log("Waiting for song list...");
 
             yield return new WaitUntil(delegate () { return Resources.FindObjectsOfTypeAll<StandardLevelSelectionFlowCoordinator>().Any(); });
 
-            log.Log("Found song list!");
+            Logger.Log("Found song list!");
 
             _tweaks.SongListUIFound();
 
             if (SongListUITweaks.lastSortMode != SortMode.Default)
             {
-                log.Log("Called ShowLevels, lastSortMode="+ SongListUITweaks.lastSortMode);
+                Logger.Log("Called ShowLevels, lastSortMode="+ SongListUITweaks.lastSortMode);
                 _tweaks.ShowLevels(SongListUITweaks.lastSortMode);
             }
 
@@ -374,13 +376,13 @@ namespace BeatSaverDownloader.PluginUI
 
                 if (string.IsNullOrEmpty(_songPath))
                 {
-                    log.Error("Song path is null or empty!");
+                    Logger.Error("Song path is null or empty!");
                     _playButton.interactable = true;
                     yield break;
                 }
                 if (!Directory.Exists(_songPath))
                 {
-                    log.Error("Song folder does not exists!");
+                    Logger.Error("Song folder does not exists!");
                     _playButton.interactable = true;
                     yield break;
                 }
@@ -391,14 +393,14 @@ namespace BeatSaverDownloader.PluginUI
                 {
                     if (zippedSong)
                     {
-                        log.Log("Deleting \"" + _songPath.Substring(_songPath.LastIndexOf('/')) + "\"...");
+                        Logger.Log("Deleting \"" + _songPath.Substring(_songPath.LastIndexOf('/')) + "\"...");
                         Directory.Delete(_songPath, true);
 
                         string songHash = Directory.GetParent(_songPath).Name;
 
                         if (Directory.GetFileSystemEntries(_songPath.Substring(0, _songPath.LastIndexOf('/'))).Length == 0)
                         {
-                            log.Log("Deleting empty folder \"" + _songPath.Substring(0, _songPath.LastIndexOf('/')) + "\"...");
+                            Logger.Log("Deleting empty folder \"" + _songPath.Substring(0, _songPath.LastIndexOf('/')) + "\"...");
                             Directory.Delete(_songPath.Substring(0, _songPath.LastIndexOf('/')), false);
                         }
 
@@ -424,29 +426,20 @@ namespace BeatSaverDownloader.PluginUI
                     }
                     else
                     {
-                        log.Log("Deleting \"" + _songPath.Substring(_songPath.LastIndexOf('/')) + "\"...");
+                        Logger.Log("Deleting \"" + _songPath.Substring(_songPath.LastIndexOf('/')) + "\"...");
                         Directory.Delete(_songPath, true);
                         if (Directory.GetFileSystemEntries(_songPath.Substring(0, _songPath.LastIndexOf('/'))).Length == 0)
                         {
-                            log.Log("Deleting empty folder \"" + _songPath.Substring(0, _songPath.LastIndexOf('/')) + "\"...");
+                            Logger.Log("Deleting empty folder \"" + _songPath.Substring(0, _songPath.LastIndexOf('/')) + "\"...");
                             Directory.Delete(_songPath.Substring(0, _songPath.LastIndexOf('/')), false);
                         }
                     }
 
+                    SongListUITweaks.RemoveLevelFromPlaylists(levelId);
+
                     SongLoader.Instance.RemoveSongWithLevelID(levelId);
-
-                    StandardLevelListViewController songListViewController = ReflectionUtil.GetPrivateField<StandardLevelListViewController>(_standardLevelSelectionFlowCoordinator, "_levelListViewController");
-
-                    ReflectionUtil.SetPrivateField(songListViewController.GetComponentInChildren<StandardLevelListTableView>(), "_levels", _tweaks.GetSortedLevels(SongListUITweaks.lastSortMode));
-                    ReflectionUtil.SetPrivateField(songListViewController, "_levels", _tweaks.GetSortedLevels(SongListUITweaks.lastSortMode));
-
-                    TableView _songListTableView = songListViewController.GetComponentInChildren<TableView>();
-                    _songListTableView.ReloadData();
-
-                    int row = songListViewController.GetComponentInChildren<StandardLevelListTableView>().RowNumberForLevelID(nextLevelId);
-                    _songListTableView.SelectRow(row, true);
-                    _songListTableView.ScrollToRow(row, true);
-
+                    
+                    _tweaks.SetSongListLevels(_tweaks.GetSortedLevels(SongListUITweaks.lastSortMode), nextLevelId);
                 }
                 _confirmDeleteState = Prompt.NotSelected;
 
@@ -488,7 +481,133 @@ namespace BeatSaverDownloader.PluginUI
             Destroy(_confirmDelete.gameObject);
             Destroy(_discardDelete.gameObject);
 
-        }        
+        }
+
+        public IEnumerator DownloadSongCoroutine(Song songInfo)
+        {
+            songInfo.songQueueState = SongQueueState.Downloading;
+            
+            downloadStarted?.Invoke(songInfo);
+
+            UnityWebRequest www;
+            bool timeout = false;
+            float time = 0f;
+            UnityWebRequestAsyncOperation asyncRequest;
+
+            try
+            {
+                www = UnityWebRequest.Get(songInfo.downloadUrl);
+                
+                asyncRequest = www.SendWebRequest();
+            }
+            catch
+            {
+                songInfo.songQueueState = SongQueueState.Error;
+                songInfo.downloadingProgress = 1f;
+
+                yield break;
+            }
+
+            while ((!asyncRequest.isDone || songInfo.downloadingProgress != 1f) && songInfo.songQueueState != SongQueueState.Error)
+            {
+                yield return null;
+
+                time += Time.deltaTime;
+
+                if ((time >= 15f && asyncRequest.progress == 0f) || songInfo.songQueueState == SongQueueState.Error)
+                {
+                    www.Abort();
+                    timeout = true;
+                }
+
+                songInfo.downloadingProgress = asyncRequest.progress;
+            }
+
+
+            if (www.isNetworkError || www.isHttpError || timeout || songInfo.songQueueState == SongQueueState.Error)
+            {
+                if (timeout)
+                {
+                    songInfo.songQueueState = SongQueueState.Error;
+                    TextMeshProUGUI _errorText = BeatSaberUI.CreateText(_songDetailViewController.rectTransform, "Request timeout", new Vector2(18f, -64f));
+                    Destroy(_errorText.gameObject, 2f);
+                }
+                else
+                {
+                    songInfo.songQueueState = SongQueueState.Error;
+                    Logger.Error($"Downloading error: {www.error}");
+                    TextMeshProUGUI _errorText = BeatSaberUI.CreateText(_songDetailViewController.rectTransform, www.error, new Vector2(18f, -64f));
+                    Destroy(_errorText.gameObject, 2f);
+                }
+
+            }
+            else
+            {
+
+                Logger.Log("Received response from BeatSaver.com...");
+
+                string zipPath = "";
+                string docPath = "";
+                string customSongsPath = "";
+
+                byte[] data = www.downloadHandler.data;
+
+                try
+                {
+
+                    docPath = Application.dataPath;
+                    docPath = docPath.Substring(0, docPath.Length - 5);
+                    docPath = docPath.Substring(0, docPath.LastIndexOf("/"));
+                    customSongsPath = docPath + "/CustomSongs/" + songInfo.id + "/";
+                    zipPath = customSongsPath + songInfo.id + ".zip";
+                    if (!Directory.Exists(customSongsPath))
+                    {
+                        Directory.CreateDirectory(customSongsPath);
+                    }
+                    File.WriteAllBytes(zipPath, data);
+                    Logger.Log("Downloaded zip file!");
+                }
+                catch (Exception e)
+                {
+                    Logger.Exception("EXCEPTION: " + e);
+                    songInfo.songQueueState = SongQueueState.Error;
+                    yield break;
+                }
+
+                Logger.Log("Extracting...");
+
+                try
+                {
+                    ZipFile.ExtractToDirectory(zipPath, customSongsPath);
+                }
+                catch (Exception e)
+                {
+                    Logger.Exception($"Can't extract ZIP! Exception: {e}");
+                }
+
+                songInfo.path = Directory.GetDirectories(customSongsPath).FirstOrDefault();
+
+                if (string.IsNullOrEmpty(songInfo.path))
+                {
+                    songInfo.path = customSongsPath;
+                }
+
+                try
+                {
+                    File.Delete(zipPath);
+                }
+                catch (IOException e)
+                {
+                    Logger.Warning($"Can't delete zip! Exception: {e}");
+                }
+
+                songInfo.songQueueState = SongQueueState.Downloaded;
+
+                Logger.Log("Downloaded!");
+
+                downloadFinished?.Invoke(songInfo);
+            }
+        }
 
         private void CreateBeatSaverButton()
         {
@@ -514,7 +633,7 @@ namespace BeatSaverDownloader.PluginUI
             }
             catch (Exception e)
             {
-                log.Exception("Can't create button! Exception: " + e);
+                Logger.Exception("Can't create button! Exception: " + e);
             }
 
         }

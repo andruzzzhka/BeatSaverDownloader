@@ -185,18 +185,38 @@ namespace BeatSaverDownloader.PluginUI
             ShowPlaylist(playlist);
         }
 
+        public static void MatchSongsForPlaylist(Playlist playlist, bool matchAll = false)
+        {
+            if (!playlist.songs.All(x => x.level != null) || matchAll)
+            {
+                playlist.songs.ForEach(x =>
+                {
+                    if (x.level == null || matchAll)
+                    {
+                        x.level = SongLoader.CustomLevels.FirstOrDefault(y => y.customSongInfo.path.Contains(x.key) && Directory.Exists(y.customSongInfo.path));
+                    }
+                });
+            }
+        }
+
+        public static void RemoveLevelFromPlaylists(string levelId)
+        {
+            foreach(Playlist playlist in PluginConfig.playlists)
+            {
+                if (playlist.songs.Where(y => y.level != null).Any(x => x.level.levelID == levelId))
+                {
+                    playlist.songs.First(x => x.level != null && x.level.levelID == levelId).level = null;
+                    Logger.Log("");
+                }
+
+            }
+        }
+
         public void ShowPlaylist(Playlist playlist)
         {
             lastPlaylist = playlist;
 
-            if(!lastPlaylist.songs.All(x => x.level != null))
-            {
-                lastPlaylist.songs.ForEach(x =>
-                {
-                    if (x.level == null)
-                        x.level = SongLoader.CustomLevels.FirstOrDefault(y => y.customSongInfo.path.Contains(x.key));
-                });
-            }
+            MatchSongsForPlaylist(lastPlaylist);
 
             ShowLevels(lastSortMode);
         }
@@ -259,7 +279,7 @@ namespace BeatSaverDownloader.PluginUI
 
         private void _searchViewController_searchButtonPressed(string searchFor)
         {
-            Logger.StaticLog($"Searching for \"{searchFor}\"...");
+            Logger.Log($"Searching for \"{searchFor}\"...");
             
             SelectTopButtons(TopButtonsState.Select);
             SearchForLevels(searchFor);
@@ -338,11 +358,11 @@ namespace BeatSaverDownloader.PluginUI
         }
 
 
-        void SetSongListLevels(IStandardLevel[] levels, string selectedLevelID = "")
+        public void SetSongListLevels(IStandardLevel[] levels, string selectedLevelID = "")
         {
             if (_songSelectionFlowCoordinator != null)
             {
-                Logger.StaticLog($"Trying to set song list levels, got {levels.Length} levels");
+                Logger.Log($"Trying to set song list levels, got {levels.Length} levels");
                 StandardLevelListViewController songListViewController = ReflectionUtil.GetPrivateField<StandardLevelListViewController>(_songSelectionFlowCoordinator, "_levelListViewController");
 
                 StandardLevelListTableView _songListTableView = songListViewController.GetComponentInChildren<StandardLevelListTableView>();
@@ -371,7 +391,7 @@ namespace BeatSaverDownloader.PluginUI
             }
             else
             {
-                Logger.StaticLog("Can't set song list! LevelSelectionFlowCoordinator is null!");
+                Logger.Log("Can't set song list! LevelSelectionFlowCoordinator is null!");
             }
         }
 

@@ -14,14 +14,17 @@ namespace BeatSaverDownloader.PluginUI.ViewControllers
     class PlaylistDetailViewController : VRUIViewController
     {
         public event Action selectPressed;
+        public event Action downloadPressed;
 
         private Logger log = new Logger("BeatSaverDownloader");
 
         Button _selectButton;
+        Button _downloadButton;
 
         TextMeshProUGUI songNameText;
         TextMeshProUGUI songsText;
         TextMeshProUGUI authorNameText;
+        private PlaylistNavigationController _parentMasterViewController;
 
         protected override void DidActivate(bool firstActivation, ActivationType activationType)
         {
@@ -34,12 +37,18 @@ namespace BeatSaverDownloader.PluginUI.ViewControllers
                 RectTransform _yourStats = GetComponentsInChildren<RectTransform>(true).First(x => x.name == "YourStats");
                 _yourStats.sizeDelta = new Vector2(44f, 18f);
                 _yourStats.gameObject.SetActive(true);
-                
+
                 _selectButton = GetComponentInChildren<Button>();
                 (_selectButton.transform as RectTransform).sizeDelta = new Vector2(30f, 10f);
                 (_selectButton.transform as RectTransform).anchoredPosition = new Vector2(2f, 6f);
                 BeatSaberUI.SetButtonText(_selectButton, "Select");
                 _selectButton.onClick.AddListener(delegate () { selectPressed?.Invoke(); });
+
+                _downloadButton = BeatSaberUI.CreateUIButton((RectTransform)_selectButton.transform.parent, "PlayButton");
+                (_downloadButton.transform as RectTransform).sizeDelta = new Vector2(30f, 10f);
+                (_downloadButton.transform as RectTransform).anchoredPosition = new Vector2(2f, 24f);
+                BeatSaberUI.SetButtonText(_downloadButton, "Download");
+                _downloadButton.onClick.AddListener(delegate () { downloadPressed?.Invoke(); });
 
                 TextMeshProUGUI[] _textComponents = GetComponentsInChildren<TextMeshProUGUI>();
 
@@ -74,7 +83,7 @@ namespace BeatSaverDownloader.PluginUI.ViewControllers
                 }
                 catch (Exception e)
                 {
-                    log.Exception("EXCEPTION: " + e);
+                    Logger.Exception("EXCEPTION: " + e);
                 }
             }
         }
@@ -86,6 +95,26 @@ namespace BeatSaverDownloader.PluginUI.ViewControllers
             songsText.text = playlist.songs.Count.ToString();
         }
 
+        public void UpdateButtons(bool enableSelect, bool enableDownload)
+        {
+            _selectButton.interactable = enableSelect;
+            _downloadButton.interactable = enableDownload;
+        }
+
+        protected override void LeftAndRightScreenViewControllers(out VRUIViewController leftScreenViewController, out VRUIViewController rightScreenViewController)
+        {
+
+            if (_parentMasterViewController == null)
+            {
+                _parentMasterViewController = GetComponentInParent<PlaylistNavigationController>();
+            }
+            if (_parentMasterViewController.downloadQueueViewController == null)
+            {
+                _parentMasterViewController.downloadQueueViewController = BeatSaberUI.CreateViewController<DownloadQueueViewController>();
+            }
+            leftScreenViewController = _parentMasterViewController.downloadQueueViewController;
+            rightScreenViewController = null;
+        }
 
         void RemoveCustomUIElements(Transform parent)
         {

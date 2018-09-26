@@ -13,8 +13,7 @@ namespace BeatSaverDownloader.PluginUI
 {
     class DownloadQueueViewController : VRUIViewController, TableView.IDataSource
     {
-        public BeatSaverNavigationController _parentMasterViewController;
-
+        public Action allSongsDownloaded;
         public List<Song> _queuedSongs = new List<Song>();
 
         TextMeshProUGUI _titleText;
@@ -48,10 +47,6 @@ namespace BeatSaverDownloader.PluginUI
                 (_queuedSongsTableView.transform as RectTransform).sizeDelta = new Vector2(0f, 60f);
                 (_queuedSongsTableView.transform as RectTransform).anchoredPosition = new Vector3(0f, -3f);
             }
-            else
-            {
-                Refresh();
-            }
 
             if(_abortButton == null)
             {
@@ -65,16 +60,20 @@ namespace BeatSaverDownloader.PluginUI
                     AbortDownloads();
                 });
             }
+
+            AbortDownloads();
         }
 
         public void AbortDownloads()
         {
-            Logger.StaticLog("Cancelling downloads...");
+            Logger.Log("Cancelling downloads...");
             foreach(Song song in _queuedSongs.Where(x => x.songQueueState == SongQueueState.Downloading || x.songQueueState == SongQueueState.Queued))
             {
                 song.songQueueState = SongQueueState.Error;
                 song.downloadingProgress = 1f;
             }
+            Refresh();
+            allSongsDownloaded?.Invoke();
         }
 
         protected override void DidDeactivate(DeactivationType type)
@@ -82,33 +81,56 @@ namespace BeatSaverDownloader.PluginUI
 
         }
 
-        public void EnqueueSong(Song song)
+        public void EnqueueSong(Song song, bool startDownload = true)
         {
             _queuedSongs.Add(song);
             song.songQueueState = SongQueueState.Queued;
 
             Refresh();
 
-
-            StartCoroutine(DownloadSongFromQueue(song));
+            if (startDownload)
+                StartCoroutine(DownloadSong(song));
         }
 
-        IEnumerator DownloadSongFromQueue(Song song)
+        public void DownloadAllSongsFromQueue()
         {
-            yield return _parentMasterViewController.DownloadSongCoroutine(song);
+            Logger.Log("Downloading all songs from queue...");
+
+            for (int i = 0; i < Math.Min(_queuedSongs.Count(x => x.songQueueState == SongQueueState.Queued), 4); i++)
+            {
+                StartCoroutine(DownloadSong(_queuedSongs[i]));
+            }
+        }
+
+        IEnumerator DownloadSong(Song song)
+        {
+            yield return PluginUI._instance.DownloadSongCoroutine(song);
 
             _queuedSongs.Remove(song);
             song.songQueueState = SongQueueState.Available;
             Refresh();
+
+            if (!_queuedSongs.Any(x => x.songQueueState == SongQueueState.Downloading || x.songQueueState == SongQueueState.Queued))
+            {
+                allSongsDownloaded?.Invoke();
+            }
+            else
+            {
+                if(_queuedSongs.Any(x => x.songQueueState == SongQueueState.Queued))
+                {
+                    StartCoroutine(DownloadSong(_queuedSongs.First(x => x.songQueueState == SongQueueState.Queued)));
+                }
+            }
         }
 
         public void Refresh()
         {
             int removed = _queuedSongs.RemoveAll(x => x.songQueueState != SongQueueState.Downloading && x.songQueueState != SongQueueState.Queued);
 
-            Logger.StaticLog($"Removed {removed} songs from queue");
+            Logger.Log($"Removed {removed} songs from queue");
 
             _queuedSongsTableView.ReloadData();
+            _queuedSongsTableView.ScrollToRow(0, true);
         }
 
         public float RowHeight()
@@ -126,7 +148,7 @@ namespace BeatSaverDownloader.PluginUI
             StandardLevelListTableCell _tableCell = Instantiate(_songListTableCellInstance);
 
             DownloadQueueTableCell _queueCell = _tableCell.gameObject.AddComponent<DownloadQueueTableCell>();
-
+            
             _queueCell.Init(_queuedSongs[row]);
             
             return _queueCell;

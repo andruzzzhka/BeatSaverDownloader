@@ -211,7 +211,7 @@ namespace BeatSaverDownloader.PluginUI
                 }
                 catch (Exception e)
                 {
-                    log.Exception("EXCEPTION: " + e);
+                    Logger.Exception("EXCEPTION: " + e);
                 }
             }
 

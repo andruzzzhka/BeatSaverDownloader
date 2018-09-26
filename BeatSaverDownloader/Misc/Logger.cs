@@ -13,35 +13,29 @@ namespace BeatSaverDownloader
         {
             loggerName = _name;
         }
-
-        public static void StaticLog(string message)
+        
+        public static void Log(string message)
         {
             Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine("[BeatSaverDownloader @ " + DateTime.Now.ToString("HH:mm")+"] "+message);
+        }
+
+        public static void Warning(string message)
+        {
+            Console.ForegroundColor = ConsoleColor.Blue;
             Console.WriteLine("[BeatSaverDownloader @ " + DateTime.Now.ToString("HH:mm") + "] " + message);
         }
 
-        public void Log(string message)
-        {
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine("["+loggerName+" @ "+DateTime.Now.ToString("HH:mm")+"] "+message);
-        }
-
-        public void Warning(string message)
-        {
-            Console.ForegroundColor = ConsoleColor.Blue;
-            Console.WriteLine("[" + loggerName + " @ " + DateTime.Now.ToString("HH:mm") + "] " + message);
-        }
-
-        public void Error(string message)
+        public static void Error(string message)
         {
             Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine("[" + loggerName + " @ " + DateTime.Now.ToString("HH:mm") + "] " + message);
+            Console.WriteLine("[BeatSaverDownloader @ " + DateTime.Now.ToString("HH:mm") + "] " + message);
         }
 
-        public void Exception(string message)
+        public static void Exception(string message)
         {
             Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine("[" + loggerName + " @ " + DateTime.Now.ToString("HH:mm") + "] " + message);
+            Console.WriteLine("[BeatSaverDownloader @ " + DateTime.Now.ToString("HH:mm") + "] " + message);
         }
 
     }

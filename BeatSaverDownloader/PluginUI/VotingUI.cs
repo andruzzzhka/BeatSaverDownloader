@@ -29,11 +29,11 @@ namespace BeatSaverDownloader.PluginUI
 
         public IEnumerator WaitForResults()
         {
-            
-            log.Log("Waiting for results view controller");
+
+            Logger.Log("Waiting for results view controller");
             yield return new WaitUntil(delegate () { return Resources.FindObjectsOfTypeAll<ResultsViewController>().Any(); });
 
-            log.Log("Found results view controller!");
+            Logger.Log("Found results view controller!");
 
             ResultsViewController results = Resources.FindObjectsOfTypeAll<ResultsViewController>().FirstOrDefault();
 
@@ -44,8 +44,8 @@ namespace BeatSaverDownloader.PluginUI
 
             levelId = results.difficultyLevel.level.levelID;
 
-            log.Log($"Player ID: {PluginUI.playerId}");
-            log.Log($"Level ID: {levelId}");
+            Logger.Log($"Player ID: {PluginUI.playerId}");
+            Logger.Log($"Level ID: {levelId}");
 
             if (levelId.Length > 32)
             {
@@ -68,7 +68,7 @@ namespace BeatSaverDownloader.PluginUI
 
                 if (www.isNetworkError || www.isHttpError)
                 {
-                    log.Error(www.error);
+                    Logger.Error(www.error);
                     TextMeshProUGUI _errorText = BeatSaberUI.CreateText(results.rectTransform, www.error, new Vector2(40f, -30f));
                     _errorText.alignment = TextAlignmentOptions.Center;
                     Destroy(_errorText.gameObject, 2f);
@@ -93,13 +93,13 @@ namespace BeatSaverDownloader.PluginUI
                         }
                         else
                         {
-                            log.Warning("No API Access Token!");
+                            Logger.Warning("No API Access Token!");
                         }
 
                     }
                     catch (Exception e)
                     {
-                        log.Exception("EXCEPTION(GET SONG RATING): " + e);
+                        Logger.Exception("EXCEPTION(GET SONG RATING): " + e);
                     }
                 }
 
@@ -142,7 +142,7 @@ namespace BeatSaverDownloader.PluginUI
 
         IEnumerator VoteForSong(bool upvote)
         {
-            log.Log($"Voting...");
+            Logger.Log($"Voting...");
 
             upvoteButton.interactable = false;
             downvoteButton.interactable = false;
@@ -153,7 +153,7 @@ namespace BeatSaverDownloader.PluginUI
 
             if (voteWWW.isNetworkError || voteWWW.isHttpError)
             {
-                log.Error(voteWWW.error);
+                Logger.Error(voteWWW.error);
                 ratingText.text = voteWWW.error;
             }
             else

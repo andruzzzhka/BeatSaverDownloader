@@ -102,7 +102,7 @@ namespace BeatSaverDownloader.PluginUI.ViewControllers
 
         IEnumerator SubmitReview()
         {
-            Logger.StaticLog($"Submiting...\nFunFactor: {_funFactorControl.currentValue}, Flow: {_flowControl.currentValue}, \nRhythm: {_rhythmControl.currentValue}, Readability: {_readabilityControl.currentValue}, \nPatternQuality: {_patternQualityControl.currentValue}, LevelDesign: {_levelDesignControl.currentValue}");
+            Logger.Log($"Submiting...\nFunFactor: {_funFactorControl.currentValue}, Flow: {_flowControl.currentValue}, \nRhythm: {_rhythmControl.currentValue}, Readability: {_readabilityControl.currentValue}, \nPatternQuality: {_patternQualityControl.currentValue}, LevelDesign: {_levelDesignControl.currentValue}");
 
             loading = true;
             submitButton.interactable = false;
@@ -116,7 +116,7 @@ namespace BeatSaverDownloader.PluginUI.ViewControllers
             if (voteWWW.isHttpError || voteWWW.isNetworkError)
             {
                 submitButton.interactable = true;
-                log.Error($"{(voteWWW.isHttpError ? "HTTP Error" : "Network Error")}: {voteWWW.error}");
+                Logger.Error($"{(voteWWW.isHttpError ? "HTTP Error" : "Network Error")}: {voteWWW.error}");
             }
         }
     }
