@@ -132,6 +132,7 @@ namespace BeatSaverDownloader.PluginUI.ViewControllers
             if(!beatSaverSongs.Any(x => x.songQueueState == SongQueueState.Queued))
             {
                 _downloadingPlaylist = false;
+                _playlistDetail.UpdateButtons(!_downloadingPlaylist, !_downloadingPlaylist);
             }
 
             foreach (var item in beatSaverSongs.Where(x => x.songQueueState == SongQueueState.Queued))
