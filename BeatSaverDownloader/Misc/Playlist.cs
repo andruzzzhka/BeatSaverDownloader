@@ -10,7 +10,8 @@ namespace BeatSaverDownloader.Misc
     {
         public string key { get; set; }
         public string songName { get; set; }
-
+        public string levelId { get; set; }
+        
         [NonSerialized]
         public IStandardLevel level;
         [NonSerialized]
@@ -26,6 +27,7 @@ namespace BeatSaverDownloader.Misc
         public string image { get; set; }
         public List<PlaylistSong> songs { get; set; }
         public string fileLoc { get; set; }
+        public string customDetailUrl { get; set; }
 
         [NonSerialized]
         public Sprite icon;

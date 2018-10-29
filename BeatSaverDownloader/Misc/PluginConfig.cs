@@ -201,6 +201,13 @@ namespace BeatSaverDownloader
                         playlist.icon = PluginUI.PluginUI.Base64ToSprite(image.Substring(image.IndexOf(",")+1));
                         playlist.playlistTitle = playlistNode["playlistTitle"];
                         playlist.playlistAuthor = playlistNode["playlistAuthor"];
+                        playlist.customDetailUrl = playlistNode["customUrl"];
+                        if (!string.IsNullOrEmpty(playlist.customDetailUrl))
+                        {
+                            if (!playlist.customDetailUrl.EndsWith("/"))
+                                playlist.customDetailUrl += "/";
+                            Logger.Log("Found playlist with custom URL! Name: "+playlist.playlistTitle+", CustomDetailURL: "+ playlist.customDetailUrl);
+                        }
                         playlist.songs = new List<PlaylistSong>();
 
                         foreach (JSONNode node in playlistNode["songs"].AsArray)
@@ -208,6 +215,7 @@ namespace BeatSaverDownloader
                             PlaylistSong song = new PlaylistSong();
                             song.key = node["key"];
                             song.songName = node["songName"];
+                            song.levelId = node["levelId"];
 
                             playlist.songs.Add(song);
                         }

@@ -153,16 +153,16 @@ namespace BeatSaverDownloader.PluginUI
 
                 Playlist _allPlaylist = new Playlist() { playlistTitle = "All songs", playlistAuthor = "You", image = Base64Sprites.BeastSaberLogo, icon = Base64ToSprite(Base64Sprites.BeastSaberLogo), fileLoc = "" };
                 _allPlaylist.songs = new List<PlaylistSong>();
-                _allPlaylist.songs.AddRange(regularLevels.Select(x => new PlaylistSong() { songName = $"{x.songName} {x.songSubName}", level = x, oneSaber = false, path = "", key = "" }));
-                _allPlaylist.songs.AddRange(oneSaberLevels.Select(x => new PlaylistSong() { songName = $"{x.songName} {x.songSubName}", level = x, oneSaber = true, path = "", key = "" }));
-                _allPlaylist.songs.AddRange(customLevels.Select(x => new PlaylistSong() { songName = $"{x.songName} {x.songSubName}", level = x, oneSaber = false, path = x.customSongInfo.path, key = "" }));
+                _allPlaylist.songs.AddRange(regularLevels.Select(x => new PlaylistSong() { songName = $"{x.songName} {x.songSubName}", level = x, oneSaber = false, path = "", key = "", levelId = x.levelID }));
+                _allPlaylist.songs.AddRange(oneSaberLevels.Select(x => new PlaylistSong() { songName = $"{x.songName} {x.songSubName}", level = x, oneSaber = true, path = "", key = "", levelId = x.levelID }));
+                _allPlaylist.songs.AddRange(customLevels.Select(x => new PlaylistSong() { songName = $"{x.songName} {x.songSubName}", level = x, oneSaber = false, path = x.customSongInfo.path, key = "", levelId = x.levelID }));
                 Logger.Log($"Created \"{_allPlaylist.playlistTitle}\" playlist with {_allPlaylist.songs.Count} songs!");
 
                 Playlist _favPlaylist = new Playlist() { playlistTitle = "Your favorite songs", playlistAuthor = "You", image = Base64Sprites.BeastSaberLogo, icon = Base64ToSprite(Base64Sprites.BeastSaberLogo), fileLoc = "" };
                 _favPlaylist.songs = new List<PlaylistSong>();
-                _favPlaylist.songs.AddRange(regularLevels.Where(x => PluginConfig.favoriteSongs.Contains(x.levelID)).Select(x => new PlaylistSong() { songName = $"{x.songName} {x.songSubName}", level = x, oneSaber = false, path = "", key = "" }));
-                _favPlaylist.songs.AddRange(oneSaberLevels.Where(x => PluginConfig.favoriteSongs.Contains(x.levelID)).Select(x => new PlaylistSong() { songName = $"{x.songName} {x.songSubName}", level = x, oneSaber = true, path = "", key = "" }));
-                _favPlaylist.songs.AddRange(customLevels.Where(x => PluginConfig.favoriteSongs.Contains(x.levelID)).Select(x => new PlaylistSong() { songName = $"{x.songName} {x.songSubName}", level = x, oneSaber = false, path = x.customSongInfo.path, key = "" }));
+                _favPlaylist.songs.AddRange(regularLevels.Where(x => PluginConfig.favoriteSongs.Contains(x.levelID)).Select(x => new PlaylistSong() { songName = $"{x.songName} {x.songSubName}", level = x, oneSaber = false, path = "", key = "", levelId = x.levelID }));
+                _favPlaylist.songs.AddRange(oneSaberLevels.Where(x => PluginConfig.favoriteSongs.Contains(x.levelID)).Select(x => new PlaylistSong() { songName = $"{x.songName} {x.songSubName}", level = x, oneSaber = true, path = "", key = "", levelId = x.levelID }));
+                _favPlaylist.songs.AddRange(customLevels.Where(x => PluginConfig.favoriteSongs.Contains(x.levelID)).Select(x => new PlaylistSong() { songName = $"{x.songName} {x.songSubName}", level = x, oneSaber = false, path = x.customSongInfo.path, key = "", levelId = x.levelID }));
                 Logger.Log($"Created \"{_favPlaylist.playlistTitle}\" playlist with {_favPlaylist.songs.Count} songs!");
 
                 if (PluginConfig.playlists.Any(x => x.playlistTitle == "All songs" || x.playlistTitle == "Your favorite songs"))

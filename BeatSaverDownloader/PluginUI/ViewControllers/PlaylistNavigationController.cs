@@ -115,13 +115,15 @@ namespace BeatSaverDownloader.PluginUI.ViewControllers
             foreach (var item in playlistSongsToDownload)
             {
                 Logger.Log("Obtaining hash and url for " + item.key + ": " + item.songName);
-                yield return GetSongByPlaylistSong(item);
-
-                Logger.Log("Song is null: "+(_lastRequestedSong==null)+"\n Level is downloaded: "+(SongLoader.CustomLevels.Any(x => x.levelID.Substring(0, 32) == _lastRequestedSong.hash.ToUpper())));
-
+                yield return GetSongByPlaylistSong(playlist, item);
+#if DEBUG
+                Logger.Log("Song is null: " + (_lastRequestedSong == null) + "\n Level is downloaded: " + (SongLoader.CustomLevels.Any(x => x.levelID.Substring(0, 32) == _lastRequestedSong.hash.ToUpper())));
+#endif
                 if (_lastRequestedSong != null && !SongLoader.CustomLevels.Any(x => x.levelID.Substring(0, 32) == _lastRequestedSong.hash.ToUpper()))
                 {
+#if DEBUG
                     Logger.Log(item.key + ": " + item.songName+"  -  "+ _lastRequestedSong.hash);
+#endif
                     beatSaverSongs.Add(_lastRequestedSong);
                     downloadQueueViewController.EnqueueSong(_lastRequestedSong, false);
                 }
@@ -160,12 +162,17 @@ namespace BeatSaverDownloader.PluginUI.ViewControllers
 
         private Song _lastRequestedSong;
 
-        public IEnumerator GetSongByPlaylistSong(PlaylistSong song)
+        public IEnumerator GetSongByPlaylistSong(Playlist playlist, PlaylistSong song)
         {
             UnityWebRequest wwwId = null;
             try
             {
-                wwwId = UnityWebRequest.Get($"{PluginConfig.beatsaverURL}/api/songs/detail/" + song.key);
+                string url = PluginConfig.beatsaverURL + $"/api/songs/detail/" + song.key;
+                if (!string.IsNullOrEmpty(playlist.customDetailUrl))
+                {
+                    url = playlist.customDetailUrl + song.key;
+                }
+                wwwId = UnityWebRequest.Get(url);
                 wwwId.timeout = 10;
             }
             catch
@@ -181,7 +188,7 @@ namespace BeatSaverDownloader.PluginUI.ViewControllers
             if (wwwId.isNetworkError || wwwId.isHttpError)
             {
                 Logger.Error(wwwId.error);
-                Logger.Error($"Song {song.songName} doesn't exist on BeatSaver!");
+                Logger.Error($"Song {song.key}({song.songName}) doesn't exist!");
                 _lastRequestedSong = new Song() { songName = song.songName, songQueueState = SongQueueState.Error, downloadingProgress = 1f, hash = "" };
             }
             else

@@ -193,7 +193,7 @@ namespace BeatSaverDownloader.PluginUI
                 {
                     if (x.level == null || matchAll)
                     {
-                        x.level = SongLoader.CustomLevels.FirstOrDefault(y => y.customSongInfo.path.Contains(x.key) && Directory.Exists(y.customSongInfo.path));
+                        x.level = SongLoader.CustomLevels.FirstOrDefault(y => (y.customSongInfo.path.Contains(x.key) && Directory.Exists(y.customSongInfo.path)) || (string.IsNullOrEmpty(x.levelId) ? false : y.levelID.StartsWith(x.levelId)));
                     }
                 });
             }
