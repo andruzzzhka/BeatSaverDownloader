@@ -201,12 +201,12 @@ namespace BeatSaverDownloader
                         playlist.icon = PluginUI.PluginUI.Base64ToSprite(image.Substring(image.IndexOf(",")+1));
                         playlist.playlistTitle = playlistNode["playlistTitle"];
                         playlist.playlistAuthor = playlistNode["playlistAuthor"];
-                        playlist.customDetailUrl = playlistNode["customUrl"];
+                        playlist.customDetailUrl = playlistNode["customDetailUrl"];
                         if (!string.IsNullOrEmpty(playlist.customDetailUrl))
                         {
                             if (!playlist.customDetailUrl.EndsWith("/"))
                                 playlist.customDetailUrl += "/";
-                            Logger.Log("Found playlist with custom URL! Name: "+playlist.playlistTitle+", CustomDetailURL: "+ playlist.customDetailUrl);
+                            Logger.Log("Found playlist with customDetailUrl! Name: "+playlist.playlistTitle+", CustomDetailUrl: "+ playlist.customDetailUrl);
                         }
                         playlist.songs = new List<PlaylistSong>();
 
