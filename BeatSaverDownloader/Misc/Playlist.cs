@@ -28,6 +28,7 @@ namespace BeatSaverDownloader.Misc
         public List<PlaylistSong> songs { get; set; }
         public string fileLoc { get; set; }
         public string customDetailUrl { get; set; }
+        public string customArchiveUrl { get; set; }
 
         [NonSerialized]
         public Sprite icon;

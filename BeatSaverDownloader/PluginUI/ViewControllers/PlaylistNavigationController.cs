@@ -114,11 +114,26 @@ namespace BeatSaverDownloader.PluginUI.ViewControllers
 
             foreach (var item in playlistSongsToDownload)
             {
-                Logger.Log("Obtaining hash and url for " + item.key + ": " + item.songName);
+                if (String.IsNullOrEmpty(playlist.customArchiveUrl)) { 
+                    Logger.Log("Obtaining hash and url for " + item.key + ": " + item.songName);
                 yield return GetSongByPlaylistSong(playlist, item);
 #if DEBUG
                 Logger.Log("Song is null: " + (_lastRequestedSong == null) + "\n Level is downloaded: " + (SongLoader.CustomLevels.Any(x => x.levelID.Substring(0, 32) == _lastRequestedSong.hash.ToUpper())));
 #endif
+                }
+                else
+                {
+                    string archiveUrl = playlist.customArchiveUrl.Replace("[KEY]", item.key);
+
+                    _lastRequestedSong = new Song()
+                    {
+                        songName = item.songName,
+                        downloadingProgress = 0f,
+                        hash = "",
+                        downloadUrl = archiveUrl
+                    };
+                }
+
                 if (_lastRequestedSong != null && !SongLoader.CustomLevels.Any(x => x.levelID.Substring(0, 32) == _lastRequestedSong.hash.ToUpper()))
                 {
 #if DEBUG

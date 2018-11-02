@@ -12,6 +12,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -574,39 +575,45 @@ namespace BeatSaverDownloader.PluginUI
                     yield break;
                 }
 
-                Logger.Log("Extracting...");
-
-                try
-                {
-                    ZipFile.ExtractToDirectory(zipPath, customSongsPath);
-                }
-                catch (Exception e)
-                {
-                    Logger.Exception($"Can't extract ZIP! Exception: {e}");
-                }
-
-                songInfo.path = Directory.GetDirectories(customSongsPath).FirstOrDefault();
-
-                if (string.IsNullOrEmpty(songInfo.path))
-                {
-                    songInfo.path = customSongsPath;
-                }
-
-                try
-                {
-                    File.Delete(zipPath);
-                }
-                catch (IOException e)
-                {
-                    Logger.Warning($"Can't delete zip! Exception: {e}");
-                }
-
-                songInfo.songQueueState = SongQueueState.Downloaded;
-
-                Logger.Log("Downloaded!");
-
-                downloadFinished?.Invoke(songInfo);
+                ExtractZipAsync(songInfo, zipPath, customSongsPath);
+                
             }
+        }
+
+        private async void ExtractZipAsync(Song songInfo, string zipPath, string customSongsPath)
+        {
+            Logger.Log("Extracting...");
+
+            try
+            {
+                await Task.Run(() => ZipFile.ExtractToDirectory(zipPath, customSongsPath));
+            }
+            catch (Exception e)
+            {
+                Logger.Exception($"Can't extract ZIP! Exception: {e}");
+            }
+
+            songInfo.path = Directory.GetDirectories(customSongsPath).FirstOrDefault();
+
+            if (string.IsNullOrEmpty(songInfo.path))
+            {
+                songInfo.path = customSongsPath;
+            }
+
+            try
+            {
+                await Task.Run(() => File.Delete(zipPath));
+            }
+            catch (IOException e)
+            {
+                Logger.Warning($"Can't delete zip! Exception: {e}");
+            }
+
+            songInfo.songQueueState = SongQueueState.Downloaded;
+
+            Logger.Log("Downloaded!");
+
+            downloadFinished?.Invoke(songInfo);
         }
 
         private void CreateBeatSaverButton()

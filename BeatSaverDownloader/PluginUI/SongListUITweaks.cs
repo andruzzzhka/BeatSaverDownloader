@@ -67,11 +67,11 @@ namespace BeatSaverDownloader.PluginUI
 
                 _tableViewRectTransform.sizeDelta = new Vector2(0f , -20f);
                 _tableViewRectTransform.anchoredPosition = new Vector2(0f, -2.5f);
-
-                RectTransform _pageUp = _tableViewRectTransform.GetComponentsInChildren<RectTransform>().First(x => x.name == "PageUpButton");
+                
+                RectTransform _pageUp = _tableViewRectTransform.GetComponentsInChildren<RectTransform>(true).First(x => x.name == "PageUpButton");
                 _pageUp.anchoredPosition = new Vector2(0f, -1f);
 
-                RectTransform _pageDown = _tableViewRectTransform.GetComponentsInChildren<RectTransform>().First(x => x.name == "PageDownButton");
+                RectTransform _pageDown = _tableViewRectTransform.GetComponentsInChildren<RectTransform>(true).First(x => x.name == "PageDownButton");
                 _pageDown.anchoredPosition = new Vector2(0f, 1f);
             }
 

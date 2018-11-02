@@ -12,9 +12,7 @@ namespace BeatSaverDownloader.PluginUI
         BeatSaverNavigationController _parentMasterViewController;
         
         private Logger log = new Logger("BeatSaverDownloader");
-
-        Button _downloadButton;
-
+        
         TextMeshProUGUI songNameText;
         TextMeshProUGUI downloadsText;
         TextMeshProUGUI playsText;

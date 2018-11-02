@@ -198,15 +198,35 @@ namespace BeatSaverDownloader
 
                         Playlist playlist = new Playlist();
                         string image = playlistNode["image"].Value;
-                        playlist.icon = PluginUI.PluginUI.Base64ToSprite(image.Substring(image.IndexOf(",")+1));
+                        if (!string.IsNullOrEmpty(image))
+                        {
+                            try
+                            {
+                                playlist.icon = PluginUI.PluginUI.Base64ToSprite(image.Substring(image.IndexOf(",") + 1));
+                            }
+                            catch
+                            {
+                                Logger.Exception("Unable to convert playlist image to sprite!");
+                                playlist.icon = PluginUI.PluginUI.Base64ToSprite(Base64Sprites.BeastSaberLogo);
+                            }
+                        }
+                        else
+                        {
+                            playlist.icon = PluginUI.PluginUI.Base64ToSprite(Base64Sprites.BeastSaberLogo);
+                        }
                         playlist.playlistTitle = playlistNode["playlistTitle"];
                         playlist.playlistAuthor = playlistNode["playlistAuthor"];
                         playlist.customDetailUrl = playlistNode["customDetailUrl"];
+                        playlist.customArchiveUrl = playlistNode["customArchiveUrl"];
                         if (!string.IsNullOrEmpty(playlist.customDetailUrl))
                         {
                             if (!playlist.customDetailUrl.EndsWith("/"))
                                 playlist.customDetailUrl += "/";
-                            Logger.Log("Found playlist with customDetailUrl! Name: "+playlist.playlistTitle+", CustomDetailUrl: "+ playlist.customDetailUrl);
+                            Logger.Log("Found playlist with customDetailUrl! Name: " + playlist.playlistTitle + ", CustomDetailUrl: " + playlist.customDetailUrl);
+                        }
+                        if (!string.IsNullOrEmpty(playlist.customArchiveUrl) && playlist.customArchiveUrl.Contains("[KEY]"))
+                        {
+                            Logger.Log("Found playlist with customArchiveUrl! Name: " + playlist.playlistTitle + ", CustomArchiveUrl: " + playlist.customArchiveUrl);
                         }
                         playlist.songs = new List<PlaylistSong>();
 
