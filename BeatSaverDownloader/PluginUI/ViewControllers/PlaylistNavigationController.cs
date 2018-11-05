@@ -37,10 +37,16 @@ namespace BeatSaverDownloader.PluginUI.ViewControllers
 
                 _backButton.onClick.AddListener(delegate ()
                 {
-                    if (!downloadQueueViewController._queuedSongs.Any(x => x.songQueueState == SongQueueState.Queued || x.songQueueState == SongQueueState.Downloading) && !_downloadingPlaylist)
+                    try
                     {
-                        DismissModalViewController(null, false);
-                        finished?.Invoke(null);
+                        if ((downloadQueueViewController == null || !downloadQueueViewController._queuedSongs.Any(x => x.songQueueState == SongQueueState.Queued || x.songQueueState == SongQueueState.Downloading)) && !_downloadingPlaylist)
+                        {
+                            DismissModalViewController(null, false);
+                            finished?.Invoke(null);
+                        }
+                    }catch(Exception e)
+                    {
+                        Logger.Exception("Unable to dismiss playlist navigation controller! Exception: "+e);
                     }
                 });
 

@@ -214,7 +214,8 @@ namespace BeatSaverDownloader.PluginUI
 
         public void ShowPlaylist(Playlist playlist)
         {
-            lastPlaylist = playlist;
+            if(playlist != null)
+                lastPlaylist = playlist;
 
             MatchSongsForPlaylist(lastPlaylist);
 

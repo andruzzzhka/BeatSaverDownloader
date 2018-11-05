@@ -67,6 +67,8 @@ namespace BeatSaverDownloader.PluginUI.ViewControllers
 
                 _playlistsTableView.didSelectRowEvent += _playlistsTableView_DidSelectRowEvent;
                 _playlistsTableView.dataSource = this;
+
+                _playlistsTableView.ScrollToRow(0, false);
             }
         }
 
@@ -82,6 +84,8 @@ namespace BeatSaverDownloader.PluginUI.ViewControllers
             if(_playlistsTableView != null)
             {
                 _playlistsTableView.ReloadData();
+
+                _playlistsTableView.ScrollToRow(0, false);
             }
         }
 
