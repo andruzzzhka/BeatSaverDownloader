@@ -128,8 +128,9 @@ namespace BeatSaverDownloader.PluginUI.ViewControllers
                     _lastRequestedSong = new Song()
                     {
                         songName = item.songName,
+                        id = item.key,
                         downloadingProgress = 0f,
-                        hash = "",
+                        hash = item.levelId,
                         downloadUrl = archiveUrl
                     };
                 }
