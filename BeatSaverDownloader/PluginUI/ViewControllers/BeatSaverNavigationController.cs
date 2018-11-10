@@ -34,8 +34,6 @@ namespace BeatSaverDownloader.PluginUI
         public Button _downloadButton;
         Button _backButton;
 
-        SongPreviewPlayer _songPreviewPlayer;
-
         public string _sortBy = "top";
         private bool isLoading = false;
         public bool _loading { get { return isLoading; } set { isLoading = value; SetLoadingIndicator(isLoading); } }
@@ -47,11 +45,6 @@ namespace BeatSaverDownloader.PluginUI
         {
             _alreadyDownloadedSongs = SongLoader.CustomLevels.Select(x => new Song(x)).ToList();
             
-            if (_songPreviewPlayer == null)
-            {
-                _songPreviewPlayer = Resources.FindObjectsOfTypeAll<SongPreviewPlayer>().First();
-            }
-
             if (_songListViewController == null)
             {
                 _songListViewController = BeatSaberUI.CreateViewController<BeatSaverSongListViewController>();
@@ -79,10 +72,6 @@ namespace BeatSaverDownloader.PluginUI
                 {
                     if (!_loading && (_downloadQueueViewController == null || _downloadQueueViewController._queuedSongs.Count == 0))
                     {
-                        if (_songPreviewPlayer != null)
-                        {
-                            _songPreviewPlayer.CrossfadeToDefault();
-                        }
                         try
                         {
                             SongLoader.Instance.RefreshSongs(false);
@@ -508,11 +497,6 @@ namespace BeatSaverDownloader.PluginUI
                     }
 
                 });
-
-                if (_songPreviewPlayer != null)
-                {
-                    _songPreviewPlayer.CrossfadeToDefault();
-                }
             }
 
             if (_downloadQueueViewController != null && _downloadQueueViewController._queuedSongs.Contains(_songs[row]) && !IsSongAlreadyDownloaded(_songs[row]))

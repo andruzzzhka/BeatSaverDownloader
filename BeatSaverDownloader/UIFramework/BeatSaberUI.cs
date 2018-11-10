@@ -50,7 +50,7 @@ namespace BeatSaverDownloader
 
             initialized = true;
             
-        }       
+        }
 
         public static Button CreateUIButton(RectTransform parent, string buttonTemplate)
         {
@@ -58,6 +58,53 @@ namespace BeatSaverDownloader
             DestroyImmediate(btn.GetComponent<SignalOnUIButtonClick>());
             btn.onClick = new Button.ButtonClickedEvent();
             btn.name = "CustomUIButton";
+
+            return btn;
+        }
+
+        public static Button CreateUIButton(RectTransform parent, string buttonTemplate, Vector2 anchoredPosition, Vector2 sizeDelta, string buttonText = "BUTTON", Sprite icon = null)
+        {
+            Button btn = Instantiate(Resources.FindObjectsOfTypeAll<Button>().Last(x => (x.name == buttonTemplate)), parent, false);
+            DestroyImmediate(btn.GetComponent<SignalOnUIButtonClick>());
+            btn.onClick = new Button.ButtonClickedEvent();
+            btn.name = "CustomUIButton";
+            
+            (btn.transform as RectTransform).anchoredPosition = anchoredPosition;
+            (btn.transform as RectTransform).sizeDelta = sizeDelta;
+
+            SetButtonText(btn, buttonText);
+            if(icon != null)
+                SetButtonIcon(btn, icon);
+
+            return btn;
+        }
+
+        public static Button CreateUIButton(RectTransform parent, string buttonTemplate, Vector2 anchoredPosition, string buttonText = "BUTTON", Sprite icon = null)
+        {
+            Button btn = Instantiate(Resources.FindObjectsOfTypeAll<Button>().Last(x => (x.name == buttonTemplate)), parent, false);
+            DestroyImmediate(btn.GetComponent<SignalOnUIButtonClick>());
+            btn.onClick = new Button.ButtonClickedEvent();
+            btn.name = "CustomUIButton";
+
+            (btn.transform as RectTransform).anchoredPosition = anchoredPosition;
+
+            SetButtonText(btn, buttonText);
+            if (icon != null)
+                SetButtonIcon(btn, icon);
+
+            return btn;
+        }
+
+        public static Button CreateUIButton(RectTransform parent, string buttonTemplate, string buttonText = "BUTTON", Sprite icon = null)
+        {
+            Button btn = Instantiate(Resources.FindObjectsOfTypeAll<Button>().Last(x => (x.name == buttonTemplate)), parent, false);
+            DestroyImmediate(btn.GetComponent<SignalOnUIButtonClick>());
+            btn.onClick = new Button.ButtonClickedEvent();
+            btn.name = "CustomUIButton";
+
+            SetButtonText(btn, buttonText);
+            if (icon != null)
+                SetButtonIcon(btn, icon);
 
             return btn;
         }
@@ -79,7 +126,7 @@ namespace BeatSaverDownloader
 
         public static T CreateViewController<T>() where T : VRUIViewController
         {
-            T vc = new GameObject("CutomViewController").AddComponent<T>();
+            T vc = new GameObject("CustomViewController").AddComponent<T>();
 
             vc.rectTransform.anchorMin = new Vector2(0f, 0f);
             vc.rectTransform.anchorMax = new Vector2(1f, 1f);

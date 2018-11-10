@@ -1,4 +1,5 @@
 ﻿using BeatSaverDownloader.Misc;
+using BeatSaverDownloader.PluginUI.ViewControllers;
 using HMUI;
 using IllusionPlugin;
 using SimpleJSON;
@@ -31,7 +32,7 @@ namespace BeatSaverDownloader.PluginUI
 
         private Logger log = new Logger("BeatSaverDownloader");
 
-        public BeatSaverNavigationController _beatSaverViewController;
+        public SubMenuViewController _subMenuViewController;
 
         private RectTransform _mainMenuRectTransform;
         private StandardLevelSelectionFlowCoordinator _standardLevelSelectionFlowCoordinator;
@@ -42,7 +43,7 @@ namespace BeatSaverDownloader.PluginUI
 
         private StandardLevelDetailViewController _songDetailViewController;
 
-        private Button _beatSaverButton;
+        private Button _subMenuButon;
         private Button _deleteButton;
         private Button _playButton;
         private Button _favButton;
@@ -118,7 +119,7 @@ namespace BeatSaverDownloader.PluginUI
                 }
 
                 CreateBeatSaverButton();
-                _beatSaverButton.interactable = false;
+                _subMenuButon.interactable = false;
             }
             catch (Exception e)
             {
@@ -142,7 +143,7 @@ namespace BeatSaverDownloader.PluginUI
             _levelCollections = Resources.FindObjectsOfTypeAll<LevelCollectionsForGameplayModes>().FirstOrDefault();
             _levelCollectionsForGameModes = ReflectionUtil.GetPrivateField<LevelCollectionsForGameplayModes.LevelCollectionForGameplayMode[]>(_levelCollections, "_collections").ToList();
             
-            _beatSaverButton.interactable = true;
+            _subMenuButon.interactable = true;
 
             try
             {
@@ -618,30 +619,23 @@ namespace BeatSaverDownloader.PluginUI
 
         private void CreateBeatSaverButton()
         {
-            _beatSaverButton = BeatSaberUI.CreateUIButton(_mainMenuRectTransform, "QuitButton");
+            _subMenuButon = BeatSaberUI.CreateUIButton(_mainMenuRectTransform, "QuitButton", new Vector2(30f, 7f), new Vector2(28f, 10f), "Downloader");
 
-            try
+            _subMenuButon.onClick.AddListener(delegate ()
             {
-                (_beatSaverButton.transform as RectTransform).anchoredPosition = new Vector2(30f, 7f);
-                (_beatSaverButton.transform as RectTransform).sizeDelta = new Vector2(28f, 10f);
-
-                BeatSaberUI.SetButtonText(_beatSaverButton, "BeatSaver");
-                
-                _beatSaverButton.onClick.AddListener(delegate () {
-                    
-                    if (_beatSaverViewController == null)
+                try
+                {
+                    if (_subMenuViewController == null)
                     {
-                        _beatSaverViewController = BeatSaberUI.CreateViewController<BeatSaverNavigationController>();
+                        _subMenuViewController = BeatSaberUI.CreateViewController<SubMenuViewController>();
                     }
-                    _mainMenuViewController.PresentModalViewController(_beatSaverViewController, null, false);
-
-                });
-
-            }
-            catch (Exception e)
-            {
-                Logger.Exception("Can't create button! Exception: " + e);
-            }
+                    _mainMenuViewController.PresentModalViewController(_subMenuViewController, null, false);
+                }
+                catch (Exception e)
+                {
+                    Logger.Exception("Unable to present sub-menu view controller! Exception: " + e);
+                }
+            });
 
         }
 
@@ -667,8 +661,13 @@ namespace BeatSaverDownloader.PluginUI
             }
         }
 
-        public static Sprite Base64ToSprite(string base64)
+        public static Sprite Base64ToSprite(string input)
         {
+            string base64 = input;
+            if (input.Contains(","))
+            {
+                base64 = input.Substring(input.IndexOf(','));
+            }
             Texture2D tex = Base64ToTexture2D(base64);
             return Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), (Vector2.one / 2f));
         }

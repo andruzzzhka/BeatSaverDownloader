@@ -54,7 +54,7 @@ namespace BeatSaverDownloader.PluginUI
                 //results.screen.screenSystem.leftScreen.SetRootViewController(reviewViewController);
 
                 #region BeatSaver Integration UI
-                ratingText = BeatSaberUI.CreateText(results.rectTransform, "LOADING...", new Vector2(51.5f, -40f));
+                ratingText = BeatSaberUI.CreateText(results.rectTransform, "LOADING...", new Vector2(58.5f, -40f));
                 ratingText.rectTransform.sizeDelta = new Vector2(100f, 10f);
                 ratingText.alignment = TextAlignmentOptions.Center;
                 ratingText.fontSize = 7f;
@@ -111,9 +111,19 @@ namespace BeatSaverDownloader.PluginUI
             if (upvoteButton == null)
             {
                 upvoteButton = BeatSaberUI.CreateUIButton(parent, "SettingsButton");
-                BeatSaberUI.SetButtonText(upvoteButton, "+");
-                BeatSaberUI.SetButtonTextSize(upvoteButton, 7f);
+
+                RectTransform iconTransform = upvoteButton.GetComponentsInChildren<RectTransform>(true).First(x => x.name == "Icon");
+                iconTransform.gameObject.SetActive(true);
+                Destroy(iconTransform.parent.GetComponent<HorizontalLayoutGroup>());
+                iconTransform.sizeDelta = new Vector2(10f, 10f);
+                iconTransform.anchoredPosition = new Vector2(3.25f, -2.5f);
+
+                Destroy(upvoteButton.GetComponentInChildren<TextMeshProUGUI>(true).gameObject);
+
+                BeatSaberUI.SetButtonIcon(upvoteButton, PluginUI.Base64ToSprite(Base64Sprites.ThumbUp));
+
                 (upvoteButton.transform as RectTransform).anchoredPosition = new Vector2(-14f, 45f);
+                (upvoteButton.transform as RectTransform).sizeDelta = new Vector2(12f, 12f);
                 upvoteButton.interactable = false;
 
 
@@ -127,9 +137,19 @@ namespace BeatSaverDownloader.PluginUI
             if (downvoteButton == null)
             {
                 downvoteButton = BeatSaberUI.CreateUIButton(parent, "SettingsButton");
-                BeatSaberUI.SetButtonText(downvoteButton, "-");
-                BeatSaberUI.SetButtonTextSize(downvoteButton, 7f);
-                (downvoteButton.transform as RectTransform).anchoredPosition = new Vector2(-14f, 26f);
+
+                RectTransform iconTransform = downvoteButton.GetComponentsInChildren<RectTransform>(true).First(x => x.name == "Icon");
+                iconTransform.gameObject.SetActive(true);
+                Destroy(iconTransform.parent.GetComponent<HorizontalLayoutGroup>());
+                iconTransform.sizeDelta = new Vector2(10f, 10f);
+                iconTransform.anchoredPosition = new Vector2(3.25f, -2.5f);
+
+                Destroy(downvoteButton.GetComponentInChildren<TextMeshProUGUI>(true).gameObject);
+
+                BeatSaberUI.SetButtonIcon(downvoteButton, PluginUI.Base64ToSprite(Base64Sprites.ThumbDown));
+
+                (downvoteButton.transform as RectTransform).anchoredPosition = new Vector2(-14f, 24f);
+                (downvoteButton.transform as RectTransform).sizeDelta = new Vector2(12f, 12f);
                 downvoteButton.interactable = false;
 
                 downvoteButton.onClick.RemoveAllListeners();
