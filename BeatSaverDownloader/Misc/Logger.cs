@@ -1,42 +1,57 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 
-namespace BeatSaverDownloader
+namespace BeatSaverDownloader.Misc
 {
     class Logger
     {
-        private string loggerName;
+        private static string _assemblyName;
+        public static string AssemblyName
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_assemblyName))
+                    _assemblyName = Assembly.GetExecutingAssembly().GetName().Name;
 
-        public Logger(string _name)
-        {
-            loggerName = _name;
+                return _assemblyName;
+            }
         }
-        
-        public static void Log(string message)
+
+        private static ConsoleColor _lastColor;
+
+        public static void Log(object message)
         {
+            _lastColor = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine("[BeatSaverDownloader @ " + DateTime.Now.ToString("HH:mm")+"] "+message);
+            Console.WriteLine("[" + AssemblyName + " | LOG] " + message);
+            Console.ForegroundColor = _lastColor;
         }
 
-        public static void Warning(string message)
+        public static void Warning(object message)
         {
-            Console.ForegroundColor = ConsoleColor.Blue;
-            Console.WriteLine("[BeatSaverDownloader @ " + DateTime.Now.ToString("HH:mm") + "] " + message);
+            _lastColor = Console.ForegroundColor;
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.WriteLine("[" + AssemblyName + " | WARNING] " + message);
+            Console.ForegroundColor = _lastColor;
         }
 
-        public static void Error(string message)
+        public static void Error(object message)
         {
+            _lastColor = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine("[BeatSaverDownloader @ " + DateTime.Now.ToString("HH:mm") + "] " + message);
+            Console.WriteLine("[" + AssemblyName + " | ERROR] " + message);
+            Console.ForegroundColor = _lastColor;
         }
 
-        public static void Exception(string message)
+        public static void Exception(object message)
         {
+            _lastColor = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine("[BeatSaverDownloader @ " + DateTime.Now.ToString("HH:mm") + "] " + message);
+            Console.WriteLine("[" + AssemblyName + " | CRITICAL] " + message);
+            Console.ForegroundColor = _lastColor;
         }
-
     }
 }

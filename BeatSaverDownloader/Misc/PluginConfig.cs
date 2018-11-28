@@ -1,29 +1,22 @@
-﻿using BeatSaverDownloader.Misc;
-using IllusionPlugin;
+﻿using IllusionPlugin;
 using Microsoft.Win32;
-using SimpleJSON;
-using SongBrowserPlugin;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Security;
 using System.Text;
-using System.Windows.Forms;
 using System.Xml.Serialization;
-using UnityEngine;
+using SongBrowserPlugin;
 
-namespace BeatSaverDownloader
+namespace BeatSaverDownloader.Misc
 {
-    class PluginConfig
+    internal class PluginConfig
     {
-        static public List<Playlist> playlists = new List<Playlist>();
-
         static private bool beatDropInstalled = false;
-        static private string beatDropInstallLocation = "";
+        static private string beatDropPlaylistsLocation = "";
 
-        static private string configPath = "favoriteSongs.cfg";
+        static private string configPath = "UserData\\favoriteSongs.cfg";
+        static private string oldConfigPath = "favoriteSongs.cfg";
         static private string songBrowserSettings = "song_browser_settings.xml";
 
         public static List<string> favoriteSongs = new List<string>();
@@ -35,6 +28,9 @@ namespace BeatSaverDownloader
 
         public static bool disableSongListTweaks = false;
         public static bool disableDeleteButton = false;
+
+        public static int maxSimultaneousDownloads = 3;
+
 
         public static void LoadOrCreateConfig()
         {
@@ -62,7 +58,7 @@ namespace BeatSaverDownloader
                     Logger.Log("Loaded config");
                 }
             }
-            
+
             if (!ModPrefs.HasKey("BeatSaverDownloader", "apiAccessToken"))
             {
                 ModPrefs.SetString("BeatSaverDownloader", "apiAccessToken", apiTokenPlaceholder);
@@ -80,21 +76,35 @@ namespace BeatSaverDownloader
             if (!ModPrefs.HasKey("BeatSaverDownloader", "disableDeleteButton"))
             {
                 ModPrefs.SetBool("BeatSaverDownloader", "disableDeleteButton", false);
-                Logger.Log("Created config");
             }
             else
             {
                 disableDeleteButton = ModPrefs.GetBool("BeatSaverDownloader", "disableDeleteButton", false, true);
             }
-            
+
+            if (!ModPrefs.HasKey("BeatSaverDownloader", "maxSimultaneousDownloads"))
+            {
+                ModPrefs.SetInt("BeatSaverDownloader", "maxSimultaneousDownloads", 3);
+                Logger.Log("Created config");
+            }
+            else
+            {
+                maxSimultaneousDownloads = ModPrefs.GetInt("BeatSaverDownloader", "maxSimultaneousDownloads", 3, true);
+            }
+
+            if (File.Exists(oldConfigPath))
+            {
+                File.Move(oldConfigPath, configPath);
+            }
+
             if (!File.Exists(configPath))
             {
-                File.Create(configPath);
+                File.Create(configPath).Close();
             }
 
             favoriteSongs.AddRange(File.ReadAllLines(configPath, Encoding.UTF8));
 
-            if(IllusionInjector.PluginManager.Plugins.Count(x => x.Name == "Song Browser") > 0)
+            if (IllusionInjector.PluginManager.Plugins.Count(x => x.Name == "Song Browser") > 0)
             {
                 Logger.Log("Song Browser installed, disabling Song List Tweaks");
                 disableSongListTweaks = true;
@@ -105,20 +115,20 @@ namespace BeatSaverDownloader
             {
                 if (Registry.CurrentUser.OpenSubKey(@"Software").GetSubKeyNames().Contains("178eef3d-4cea-5a1b-bfd0-07a21d068990"))
                 {
-                    beatDropInstallLocation = (string)Registry.CurrentUser.OpenSubKey(@"Software\178eef3d-4cea-5a1b-bfd0-07a21d068990").GetValue("InstallLocation", "");
-                    if (Directory.Exists(beatDropInstallLocation))
+                    beatDropPlaylistsLocation = (string)Registry.CurrentUser.OpenSubKey(@"Software\178eef3d-4cea-5a1b-bfd0-07a21d068990").GetValue("InstallLocation", "");
+                    if (Directory.Exists(beatDropPlaylistsLocation))
                     {
                         beatDropInstalled = true;
                     }
                     else if (Directory.Exists("%LocalAppData%\\Programs\\BeatDrop\\playlists"))
                     {
                         beatDropInstalled = true;
-                        beatDropInstallLocation = "%LocalAppData%\\Programs\\BeatDrop\\playlists";
+                        beatDropPlaylistsLocation = "%LocalAppData%\\Programs\\BeatDrop\\playlists";
                     }
                     else
                     {
                         beatDropInstalled = false;
-                        beatDropInstallLocation = "";                        
+                        beatDropPlaylistsLocation = "";
                     }
                 }
             }
@@ -128,7 +138,7 @@ namespace BeatSaverDownloader
                 if (Directory.Exists("%LocalAppData%\\Programs\\BeatDrop\\playlists"))
                 {
                     beatDropInstalled = true;
-                    beatDropInstallLocation = "%LocalAppData%\\Programs\\BeatDrop\\playlists";
+                    beatDropPlaylistsLocation = "%LocalAppData%\\Programs\\BeatDrop\\playlists";
                 }
                 else
                 {
@@ -140,9 +150,9 @@ namespace BeatSaverDownloader
             {
                 Directory.CreateDirectory("Playlists");
             }
-
-            LoadPlaylists();
-            LoadSongBrowserConfig();
+            
+            if(!disableSongListTweaks)
+                LoadSongBrowserConfig();
         }
 
         public static void LoadSongBrowserConfig()
@@ -156,15 +166,10 @@ namespace BeatSaverDownloader
             try
             {
                 fs = File.OpenRead(songBrowserSettings);
-
                 XmlSerializer serializer = new XmlSerializer(typeof(SongBrowserSettings));
-
                 SongBrowserSettings settings = (SongBrowserSettings)serializer.Deserialize(fs);
-
                 favoriteSongs.AddRange(settings.favorites);
-
                 fs.Close();
-
                 SaveConfig();
             }
             catch (Exception e)
@@ -174,92 +179,9 @@ namespace BeatSaverDownloader
             }
         }
 
-        public static void LoadPlaylists()
-        {
-            try
-            {
-                List<string> playlistFiles = new List<string>();
-                if (beatDropInstalled)
-                {
-                    string[] beatDropPlaylists = Directory.GetFiles(Path.Combine(beatDropInstallLocation, "playlists"), "*.json");
-                    playlistFiles.AddRange(beatDropPlaylists);
-                    Logger.Log($"Found {beatDropPlaylists.Length} playlists in BeatDrop folder");
-                }
-                string[] localPlaylists = Directory.GetFiles(Path.Combine(Environment.CurrentDirectory, "Playlists"), "*.json");
-                playlistFiles.AddRange(localPlaylists);
-                Logger.Log($"Found {localPlaylists.Length} playlists in Playlists folder");
-                
-                foreach(string path in playlistFiles)
-                {
-                    try
-                    {
-                        string json = File.ReadAllText(path);
-                        JSONNode playlistNode = JSON.Parse(json);
-
-                        Playlist playlist = new Playlist();
-                        string image = playlistNode["image"].Value;
-                        if (!string.IsNullOrEmpty(image))
-                        {
-                            try
-                            {
-                                playlist.icon = PluginUI.PluginUI.Base64ToSprite(image.Substring(image.IndexOf(",") + 1));
-                            }
-                            catch
-                            {
-                                Logger.Exception("Unable to convert playlist image to sprite!");
-                                playlist.icon = PluginUI.PluginUI.Base64ToSprite(Base64Sprites.BeastSaberLogo);
-                            }
-                        }
-                        else
-                        {
-                            playlist.icon = PluginUI.PluginUI.Base64ToSprite(Base64Sprites.BeastSaberLogo);
-                        }
-                        playlist.playlistTitle = playlistNode["playlistTitle"];
-                        playlist.playlistAuthor = playlistNode["playlistAuthor"];
-                        playlist.customDetailUrl = playlistNode["customDetailUrl"];
-                        playlist.customArchiveUrl = playlistNode["customArchiveUrl"];
-                        if (!string.IsNullOrEmpty(playlist.customDetailUrl))
-                        {
-                            if (!playlist.customDetailUrl.EndsWith("/"))
-                                playlist.customDetailUrl += "/";
-                            Logger.Log("Found playlist with customDetailUrl! Name: " + playlist.playlistTitle + ", CustomDetailUrl: " + playlist.customDetailUrl);
-                        }
-                        if (!string.IsNullOrEmpty(playlist.customArchiveUrl) && playlist.customArchiveUrl.Contains("[KEY]"))
-                        {
-                            Logger.Log("Found playlist with customArchiveUrl! Name: " + playlist.playlistTitle + ", CustomArchiveUrl: " + playlist.customArchiveUrl);
-                        }
-                        playlist.songs = new List<PlaylistSong>();
-
-                        foreach (JSONNode node in playlistNode["songs"].AsArray)
-                        {
-                            PlaylistSong song = new PlaylistSong();
-                            song.key = node["key"];
-                            song.songName = node["songName"];
-                            song.levelId = node["levelId"];
-
-                            playlist.songs.Add(song);
-                        }
-
-                        playlist.fileLoc = path;
-
-                        playlists.Add(playlist);
-                        Logger.Log($"Found \"{playlist.playlistTitle}\" by {playlist.playlistAuthor}");
-                    } catch (Exception e)
-                    {
-                        Logger.Log($"Can't parse playlist at {path}! Exception: {e}");
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                Logger.Log("Can't load playlists! Exception: " + e);
-            }
-        }
-
         public static void SaveConfig()
         {
             File.WriteAllLines(configPath, favoriteSongs.Distinct().ToArray(), Encoding.UTF8);
         }
-
     }
 }

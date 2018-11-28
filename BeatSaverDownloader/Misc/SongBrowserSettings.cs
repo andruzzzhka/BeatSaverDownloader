@@ -1,7 +1,7 @@
-﻿//SongBrowserSettings by halsafar
-using System;
+﻿using System;
 using System.Collections.Generic;
 
+//SongBrowserSettings from halsafar's SongBrowserPlugin
 namespace SongBrowserPlugin
 {
     [Serializable]
@@ -18,9 +18,6 @@ namespace SongBrowserPlugin
         public SongSortMode sortMode = default(SongSortMode);
         public List<String> favorites;
         
-        /// <summary>
-        /// Constructor.
-        /// </summary>
         public SongBrowserSettings()
         {
             favorites = new List<String>();

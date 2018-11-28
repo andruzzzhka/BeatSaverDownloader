@@ -4,16 +4,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading.Tasks;
 using UnityEngine;
 
-namespace BeatSaverDownloader.PluginUI
+namespace BeatSaverDownloader.UI.UIElements
 {
-    class DownloadQueueTableCell : StandardLevelListTableCell
+    class DownloadQueueTableCell : LevelListTableCell
     {
-
         Song song;
-
-
+        
         protected override void Awake()
         {
             base.Awake();
@@ -21,19 +20,19 @@ namespace BeatSaverDownloader.PluginUI
 
         public void Init(Song _song)
         {
-            StandardLevelListTableCell cell = GetComponent<StandardLevelListTableCell>();
-            
+            LevelListTableCell cell = GetComponent<LevelListTableCell>();
+
             foreach (FieldInfo info in cell.GetType().GetFields(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic))
             {
                 info.SetValue(this, info.GetValue(cell));
             }
-            
+
             Destroy(cell);
-            
+
             reuseIdentifier = "DownloadCell";
 
             song = _song;
-            
+
             songName = string.Format("{0}\n<size=80%>{1}</size>", song.songName, song.songSubName);
             author = song.authorName;
             StartCoroutine(LoadScripts.LoadSprite(song.coverUrl, this));
@@ -52,7 +51,6 @@ namespace BeatSaverDownloader.PluginUI
                         _bgImage.fillAmount = song.downloadingProgress;
                     }
                     break;
-                case SongQueueState.Available:
                 case SongQueueState.Downloaded:
                     {
                         _bgImage.color = new Color(1f, 1f, 1f, 0.35f);
@@ -81,7 +79,6 @@ namespace BeatSaverDownloader.PluginUI
                         _bgImage.fillAmount = song.downloadingProgress;
                     }
                     break;
-                case SongQueueState.Available:
                 case SongQueueState.Downloaded:
                     {
                         _bgImage.color = new Color(1f, 1f, 1f, 0.35f);
@@ -96,6 +93,5 @@ namespace BeatSaverDownloader.PluginUI
                     break;
             }
         }
-
     }
 }

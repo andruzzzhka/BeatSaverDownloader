@@ -1,6 +1,8 @@
 ﻿using IllusionPlugin;
 using System;
 using UnityEngine.SceneManagement;
+using BeatSaverDownloader.Misc;
+using BeatSaverDownloader.UI;
 
 namespace BeatSaverDownloader
 {
@@ -8,10 +10,8 @@ namespace BeatSaverDownloader
     {
         string IPlugin.Name { get { return "BeatSaver Downloader"; } }
 
-        string IPlugin.Version { get { return "2.6.3"; } }
-
+        string IPlugin.Version { get { return "3.0.0"; } }
         
-
         public void OnApplicationQuit()
         {
             PluginConfig.SaveConfig();
@@ -21,15 +21,13 @@ namespace BeatSaverDownloader
         {
             SceneManager.sceneLoaded += SceneManager_sceneLoaded;
             PluginConfig.LoadOrCreateConfig();
+            Base64Sprites.ConvertToSprites();
         }
 
-        private void SceneManager_sceneLoaded(Scene loadedScene, LoadSceneMode loadMode)
+        private void SceneManager_sceneLoaded(Scene to, LoadSceneMode loadMode)
         {
-            if (loadedScene.name == "Menu")
-            {
-                BeatSaberUI.OnLoad();
-                PluginUI.PluginUI.OnLoad();
-            }
+            if(to.name.Contains("Menu"))
+                PluginUI.Instance.OnLoad();
         }
 
         public void OnFixedUpdate()

@@ -27,9 +27,11 @@
     <Reference Include="Assembly-CSharp">
       <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Beat Saber\Beat Saber_Data\Managed\Assembly-CSharp.dll</HintPath>
     </Reference>
-    <Reference Include="Assembly-CSharp-firstpass, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="Assembly-CSharp-firstpass">
       <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Beat Saber\Beat Saber_Data\Managed\Assembly-CSharp-firstpass.dll</HintPath>
+    </Reference>
+    <Reference Include="BeatSaberCustomUI">
+      <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Beat Saber\Plugins\BeatSaberCustomUI.dll</HintPath>
     </Reference>
     <Reference Include="IllusionInjector, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -110,36 +112,27 @@
   <ItemGroup>
     <Compile Include="Misc\Base64Sprites.cs" />
     <Compile Include="Misc\BeatSaverAPIResult.cs" />
-    <Compile Include="Misc\InputBox.cs" />
     <Compile Include="Misc\LoadScripts.cs" />
-    <Compile Include="Misc\Playlist.cs" />
-    <Compile Include="Misc\PluginConfig.cs" />
-    <Compile Include="PluginUI\ViewControllers\BeastSaberReviewViewController.cs" />
-    <Compile Include="PluginUI\ViewControllers\BeatSaverNavigationController.cs" />
-    <Compile Include="PluginUI\ViewControllers\BeatSaverSongDetailViewController.cs" />
-    <Compile Include="PluginUI\ViewControllers\BeatSaverSongListViewController.cs" />
+    <Compile Include="Misc\SongDownloader.cs" />
     <Compile Include="Misc\Logger.cs" />
-    <Compile Include="Plugin.cs" />
-    <Compile Include="PluginUI\UIElements\CustomUIKeyboard.cs" />
-    <Compile Include="PluginUI\UIElements\DownloadQueueTableCell.cs" />
-    <Compile Include="PluginUI\ViewControllers\DownloadQueueViewController.cs" />
-    <Compile Include="PluginUI\PluginUI.cs" />
-    <Compile Include="PluginUI\SongListUITweaks.cs" />
-    <Compile Include="PluginUI\UIElements\StarsUIControl.cs" />
-    <Compile Include="PluginUI\ViewControllers\PlaylistDetailViewController.cs" />
-    <Compile Include="PluginUI\ViewControllers\PlaylistNavigationController.cs" />
-    <Compile Include="PluginUI\ViewControllers\PlaylistsListViewController.cs" />
-    <Compile Include="PluginUI\ViewControllers\SubMenuViewController.cs" />
-    <Compile Include="PluginUI\VotingUI.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Misc\ReflectionUtil.cs" />
     <Compile Include="Misc\SongBrowserSettings.cs" />
-    <Compile Include="UIFramework\BeatSaberUI.cs" />
-    <Compile Include="PluginUI\ViewControllers\SearchKeyboardViewController.cs" />
+    <Compile Include="Plugin.cs" />
+    <Compile Include="Misc\PluginConfig.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="UI\FlowCoordinators\MoreSongsFlowCoordinator.cs" />
+    <Compile Include="UI\PluginUI.cs" />
+    <Compile Include="UI\UIElements\CustomUIKeyboard.cs" />
+    <Compile Include="UI\UIElements\DownloadQueueTableCell.cs" />
+    <Compile Include="UI\ViewControllers\DownloadQueueViewController.cs" />
+    <Compile Include="UI\ViewControllers\MoreSongsListViewController.cs" />
+    <Compile Include="UI\ViewControllers\MoreSongsNavigationController.cs" />
+    <Compile Include="UI\ViewControllers\SearchKeyboardViewController.cs" />
+    <Compile Include="UI\ViewControllers\SongDetailViewController.cs" />
   </ItemGroup>
   <ItemGroup>
     <WCFMetadata Include="Connected Services\" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>copy "BeatSaverDownloader.dll" "C:\Program Files (x86)\Steam\steamapps\common\Beat Saber\Plugins"</PostBuildEvent>
