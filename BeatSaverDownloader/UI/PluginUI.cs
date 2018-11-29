@@ -9,6 +9,8 @@ using SongLoaderPlugin.OverrideClasses;
 using CustomUI.BeatSaber;
 using CustomUI.Utilities;
 using CustomUI.MenuButton;
+using TMPro;
+using BeatSaverDownloader.Misc;
 
 namespace BeatSaverDownloader.UI
 {
@@ -36,12 +38,15 @@ namespace BeatSaverDownloader.UI
 
         public MoreSongsFlowCoordinator moreSongsFlowCoordinator;
 
-        private Button _moreSongsButton;
+        //private Button _moreSongsButton;
 
         public void OnLoad()
         {
             SceneManager.activeSceneChanged += SceneManager_activeSceneChanged;
             SetupUI();
+
+            if(!PluginConfig.disableSongListTweaks)
+                SongListTweaks.Instance.OnLoad();
 
             if (!SongLoader.AreSongsLoaded)
                 SongLoader.SongsLoadedEvent += SongLoader_SongsLoadedEvent;
@@ -51,7 +56,7 @@ namespace BeatSaverDownloader.UI
 
         private void SongLoader_SongsLoadedEvent(SongLoader arg1, List<CustomLevel> arg2)
         {
-            _moreSongsButton.interactable = true;
+            //_moreSongsButton.interactable = true;
         }
 
         private void SceneManager_activeSceneChanged(Scene from, Scene to)
@@ -69,10 +74,9 @@ namespace BeatSaverDownloader.UI
             if (initialized) return;
             
             RectTransform mainMenu = (Resources.FindObjectsOfTypeAll<MainMenuViewController>().First().rectTransform);
-
-            //_moreSongsButton = BeatSaberUI.CreateUIButton(mainMenu, "CreditsButton", new Vector2(-21f, -15f), new Vector2(40, 8.8f), BeatSaverButtonPressed,  buttonText: "More songs...");
-            //_moreSongsButton.interactable = false;
+            
             MenuButtonUI.AddButton("More songs...", BeatSaverButtonPressed);
+            //_moreSongsButton.interactable = false;
 
             initialized = true;
         }

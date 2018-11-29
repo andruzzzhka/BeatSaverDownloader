@@ -3,6 +3,7 @@ using BeatSaverDownloader.UI.ViewControllers;
 using CustomUI.BeatSaber;
 using CustomUI.Utilities;
 using SimpleJSON;
+using SongLoaderPlugin;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -67,6 +68,25 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
             StartCoroutine(GetPage(0, "top"));
         }
 
+        protected override void DidDeactivate(DeactivationType deactivationType)
+        {
+            if (deactivationType == DeactivationType.RemovedFromHierarchy)
+            {
+                PopViewControllerFromNavigationController(_moreSongsNavigationController);
+            }
+        }
+
+        private void _moreSongsNavigationController_didFinishEvent()
+        {
+            if (!_downloadQueueViewController.queuedSongs.Any(x => x.songQueueState == SongQueueState.Downloading || x.songQueueState == SongQueueState.Queued))
+            {
+                SongLoader.Instance.RefreshSongs(false);
+                MainFlowCoordinator mainFlow = Resources.FindObjectsOfTypeAll<MainFlowCoordinator>().First();
+
+                mainFlow.InvokeMethod("DismissFlowCoordinator", this, null, false);
+            }
+        }
+
         private void _songDetailViewController_favoriteButtonPressed(Song song)
         {
             if(PluginConfig.favoriteSongs.Any(x => x.Contains(song.hash)))
@@ -82,14 +102,6 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
                 PluginConfig.SaveConfig();
 
                 _songDetailViewController.SetFavoriteState(true);
-            }
-        }
-
-        protected override void DidDeactivate(DeactivationType deactivationType)
-        {
-            if (deactivationType == DeactivationType.RemovedFromHierarchy)
-            {
-                PopViewControllerFromNavigationController(_moreSongsNavigationController);
             }
         }
 
@@ -192,16 +204,6 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
                 {
                     _moreSongsListViewController.TogglePageUpDownButtons(true, true);
                 }
-            }
-        }
-
-        private void _moreSongsNavigationController_didFinishEvent()
-        {
-            if (!_downloadQueueViewController.queuedSongs.Any(x => x.songQueueState == SongQueueState.Downloading || x.songQueueState == SongQueueState.Queued))
-            {
-                MainFlowCoordinator mainFlow = Resources.FindObjectsOfTypeAll<MainFlowCoordinator>().First();
-
-                mainFlow.InvokeMethod("DismissFlowCoordinator", this, null, false);
             }
         }
         
