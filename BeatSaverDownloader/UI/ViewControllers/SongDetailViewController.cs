@@ -78,8 +78,11 @@ namespace BeatSaverDownloader.UI.ViewControllers
                     Destroy(hint);
                 }
 
-                RectTransform _yourStats = GetComponentsInChildren<RectTransform>(true).First(x => x.name == "YourStats");
-                _yourStats.gameObject.SetActive(true);
+                RectTransform yourStats = GetComponentsInChildren<RectTransform>(true).First(x => x.name == "YourStats");
+                yourStats.gameObject.SetActive(true);
+
+                RectTransform buttonsRect = GetComponentsInChildren<RectTransform>().First(x => x.name == "Buttons");
+                buttonsRect.anchoredPosition = new Vector2(0f, 6f);
 
                 TextMeshProUGUI[] _textComponents = GetComponentsInChildren<TextMeshProUGUI>();
 

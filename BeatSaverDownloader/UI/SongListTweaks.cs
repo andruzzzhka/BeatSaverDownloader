@@ -14,6 +14,8 @@ using VRUI;
 using SongLoaderPlugin;
 using SongLoaderPlugin.OverrideClasses;
 using System.IO;
+using BeatSaverDownloader.Misc;
+using HMUI;
 
 namespace BeatSaverDownloader.UI
 {
@@ -54,7 +56,10 @@ namespace BeatSaverDownloader.UI
         private MainFlowCoordinator _mainFlowCoordinator;
         private FlowCoordinator _freePlayFlowCoordinator;
         private LevelListViewController _levelListViewController;
+        private BeatmapDifficultyViewController _difficultyViewController;
+        private StandardLevelDetailViewController _detailViewController;
         private SearchKeyboardViewController _searchViewController;
+        private SimpleDialogPromptViewController _simpleDialog;
 
         private Button _searchButton;
         private Button _sortByButton;
@@ -63,6 +68,9 @@ namespace BeatSaverDownloader.UI
         private Button _defButton;
         private Button _newButton;
         private Button _authorButton;
+
+        private Button _favoriteButton;
+        private Button _deleteButton;
 
         public void OnLoad()
         {
@@ -105,7 +113,13 @@ namespace BeatSaverDownloader.UI
             _mainFlowCoordinator = Resources.FindObjectsOfTypeAll<MainFlowCoordinator>().FirstOrDefault();
             _mainFlowCoordinator.GetPrivateField<MainMenuViewController>("_mainMenuViewController").didFinishEvent += SongListTweaks_didFinishEvent;
 
-            _levelListViewController = Resources.FindObjectsOfTypeAll<LevelListViewController>().FirstOrDefault(x => x.name == "BeatmapLevelListViewController");
+            _simpleDialog = ReflectionUtil.GetPrivateField<SimpleDialogPromptViewController>(_mainFlowCoordinator, "_simpleDialogPromptViewController");
+            _simpleDialog = Instantiate(_simpleDialog.gameObject, _simpleDialog.transform.parent).GetComponent<SimpleDialogPromptViewController>();
+
+            _difficultyViewController = Resources.FindObjectsOfTypeAll<BeatmapDifficultyViewController>().FirstOrDefault();
+            _difficultyViewController.didSelectDifficultyEvent += _difficultyViewController_didSelectDifficultyEvent;
+
+            _levelListViewController = Resources.FindObjectsOfTypeAll<LevelListViewController>().FirstOrDefault();
             
             RectTransform _tableViewRectTransform = _levelListViewController.GetComponentsInChildren<RectTransform>().First(x => x.name == "TableViewContainer");
 
@@ -165,7 +179,43 @@ namespace BeatSaverDownloader.UI
             _authorButton.SetButtonTextSize(3f);
             _authorButton.ToggleWordWrapping(false);
             _authorButton.gameObject.SetActive(false);
-            
+
+            _detailViewController = Resources.FindObjectsOfTypeAll<StandardLevelDetailViewController>().First();
+            RectTransform buttonsRect = _detailViewController.GetComponentsInChildren<RectTransform>().First(x => x.name == "Buttons");
+
+            buttonsRect.anchoredPosition = new Vector2(0f, 10.75f);
+
+            RectTransform customButtonsRect = Instantiate(buttonsRect, buttonsRect.parent, true);
+
+            Destroy(customButtonsRect.GetComponent<ContentSizeFitter>());
+            Destroy(customButtonsRect.GetComponent<HorizontalLayoutGroup>());
+
+            customButtonsRect.name = "CustomUIButtonsHolder";
+            customButtonsRect.anchoredPosition = new Vector2(0f, 1.25f);
+
+            _favoriteButton = customButtonsRect.GetComponentsInChildren<Button>().First(x => x.name == "PracticeButton");
+            _favoriteButton.SetButtonIcon(Base64Sprites.AddToFavorites);
+            _favoriteButton.onClick.AddListener(() => {
+                if (PluginConfig.favoriteSongs.Any(x => x.Contains(_detailViewController.difficultyBeatmap.level.levelID)))
+                {
+                    PluginConfig.favoriteSongs.Remove(_detailViewController.difficultyBeatmap.level.levelID);
+                    PluginConfig.SaveConfig();
+                    _favoriteButton.SetButtonIcon(Base64Sprites.AddToFavorites);
+                }
+                else
+                {
+                    PluginConfig.favoriteSongs.Add(_detailViewController.difficultyBeatmap.level.levelID);
+                    PluginConfig.SaveConfig();
+                    _favoriteButton.SetButtonIcon(Base64Sprites.RemoveFromFavorites);
+                }
+            });
+
+            _deleteButton = customButtonsRect.GetComponentsInChildren<Button>().First(x => x.name == "PlayButton");
+            _deleteButton.SetButtonText("Delete");
+            _deleteButton.ToggleWordWrapping(false);
+            _deleteButton.onClick.AddListener(DeletePressed);
+            _deleteButton.GetComponentsInChildren<RectTransform>().First(x => x.name == "GlowContainer").gameObject.SetActive(false);
+
             initialized = true;
         }
 
@@ -225,7 +275,47 @@ namespace BeatSaverDownloader.UI
                     }; break;
             }
         }
-        
+
+        private void _difficultyViewController_didSelectDifficultyEvent(BeatmapDifficultyViewController sender, IDifficultyBeatmap beatmap)
+        {
+            _favoriteButton.SetButtonIcon(PluginConfig.favoriteSongs.Any(x => x.Contains(beatmap.level.levelID)) ? Base64Sprites.RemoveFromFavorites : Base64Sprites.AddToFavorites);
+            _deleteButton.interactable = (beatmap.level.levelID.Length >= 32);
+        }
+
+        private void DeletePressed()
+        {
+            IBeatmapLevel level = _detailViewController.difficultyBeatmap.level;
+            _simpleDialog.Init("Delete song", $"Do you really want to delete song \"{ level.songName} {level.songSubName}\"?", "Delete", "Cancel");
+            _simpleDialog.didFinishEvent -= _simpleDialog_didFinishEvent;
+            _simpleDialog.didFinishEvent += _simpleDialog_didFinishEvent;
+            _freePlayFlowCoordinator.InvokePrivateMethod("PresentViewController", new object[] { _simpleDialog, null, false });
+        }
+
+        private void _simpleDialog_didFinishEvent(SimpleDialogPromptViewController sender, bool delete)
+        {
+            _freePlayFlowCoordinator.InvokePrivateMethod("DismissViewController", new object[] { _simpleDialog, null, false });
+            if (delete)
+            {
+                SongDownloader.Instance.DeleteSong(new Song(SongLoader.CustomLevels.First(x => x.levelID == _detailViewController.difficultyBeatmap.level.levelID)));
+
+                List<IBeatmapLevel> levels = _levelListViewController.GetPrivateField<IBeatmapLevel[]>("_levels").ToList();
+                int selectedIndex = levels.IndexOf(_detailViewController.difficultyBeatmap.level);
+
+                if(selectedIndex > -1)
+                {
+                    levels.Remove(_detailViewController.difficultyBeatmap.level);
+
+                    if (selectedIndex > 0)
+                        selectedIndex--;
+
+                    _levelListViewController.SetLevels(levels.ToArray());
+                    TableView listTableView = _levelListViewController.GetPrivateField<LevelListTableView>("_levelListTableView").GetPrivateField<TableView>("_tableView");
+                    listTableView.ScrollToRow(selectedIndex, false);
+                    listTableView.SelectRow(selectedIndex, true);
+                }
+            }
+        }
+
         private void SearchPressed()
         {
             if (_searchViewController == null)
