@@ -10,7 +10,7 @@ using CustomUI.BeatSaber;
 
 namespace BeatSaverDownloader.UI.ViewControllers
 {
-    class MoreSongsNavigationController : VRUINavigationController
+    class BackButtonNavigationController : VRUINavigationController
     {
         public event Action didFinishEvent;
 
@@ -18,7 +18,7 @@ namespace BeatSaverDownloader.UI.ViewControllers
 
         protected override void DidActivate(bool firstActivation, ActivationType activationType)
         {
-            if (activationType == ActivationType.AddedToHierarchy) {
+            if (firstActivation && activationType == ActivationType.AddedToHierarchy) {
                 _backButton = BeatSaberUI.CreateBackButton(rectTransform, didFinishEvent.Invoke);
             }
         }

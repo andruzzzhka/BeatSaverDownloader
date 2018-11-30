@@ -48,6 +48,7 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.IO.Compression" />
     <Reference Include="System.IO.Compression.FileSystem" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq" />
@@ -113,6 +114,7 @@
     <Compile Include="Misc\Base64Sprites.cs" />
     <Compile Include="Misc\BeatSaverAPIResult.cs" />
     <Compile Include="Misc\LoadScripts.cs" />
+    <Compile Include="Misc\Playlist.cs" />
     <Compile Include="Misc\SongDownloader.cs" />
     <Compile Include="Misc\Logger.cs" />
     <Compile Include="Misc\SongBrowserSettings.cs" />
@@ -126,9 +128,13 @@
     <Compile Include="UI\UIElements\DownloadQueueTableCell.cs" />
     <Compile Include="UI\ViewControllers\DownloadQueueViewController.cs" />
     <Compile Include="UI\ViewControllers\MoreSongsListViewController.cs" />
-    <Compile Include="UI\ViewControllers\MoreSongsNavigationController.cs" />
+    <Compile Include="UI\ViewControllers\BackButtonNavigationController.cs" />
+    <Compile Include="UI\ViewControllers\PlaylistDetailViewController.cs" />
+    <Compile Include="UI\ViewControllers\PlaylistListViewController.cs" />
+    <Compile Include="UI\FlowCoordinators\PlaylistsFlowCoordinator.cs" />
     <Compile Include="UI\ViewControllers\SearchKeyboardViewController.cs" />
     <Compile Include="UI\ViewControllers\SongDetailViewController.cs" />
+    <Compile Include="UI\VotingUI.cs" />
   </ItemGroup>
   <ItemGroup>
     <WCFMetadata Include="Connected Services\" />

@@ -141,7 +141,10 @@ namespace BeatSaverDownloader.UI.ViewControllers
             _queuedSongsTableView.ScrollToRow(0, true);
 
             if (queuedSongs.Count(x => x.songQueueState == SongQueueState.Downloading || x.songQueueState == SongQueueState.Queued) == 0)
+            {
+                Logger.Log("All songs downloaded!");
                 allSongsDownloaded?.Invoke();
+            }
 
             if (queuedSongs.Count(x => x.songQueueState == SongQueueState.Downloading) < PluginConfig.maxSimultaneousDownloads && queuedSongs.Any(x => x.songQueueState == SongQueueState.Queued))
                 DownloadSong(queuedSongs.First(x => x.songQueueState == SongQueueState.Queued));

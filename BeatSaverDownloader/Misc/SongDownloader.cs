@@ -54,7 +54,7 @@ namespace BeatSaverDownloader.Misc
         {
             _alreadyDownloadedSongs = levels.Select(x => new Song(x)).ToList();
         }
-
+        
         public IEnumerator DownloadSongCoroutine(Song songInfo)
         {
             songInfo.songQueueState = SongQueueState.Downloading;
@@ -105,27 +105,28 @@ namespace BeatSaverDownloader.Misc
             {
                 Logger.Log("Received response from BeatSaver.com...");
 
-                string zipPath = "";
+                //string zipPath = "";
                 string docPath = "";
                 string customSongsPath = "";
 
                 byte[] data = www.downloadHandler.data;
 
+                Stream zipStream = null;
 
                 try
                 {
-
                     docPath = Application.dataPath;
                     docPath = docPath.Substring(0, docPath.Length - 5);
                     docPath = docPath.Substring(0, docPath.LastIndexOf("/"));
                     customSongsPath = docPath + "/CustomSongs/" + songInfo.id + "/";
-                    zipPath = customSongsPath + songInfo.id + ".zip";
+                    //zipPath = customSongsPath + songInfo.id + ".zip";
                     if (!Directory.Exists(customSongsPath))
                     {
                         Directory.CreateDirectory(customSongsPath);
                     }
-                    File.WriteAllBytes(zipPath, data);
-                    Logger.Log("Downloaded zip file!");
+                    zipStream = new MemoryStream(data);
+                    //File.WriteAllBytes(zipPath, data);
+                    Logger.Log("Downloaded zip!");
                 }
                 catch (Exception e)
                 {
@@ -138,11 +139,11 @@ namespace BeatSaverDownloader.Misc
                 {
                     yield return new WaitForSecondsRealtime(0.25f);
                 }
-                ExtractZipAsync(songInfo, zipPath, customSongsPath);
+                ExtractZipAsync(songInfo, zipStream, customSongsPath);
             }
         }
 
-        private async void ExtractZipAsync(Song songInfo, string zipPath, string customSongsPath)
+        private async void ExtractZipAsync(Song songInfo, Stream zipStream, string customSongsPath)
         {
 
             try
@@ -153,7 +154,10 @@ namespace BeatSaverDownloader.Misc
                 }
                 Logger.Log("Extracting...");
                 _extractingZip = true;
-                await Task.Run(() => ZipFile.ExtractToDirectory(zipPath, customSongsPath));
+                ZipArchive archive = new ZipArchive(zipStream, ZipArchiveMode.Read);
+                await Task.Run(() => archive.ExtractToDirectory(customSongsPath)); //ZipFile.ExtractToDirectory(zipPath, customSongsPath));
+                archive.Dispose();
+                zipStream.Close();
             }
             catch (Exception e)
             {
@@ -170,6 +174,7 @@ namespace BeatSaverDownloader.Misc
                 songInfo.path = customSongsPath;
             }
 
+            /*
             try
             {
                 await Task.Run(() => File.Delete(zipPath));
@@ -180,7 +185,7 @@ namespace BeatSaverDownloader.Misc
                 songInfo.songQueueState = SongQueueState.Error;
                 _extractingZip = false;
                 return;
-            }
+            }*/
             
             _extractingZip = false;
             songInfo.songQueueState = SongQueueState.Downloaded;
@@ -294,6 +299,11 @@ namespace BeatSaverDownloader.Misc
         {
             string[] values = new string[] { song.hash, song.songName, song.songSubName, song.authorName, song.beatsPerMinute};
             return string.Join("∎", values) + "∎";
+        }
+
+        public static LevelSO GetLevel(string levelId)
+        {
+            return SongLoader.CustomLevelCollectionSO.levels.FirstOrDefault(x => x.levelID == levelId);
         }
 
         public static bool CreateMD5FromFile(string path, out string hash)

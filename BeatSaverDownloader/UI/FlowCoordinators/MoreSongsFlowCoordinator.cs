@@ -19,11 +19,12 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
     {
         public const int songsPerPage = 6;
 
-        private MoreSongsNavigationController _moreSongsNavigationController;
+        private BackButtonNavigationController _moreSongsNavigationController;
         private MoreSongsListViewController _moreSongsListViewController;
         private SongDetailViewController _songDetailViewController;
         private SearchKeyboardViewController _searchViewController;
         private DownloadQueueViewController _downloadQueueViewController;
+        private SimpleDialogPromptViewController _simpleDialog;
 
         public int currentPage = 0;
         public string currentSortMode = "top";
@@ -35,29 +36,35 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
 
         protected override void DidActivate(bool firstActivation, ActivationType activationType)
         {
-            title = "More Songs";
+            if (firstActivation && activationType == ActivationType.AddedToHierarchy)
+            {
+                title = "More Songs";
 
-            SongDownloader.Instance.songDownloaded += SongDownloader_songDownloaded;
+                SongDownloader.Instance.songDownloaded += SongDownloader_songDownloaded;
 
-            _moreSongsNavigationController = BeatSaberUI.CreateViewController<MoreSongsNavigationController>();
-            _moreSongsNavigationController.didFinishEvent += _moreSongsNavigationController_didFinishEvent;
+                _moreSongsNavigationController = BeatSaberUI.CreateViewController<BackButtonNavigationController>();
+                _moreSongsNavigationController.didFinishEvent += _moreSongsNavigationController_didFinishEvent;
 
-            _moreSongsListViewController = BeatSaberUI.CreateViewController<MoreSongsListViewController>();
-            _moreSongsListViewController.pageDownPressed += _moreSongsListViewController_pageDownPressed;
-            _moreSongsListViewController.pageUpPressed   += _moreSongsListViewController_pageUpPressed;
-            _moreSongsListViewController.sortByTop       += () => { currentSortMode =   "top"; currentPage = 0; StartCoroutine(GetPage(currentPage, currentSortMode)); currentSearchRequest = ""; };
-            _moreSongsListViewController.sortByNew       += () => { currentSortMode =   "new"; currentPage = 0; StartCoroutine(GetPage(currentPage, currentSortMode)); currentSearchRequest = ""; };
-            _moreSongsListViewController.sortByPlays     += () => { currentSortMode = "plays"; currentPage = 0; StartCoroutine(GetPage(currentPage, currentSortMode)); currentSearchRequest = ""; };
-            _moreSongsListViewController.searchButtonPressed += _moreSongsListViewController_searchButtonPressed;
-            _moreSongsListViewController.didSelectRow += _moreSongsListViewController_didSelectRow;
+                _moreSongsListViewController = BeatSaberUI.CreateViewController<MoreSongsListViewController>();
+                _moreSongsListViewController.pageDownPressed += _moreSongsListViewController_pageDownPressed;
+                _moreSongsListViewController.pageUpPressed += _moreSongsListViewController_pageUpPressed;
+                _moreSongsListViewController.sortByTop += () => { currentSortMode = "top"; currentPage = 0; StartCoroutine(GetPage(currentPage, currentSortMode)); currentSearchRequest = ""; };
+                _moreSongsListViewController.sortByNew += () => { currentSortMode = "new"; currentPage = 0; StartCoroutine(GetPage(currentPage, currentSortMode)); currentSearchRequest = ""; };
+                _moreSongsListViewController.sortByPlays += () => { currentSortMode = "plays"; currentPage = 0; StartCoroutine(GetPage(currentPage, currentSortMode)); currentSearchRequest = ""; };
+                _moreSongsListViewController.searchButtonPressed += _moreSongsListViewController_searchButtonPressed;
+                _moreSongsListViewController.didSelectRow += _moreSongsListViewController_didSelectRow;
 
-            GameObject _songDetailGameObject = Instantiate(Resources.FindObjectsOfTypeAll<StandardLevelDetailViewController>().First(), _moreSongsNavigationController.rectTransform, false).gameObject;
-            Destroy(_songDetailGameObject.GetComponent<StandardLevelDetailViewController>());
-            _songDetailViewController = _songDetailGameObject.AddComponent<SongDetailViewController>();
-            _songDetailViewController.downloadButtonPressed += _songDetailViewController_downloadButtonPressed;
-            _songDetailViewController.favoriteButtonPressed += _songDetailViewController_favoriteButtonPressed; ;
+                GameObject _songDetailGameObject = Instantiate(Resources.FindObjectsOfTypeAll<StandardLevelDetailViewController>().First(), _moreSongsNavigationController.rectTransform, false).gameObject;
+                Destroy(_songDetailGameObject.GetComponent<StandardLevelDetailViewController>());
+                _songDetailViewController = _songDetailGameObject.AddComponent<SongDetailViewController>();
+                _songDetailViewController.downloadButtonPressed += _songDetailViewController_downloadButtonPressed;
+                _songDetailViewController.favoriteButtonPressed += _songDetailViewController_favoriteButtonPressed; ;
 
-            _downloadQueueViewController = BeatSaberUI.CreateViewController<DownloadQueueViewController>();
+                _downloadQueueViewController = BeatSaberUI.CreateViewController<DownloadQueueViewController>();
+
+                _simpleDialog = CustomUI.Utilities.ReflectionUtil.GetPrivateField<SimpleDialogPromptViewController>(Resources.FindObjectsOfTypeAll<MainFlowCoordinator>().First(), "_simpleDialogPromptViewController");
+                _simpleDialog = Instantiate(_simpleDialog.gameObject, _simpleDialog.transform.parent).GetComponent<SimpleDialogPromptViewController>();
+            }
 
             SetViewControllersToNavigationConctroller(_moreSongsNavigationController, new VRUIViewController[]
             {
@@ -95,6 +102,7 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
                 PluginConfig.SaveConfig();
                 
                 _songDetailViewController.SetFavoriteState(false);
+                PlaylistsCollection.RemoveLevelFromPlaylist(PlaylistsCollection.loadedPlaylists.First(x => x.playlistTitle == "Your favorite songs"), SongDownloader.GetLevelID(song));
             }
             else
             {
@@ -102,6 +110,7 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
                 PluginConfig.SaveConfig();
 
                 _songDetailViewController.SetFavoriteState(true);
+                PlaylistsCollection.AddSongToPlaylist(PlaylistsCollection.loadedPlaylists.First(x => x.playlistTitle == "Your favorite songs"), new PlaylistSong() { levelId = SongDownloader.GetLevelID(song), songName = song.songName, level = SongDownloader.GetLevel(SongDownloader.GetLevelID(song)), key = song.id });
             }
         }
 
@@ -114,10 +123,18 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
             }
             else
             {
-                SongDownloader.Instance.DeleteSong(song);
-                _songDetailViewController.SetDownloadState(DownloadState.NotDownloaded);
-                _moreSongsListViewController.Refresh();
+                _simpleDialog.Init("Delete song", $"Do you really want to delete \"{ song.songName} {song.songSubName}\"?", "Delete", "Cancel");
+                _simpleDialog.didFinishEvent -= (SimpleDialogPromptViewController sender, bool delete) => { DismissViewController(_simpleDialog, null, false); if (delete) DeleteSong(song); };
+                _simpleDialog.didFinishEvent += (SimpleDialogPromptViewController sender, bool delete) => { DismissViewController(_simpleDialog, null, false); if (delete) DeleteSong(song); };
+                PresentViewController(_simpleDialog, null, false);
             }
+        }
+
+        private void DeleteSong(Song song)
+        {
+            SongDownloader.Instance.DeleteSong(song);
+            _songDetailViewController.SetDownloadState(DownloadState.NotDownloaded);
+            _moreSongsListViewController.Refresh();
         }
 
         public bool IsDownloadingSong(Song song)

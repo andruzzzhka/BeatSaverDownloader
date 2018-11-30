@@ -51,7 +51,7 @@ namespace BeatSaverDownloader.UI.ViewControllers
         protected override void DidActivate(bool firstActivation, ActivationType type)
         {
 
-            if (type == ActivationType.AddedToHierarchy)
+            if (firstActivation && type == ActivationType.AddedToHierarchy)
             {
                 rectTransform.anchorMin = new Vector2(0.3f, 0f);
                 rectTransform.anchorMax = new Vector2(0.7f, 1f);

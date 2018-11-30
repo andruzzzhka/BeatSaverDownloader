@@ -12,8 +12,8 @@ namespace BeatSaverDownloader.Misc
 {
     internal class PluginConfig
     {
-        static private bool beatDropInstalled = false;
-        static private string beatDropPlaylistsLocation = "";
+        static public bool beatDropInstalled = false;
+        static public string beatDropPlaylistsLocation = "";
 
         static private string configPath = "UserData\\favoriteSongs.cfg";
         static private string oldConfigPath = "favoriteSongs.cfg";

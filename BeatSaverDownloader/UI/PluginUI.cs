@@ -42,11 +42,8 @@ namespace BeatSaverDownloader.UI
 
         public void OnLoad()
         {
-            SceneManager.activeSceneChanged += SceneManager_activeSceneChanged;
+            initialized = false;
             SetupUI();
-
-            if(!PluginConfig.disableSongListTweaks)
-                SongListTweaks.Instance.OnLoad();
 
             if (!SongLoader.AreSongsLoaded)
                 SongLoader.SongsLoadedEvent += SongLoader_SongsLoadedEvent;
@@ -57,16 +54,6 @@ namespace BeatSaverDownloader.UI
         private void SongLoader_SongsLoadedEvent(SongLoader arg1, List<CustomLevel> arg2)
         {
             //_moreSongsButton.interactable = true;
-        }
-
-        private void SceneManager_activeSceneChanged(Scene from, Scene to)
-        {
-            if (to.name == "EmptyTransition")
-            {
-                if (Instance)
-                    Destroy(Instance.gameObject);
-                Instance = null;
-            }
         }
 
         private void SetupUI()

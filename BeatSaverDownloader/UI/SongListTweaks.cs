@@ -16,6 +16,7 @@ using SongLoaderPlugin.OverrideClasses;
 using System.IO;
 using BeatSaverDownloader.Misc;
 using HMUI;
+using BeatSaverDownloader.UI.FlowCoordinators;
 
 namespace BeatSaverDownloader.UI
 {
@@ -27,7 +28,7 @@ namespace BeatSaverDownloader.UI
         public bool initialized = false;
 
         public static SortMode lastSortMode = SortMode.Default;
-        //public static Playlist lastPlaylist;
+        public static Playlist lastPlaylist;
 
         private static SongListTweaks _instance = null;
         public static SongListTweaks Instance
@@ -53,6 +54,7 @@ namespace BeatSaverDownloader.UI
         private BeatmapCharacteristicSO _lastCharacteristic;
         private LevelSO _lastSong;
 
+        private PlaylistsFlowCoordinator _playlistsFlowCoordinator;
         private MainFlowCoordinator _mainFlowCoordinator;
         private FlowCoordinator _freePlayFlowCoordinator;
         private LevelListViewController _levelListViewController;
@@ -74,28 +76,29 @@ namespace BeatSaverDownloader.UI
 
         public void OnLoad()
         {
-            SceneManager.activeSceneChanged += SceneManager_activeSceneChanged;
+            initialized = false;
             SetupTweaks();
-        }
-        
-        private void SceneManager_activeSceneChanged(Scene from, Scene to)
-        {
-            if (to.name == "EmptyTransition")
+            if (SongLoader.AreSongsLoaded)
             {
-                if (Instance)
-                    Destroy(Instance.gameObject);
-                Instance = null;
+                AddDefaultPlaylists();
             }
             else
-                SetupTweaks();
+            {
+                SongLoader.SongsLoadedEvent += (SongLoader arg1, List<CustomLevel> arg2) => { AddDefaultPlaylists(); };
+            }
         }
 
         private void SetupTweaks()
         {
-            if (initialized) return;
+            if (initialized || PluginConfig.disableSongListTweaks) return;
+
+            Logger.Log("Setting up song list tweaks...");
+
+            _playlistsFlowCoordinator = (new GameObject("PlaylistsFlowCoordinator")).AddComponent<PlaylistsFlowCoordinator>();
+            _playlistsFlowCoordinator.didFinishEvent += _playlistsFlowCoordinator_didFinishEvent;
 
             _beatmapCharacteristics = Resources.FindObjectsOfTypeAll<BeatmapCharacteristicSO>();
-            _lastCharacteristic = _beatmapCharacteristics.First(x => x.characteristicName=="Standard");
+            _lastCharacteristic = _beatmapCharacteristics.First(x => x.characteristicName == "Standard");
 
             Resources.FindObjectsOfTypeAll<BeatmapCharacteristicSelectionViewController>().First().didSelectBeatmapCharacteristicEvent += (BeatmapCharacteristicSelectionViewController sender, BeatmapCharacteristicSO selected) => { _lastCharacteristic = selected; };
 
@@ -143,10 +146,9 @@ namespace BeatSaverDownloader.UI
             _sortByButton.SetButtonTextSize(3f);
             _sortByButton.ToggleWordWrapping(false);
 
-            _playlistsButton = _levelListViewController.CreateUIButton("CreditsButton", new Vector2(20f, 36.25f), new Vector2(20f, 6f), null, "Playlists");
+            _playlistsButton = _levelListViewController.CreateUIButton("CreditsButton", new Vector2(20f, 36.25f), new Vector2(20f, 6f), PlaylistsButtonPressed, "Playlists");
             _playlistsButton.SetButtonTextSize(3f);
             _playlistsButton.ToggleWordWrapping(false);
-            _playlistsButton.interactable = false;
 
             _defButton = _levelListViewController.CreateUIButton("CreditsButton", new Vector2(-20f, 36.25f), new Vector2(20f, 6f), () =>
             {
@@ -180,7 +182,7 @@ namespace BeatSaverDownloader.UI
             _authorButton.ToggleWordWrapping(false);
             _authorButton.gameObject.SetActive(false);
 
-            _detailViewController = Resources.FindObjectsOfTypeAll<StandardLevelDetailViewController>().First();
+            _detailViewController = Resources.FindObjectsOfTypeAll<StandardLevelDetailViewController>().First(x => x.name == "StandardLevelDetailViewController");
             RectTransform buttonsRect = _detailViewController.GetComponentsInChildren<RectTransform>().First(x => x.name == "Buttons");
 
             buttonsRect.anchoredPosition = new Vector2(0f, 10.75f);
@@ -201,12 +203,14 @@ namespace BeatSaverDownloader.UI
                     PluginConfig.favoriteSongs.Remove(_detailViewController.difficultyBeatmap.level.levelID);
                     PluginConfig.SaveConfig();
                     _favoriteButton.SetButtonIcon(Base64Sprites.AddToFavorites);
+                    PlaylistsCollection.RemoveLevelFromPlaylist(PlaylistsCollection.loadedPlaylists.First(x => x.playlistTitle == "Your favorite songs"), _detailViewController.difficultyBeatmap.level.levelID);
                 }
                 else
                 {
                     PluginConfig.favoriteSongs.Add(_detailViewController.difficultyBeatmap.level.levelID);
                     PluginConfig.SaveConfig();
                     _favoriteButton.SetButtonIcon(Base64Sprites.RemoveFromFavorites);
+                    PlaylistsCollection.AddSongToPlaylist(PlaylistsCollection.loadedPlaylists.First(x => x.playlistTitle == "Your favorite songs"), new PlaylistSong() { levelId = _detailViewController.difficultyBeatmap.level.levelID, songName = _detailViewController.difficultyBeatmap.level.songName, level = SongDownloader.GetLevel(_detailViewController.difficultyBeatmap.level.levelID)});
                 }
             });
 
@@ -215,8 +219,44 @@ namespace BeatSaverDownloader.UI
             _deleteButton.ToggleWordWrapping(false);
             _deleteButton.onClick.AddListener(DeletePressed);
             _deleteButton.GetComponentsInChildren<RectTransform>().First(x => x.name == "GlowContainer").gameObject.SetActive(false);
+            _deleteButton.interactable = !PluginConfig.disableDeleteButton;
 
             initialized = true;
+        }
+
+        public void AddDefaultPlaylists()
+        {
+            Logger.Log("Creating default playlists...");
+                        
+            List<LevelSO> levels = _levelCollection.levels.ToList();
+
+            Playlist _allPlaylist = new Playlist() { playlistTitle = "All songs", playlistAuthor = "", image = Base64Sprites.BeastSaberLogoB64, icon = Base64Sprites.BeastSaberLogo, fileLoc = "" };
+            _allPlaylist.songs = new List<PlaylistSong>();
+            _allPlaylist.songs.AddRange(levels.Select(x => new PlaylistSong() { songName = $"{x.songName} {x.songSubName}", level = x, oneSaber = x.beatmapCharacteristics.Any(y => y.characteristicName == "One Saber"), path = "", key = "", levelId = x.levelID }));
+            Logger.Log($"Created \"{_allPlaylist.playlistTitle}\" playlist with {_allPlaylist.songs.Count} songs!");
+
+            Playlist _favPlaylist = new Playlist() { playlistTitle = "Your favorite songs", playlistAuthor = "", image = Base64Sprites.BeastSaberLogoB64, icon = Base64Sprites.BeastSaberLogo, fileLoc = "" };
+            _favPlaylist.songs = new List<PlaylistSong>();
+            _favPlaylist.songs.AddRange(levels.Where(x => PluginConfig.favoriteSongs.Contains(x.levelID)).Select(x => new PlaylistSong() { songName = $"{x.songName} {x.songSubName}", level = x, oneSaber = x.beatmapCharacteristics.Any(y => y.characteristicName == "One Saber"), path = "", key = "", levelId = x.levelID }));
+            Logger.Log($"Created \"{_favPlaylist.playlistTitle}\" playlist with {_favPlaylist.songs.Count} songs!");
+            
+            if (PlaylistsCollection.loadedPlaylists.Any(x => x.playlistTitle == "All songs" || x.playlistTitle == "Your favorite songs"))
+            {
+                PlaylistsCollection.loadedPlaylists.RemoveAll(x => x.playlistTitle == "All songs" || x.playlistTitle == "Your favorite songs");
+            }
+
+            PlaylistsCollection.loadedPlaylists.Insert(0, _favPlaylist);
+            PlaylistsCollection.loadedPlaylists.Insert(0, _allPlaylist);
+        }
+
+        private void _playlistsFlowCoordinator_didFinishEvent(Playlist playlist)
+        {
+            if (playlist != null)
+            {
+                lastPlaylist = playlist;
+
+                SetLevels(_lastCharacteristic, lastSortMode, "");
+            }
         }
 
         private void SongListTweaks_didFinishEvent(MainMenuViewController sender, MainMenuViewController.MenuButton result)
@@ -225,16 +265,18 @@ namespace BeatSaverDownloader.UI
             {
                 _freePlayFlowCoordinator = FindObjectOfType<SoloFreePlayFlowCoordinator>();
                 _lastCharacteristic = _beatmapCharacteristics.First(x => x.characteristicName == "Standard");
-
+                lastPlaylist = null;
             }
             else if(result == MainMenuViewController.MenuButton.Party)
             {
                 _freePlayFlowCoordinator = FindObjectOfType<PartyFreePlayFlowCoordinator>();
                 _lastCharacteristic = _beatmapCharacteristics.First(x => x.characteristicName == "Standard");
+                lastPlaylist = null;
             }
             else
             {
                 _freePlayFlowCoordinator = null;
+                lastPlaylist = null;
             }
         }
 
@@ -279,13 +321,19 @@ namespace BeatSaverDownloader.UI
         private void _difficultyViewController_didSelectDifficultyEvent(BeatmapDifficultyViewController sender, IDifficultyBeatmap beatmap)
         {
             _favoriteButton.SetButtonIcon(PluginConfig.favoriteSongs.Any(x => x.Contains(beatmap.level.levelID)) ? Base64Sprites.RemoveFromFavorites : Base64Sprites.AddToFavorites);
-            _deleteButton.interactable = (beatmap.level.levelID.Length >= 32);
+            _deleteButton.interactable = !PluginConfig.disableDeleteButton && (beatmap.level.levelID.Length >= 32);
+        }
+
+        private void PlaylistsButtonPressed()
+        {
+            _playlistsFlowCoordinator.parentFlowCoordinator = _freePlayFlowCoordinator;
+            _freePlayFlowCoordinator.InvokePrivateMethod("PresentFlowCoordinator", new object[] { _playlistsFlowCoordinator , null, false, false});
         }
 
         private void DeletePressed()
         {
             IBeatmapLevel level = _detailViewController.difficultyBeatmap.level;
-            _simpleDialog.Init("Delete song", $"Do you really want to delete song \"{ level.songName} {level.songSubName}\"?", "Delete", "Cancel");
+            _simpleDialog.Init("Delete song", $"Do you really want to delete \"{ level.songName} {level.songSubName}\"?", "Delete", "Cancel");
             _simpleDialog.didFinishEvent -= _simpleDialog_didFinishEvent;
             _simpleDialog.didFinishEvent += _simpleDialog_didFinishEvent;
             _freePlayFlowCoordinator.InvokePrivateMethod("PresentViewController", new object[] { _simpleDialog, null, false });
@@ -338,18 +386,25 @@ namespace BeatSaverDownloader.UI
         {
             _freePlayFlowCoordinator.InvokePrivateMethod("DismissViewController", new object[] { _searchViewController, null, false });
         }
-        
 
-        public void SetLevels(BeatmapCharacteristicSO characteristic, SortMode sortMode, string searchRequest, bool selectLastSong = false)
+        public void SetLevels(BeatmapCharacteristicSO characteristic, SortMode sortMode, string searchRequest)
         {
-            LevelSO[] levels = _levelCollection.GetLevelsWithBeatmapCharacteristic(characteristic);
+            LevelSO[] levels = null;
+            if (lastPlaylist != null)
+            {
+                levels = lastPlaylist.songs.Where(x => x.level != null && x.level.beatmapCharacteristics.Contains(characteristic)).Select(x => x.level).ToArray();
+            }
+            else
+            {
+                levels = _levelCollection.GetLevelsWithBeatmapCharacteristic(characteristic);
+            }
 
             if (string.IsNullOrEmpty(searchRequest))
             {
                 switch (sortMode)
                 {
                     case SortMode.Newest: { levels = SortLevelsByCreationTime(levels); }; break;
-                    case SortMode.Author: { levels = levels.OrderByDescending(x => x.levelAuthorName).ToArray(); }; break;
+                    case SortMode.Author: { levels = levels.OrderBy(x => x.levelAuthorName).ThenBy(x => x.songAuthorName).ThenBy(x => x.songName + " " + x.songSubName).ToArray(); }; break;
                 }
             }
             else
