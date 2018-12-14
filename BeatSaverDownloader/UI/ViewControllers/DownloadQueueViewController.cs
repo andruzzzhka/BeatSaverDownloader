@@ -11,6 +11,7 @@ using Logger = BeatSaverDownloader.Misc.Logger;
 using BeatSaverDownloader.UI.UIElements;
 using CustomUI.BeatSaber;
 using CustomUI.Utilities;
+using System.Collections;
 
 namespace BeatSaverDownloader.UI.ViewControllers
 {
@@ -83,8 +84,6 @@ namespace BeatSaverDownloader.UI.ViewControllers
 
                 _abortButton = BeatSaberUI.CreateUIButton(rectTransform, "CreditsButton", new Vector2(36f, -30f), new Vector2(20f, 10f), AbortDownloads, "Abort All");
                 _abortButton.ToggleWordWrapping(false);
-
-                SongDownloader.Instance.songDownloaded += (Song song) => { Refresh(); };
             }
         }
 
@@ -110,7 +109,7 @@ namespace BeatSaverDownloader.UI.ViewControllers
             song.songQueueState = SongQueueState.Queued;
             if (startDownload && queuedSongs.Count(x => x.songQueueState == SongQueueState.Downloading) < PluginConfig.maxSimultaneousDownloads)
             {
-                DownloadSong(song);
+                StartCoroutine(DownloadSong(song));
             }
             Refresh();
         }
@@ -121,13 +120,13 @@ namespace BeatSaverDownloader.UI.ViewControllers
             
             for(int i = 0; i < Math.Min(PluginConfig.maxSimultaneousDownloads, queuedSongs.Count); i++)
             {
-                DownloadSong(queuedSongs[i]);
+                StartCoroutine(DownloadSong(queuedSongs[i]));
             }
         }
 
-        void DownloadSong(Song song)
+        IEnumerator DownloadSong(Song song)
         {
-            StartCoroutine(SongDownloader.Instance.DownloadSongCoroutine(song));
+            yield return SongDownloader.Instance.DownloadSongCoroutine(song);
             Refresh();
         }
 

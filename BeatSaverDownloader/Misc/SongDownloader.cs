@@ -17,7 +17,7 @@ namespace BeatSaverDownloader.Misc
 {
     class SongDownloader : MonoBehaviour
     {
-        public event Action<Song> songDownloaded;
+        public event Action<Song> songDownloaded; 
 
         private static SongDownloader _instance = null;
         public static SongDownloader Instance
@@ -119,13 +119,11 @@ namespace BeatSaverDownloader.Misc
                     docPath = docPath.Substring(0, docPath.Length - 5);
                     docPath = docPath.Substring(0, docPath.LastIndexOf("/"));
                     customSongsPath = docPath + "/CustomSongs/" + songInfo.id + "/";
-                    //zipPath = customSongsPath + songInfo.id + ".zip";
                     if (!Directory.Exists(customSongsPath))
                     {
                         Directory.CreateDirectory(customSongsPath);
                     }
                     zipStream = new MemoryStream(data);
-                    //File.WriteAllBytes(zipPath, data);
                     Logger.Log("Downloaded zip!");
                 }
                 catch (Exception e)
@@ -134,28 +132,23 @@ namespace BeatSaverDownloader.Misc
                     songInfo.songQueueState = SongQueueState.Error;
                     yield break;
                 }
+                
+                yield return new WaitWhile(() => _extractingZip); //because extracting several songs at once sometimes hangs the game
 
-                while (_extractingZip)
-                {
-                    yield return new WaitForSecondsRealtime(0.25f);
-                }
-                ExtractZipAsync(songInfo, zipStream, customSongsPath);
+                Task extract = ExtractZipAsync(songInfo, zipStream, customSongsPath);
+                yield return new WaitWhile(() => (int)extract.Status <= 4);
+                songDownloaded?.Invoke(songInfo);
             }
         }
 
-        private async void ExtractZipAsync(Song songInfo, Stream zipStream, string customSongsPath)
+        private async Task ExtractZipAsync(Song songInfo, Stream zipStream, string customSongsPath)
         {
-
             try
             {
-                while (_extractingZip)
-                {
-                    Thread.Sleep(250);
-                }
                 Logger.Log("Extracting...");
                 _extractingZip = true;
                 ZipArchive archive = new ZipArchive(zipStream, ZipArchiveMode.Read);
-                await Task.Run(() => archive.ExtractToDirectory(customSongsPath)); //ZipFile.ExtractToDirectory(zipPath, customSongsPath));
+                await Task.Run(() => archive.ExtractToDirectory(customSongsPath)).ConfigureAwait(false);
                 archive.Dispose();
                 zipStream.Close();
             }
@@ -173,26 +166,11 @@ namespace BeatSaverDownloader.Misc
             {
                 songInfo.path = customSongsPath;
             }
-
-            /*
-            try
-            {
-                await Task.Run(() => File.Delete(zipPath));
-            }
-            catch (IOException e)
-            {
-                Logger.Warning($"Unable delete zip! Exception: {e}");
-                songInfo.songQueueState = SongQueueState.Error;
-                _extractingZip = false;
-                return;
-            }*/
-            
+                        
             _extractingZip = false;
             songInfo.songQueueState = SongQueueState.Downloaded;
             _alreadyDownloadedSongs.Add(songInfo);
             Logger.Log($"Extracted {songInfo.songName} {songInfo.songSubName}!");
-
-            songDownloaded?.Invoke(songInfo);
         }
 
         public bool DeleteSong(Song song)

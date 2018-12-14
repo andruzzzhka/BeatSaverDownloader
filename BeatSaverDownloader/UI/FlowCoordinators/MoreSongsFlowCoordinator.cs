@@ -144,7 +144,7 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
 
         private void SongDownloader_songDownloaded(Song downloadedSong)
         {
-            if (currentPageSongs.Contains(downloadedSong))
+            if (currentPageSongs != null &&currentPageSongs.Contains(downloadedSong))
             {
                 _moreSongsListViewController.Refresh();
             }
