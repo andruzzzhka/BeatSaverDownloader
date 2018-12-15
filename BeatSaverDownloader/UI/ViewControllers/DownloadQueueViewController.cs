@@ -33,6 +33,7 @@ namespace BeatSaverDownloader.UI.ViewControllers
         {
             if (firstActivation && type == ActivationType.AddedToHierarchy)
             {
+                SongDownloader.Instance.songDownloaded += SongDownloaded;
                 _songListTableCellInstance = Resources.FindObjectsOfTypeAll<LevelListTableCell>().First(x => (x.name == "LevelListTableCell"));
                 
                 _titleText = BeatSaberUI.CreateText(rectTransform, "DOWNLOAD QUEUE", new Vector2(0f, 36f));
@@ -111,7 +112,6 @@ namespace BeatSaverDownloader.UI.ViewControllers
             {
                 StartCoroutine(DownloadSong(song));
             }
-            Refresh();
         }
 
         public void DownloadAllSongsFromQueue()
@@ -130,6 +130,15 @@ namespace BeatSaverDownloader.UI.ViewControllers
             Refresh();
         }
 
+        private void SongDownloaded(Song obj)
+        {
+            Refresh();
+            if (queuedSongs.Count(x => x.songQueueState == SongQueueState.Downloading) < PluginConfig.maxSimultaneousDownloads && queuedSongs.Any(x => x.songQueueState == SongQueueState.Queued))
+            {
+                StartCoroutine(DownloadSong(queuedSongs.First(x => x.songQueueState == SongQueueState.Queued)));
+            }
+        }
+
         public void Refresh()
         {
             int removed = queuedSongs.RemoveAll(x => x.songQueueState == SongQueueState.Downloaded || x.songQueueState == SongQueueState.Error);
@@ -146,7 +155,7 @@ namespace BeatSaverDownloader.UI.ViewControllers
             }
 
             if (queuedSongs.Count(x => x.songQueueState == SongQueueState.Downloading) < PluginConfig.maxSimultaneousDownloads && queuedSongs.Any(x => x.songQueueState == SongQueueState.Queued))
-                DownloadSong(queuedSongs.First(x => x.songQueueState == SongQueueState.Queued));
+                StartCoroutine(DownloadSong(queuedSongs.First(x => x.songQueueState == SongQueueState.Queued)));
         }
 
         public float RowHeight()

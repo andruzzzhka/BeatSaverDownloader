@@ -344,22 +344,29 @@ namespace BeatSaverDownloader.UI
             _freePlayFlowCoordinator.InvokePrivateMethod("DismissViewController", new object[] { _simpleDialog, null, false });
             if (delete)
             {
-                SongDownloader.Instance.DeleteSong(new Song(SongLoader.CustomLevels.First(x => x.levelID == _detailViewController.difficultyBeatmap.level.levelID)));
-
-                List<IBeatmapLevel> levels = _levelListViewController.GetPrivateField<IBeatmapLevel[]>("_levels").ToList();
-                int selectedIndex = levels.IndexOf(_detailViewController.difficultyBeatmap.level);
-
-                if(selectedIndex > -1)
+                try
                 {
-                    levels.Remove(_detailViewController.difficultyBeatmap.level);
+                    SongDownloader.Instance.DeleteSong(new Song(SongLoader.CustomLevels.First(x => x.levelID == _detailViewController.difficultyBeatmap.level.levelID)));
 
-                    if (selectedIndex > 0)
-                        selectedIndex--;
+                    List<IBeatmapLevel> levels = _levelListViewController.GetPrivateField<IBeatmapLevel[]>("_levels").ToList();
+                    int selectedIndex = levels.IndexOf(_detailViewController.difficultyBeatmap.level);
 
-                    _levelListViewController.SetLevels(levels.ToArray());
-                    TableView listTableView = _levelListViewController.GetPrivateField<LevelListTableView>("_levelListTableView").GetPrivateField<TableView>("_tableView");
-                    listTableView.ScrollToRow(selectedIndex, false);
-                    listTableView.SelectRow(selectedIndex, true);
+                    if (selectedIndex > -1)
+                    {
+                        int removedLevels = levels.RemoveAll(x => x == _detailViewController.difficultyBeatmap.level);
+                        Logger.Log("Removed "+removedLevels+" level(s) from song list!");
+
+                        if (selectedIndex > 0)
+                            selectedIndex--;
+
+                        _levelListViewController.SetLevels(levels.ToArray());
+                        TableView listTableView = _levelListViewController.GetPrivateField<LevelListTableView>("_levelListTableView").GetPrivateField<TableView>("_tableView");
+                        listTableView.ScrollToRow(selectedIndex, false);
+                        listTableView.SelectRow(selectedIndex, true);
+                    }
+                }catch(Exception e)
+                {
+                    Logger.Error("Unable to delete song! Exception: "+e);
                 }
             }
         }

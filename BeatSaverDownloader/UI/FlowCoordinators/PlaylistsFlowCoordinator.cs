@@ -33,12 +33,15 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
 
         public void Awake()
         {
-            _playlistsNavigationController = BeatSaberUI.CreateViewController<BackButtonNavigationController>();
+            if (_playlistsNavigationController == null)
+            {
+                _playlistsNavigationController = BeatSaberUI.CreateViewController<BackButtonNavigationController>();
 
-            GameObject _playlistDetailGameObject = Instantiate(Resources.FindObjectsOfTypeAll<StandardLevelDetailViewController>().First(), _playlistsNavigationController.rectTransform, false).gameObject;
-            _playlistDetailViewController = _playlistDetailGameObject.AddComponent<PlaylistDetailViewController>();
-            Destroy(_playlistDetailGameObject.GetComponent<StandardLevelDetailViewController>());
-            _playlistDetailViewController.name = "PlaylistDetailViewController";
+                GameObject _playlistDetailGameObject = Instantiate(Resources.FindObjectsOfTypeAll<StandardLevelDetailViewController>().First(), _playlistsNavigationController.rectTransform, false).gameObject;
+                _playlistDetailViewController = _playlistDetailGameObject.AddComponent<PlaylistDetailViewController>();
+                Destroy(_playlistDetailGameObject.GetComponent<StandardLevelDetailViewController>());
+                _playlistDetailViewController.name = "PlaylistDetailViewController";
+            }
         }
 
         protected override void DidActivate(bool firstActivation, ActivationType activationType)
@@ -65,7 +68,7 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
                 ProvideInitialViewControllers(_playlistsNavigationController, _downloadQueueViewController, null);
             }
             _downloadingPlaylist = false;
-            _playlistListViewController.SetContent(PlaylistsCollection.loadedPlaylists, _lastPlaylist);
+            _playlistListViewController.SetContent(PlaylistsCollection.loadedPlaylists);
 
             _downloadQueueViewController.allSongsDownloaded += _downloadQueueViewController_allSongsDownloaded;
         }
@@ -98,6 +101,11 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
             if (!_downloadQueueViewController.queuedSongs.Any(x => x.songQueueState == SongQueueState.Downloading || x.songQueueState == SongQueueState.Queued))
             {
                 _downloadQueueViewController.AbortDownloads();
+                
+                if (_playlistsNavigationController.viewControllers.IndexOf(_playlistDetailViewController) >= 0)
+                {
+                    PopViewControllerFromNavigationController(_playlistsNavigationController, null, true);
+                }
 
                 parentFlowCoordinator.InvokePrivateMethod("DismissFlowCoordinator", new object[] { this, null, false });
                 didFinishEvent?.Invoke(playlist);
@@ -136,7 +144,7 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
                         songName = item.songName,
                         id = item.key,
                         downloadingProgress = 0f,
-                        hash = item.levelId,
+                        hash = (item.levelId == null ? "" : item.levelId),
                         downloadUrl = archiveUrl
                     };
                 }
@@ -185,7 +193,12 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
             {
                 _downloadQueueViewController.AbortDownloads();
                 SongLoader.Instance.RefreshSongs(false);
-                
+
+                if (_playlistsNavigationController.viewControllers.IndexOf(_playlistDetailViewController) >= 0)
+                {
+                    PopViewControllerFromNavigationController(_playlistsNavigationController, null, true);
+                }
+
                 parentFlowCoordinator.InvokePrivateMethod("DismissFlowCoordinator", new object[] { this, null, false });
                 didFinishEvent?.Invoke(null);
             }

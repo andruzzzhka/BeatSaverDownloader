@@ -103,7 +103,7 @@ namespace BeatSaverDownloader.UI.ViewControllers
             _lastSelectedRow = -1;
         }
         
-        public void SetContent(List<Playlist> playlists, Playlist select = null)
+        public void SetContent(List<Playlist> playlists)
         {
             if (playlists == null && playlistList != null)
                 playlistList.Clear();
@@ -114,7 +114,6 @@ namespace BeatSaverDownloader.UI.ViewControllers
             {
                 _songsTableView.ReloadData();
                 _songsTableView.ScrollToRow(0, false);
-                _songsTableView.SelectRow(0, true);
             }
         }
 

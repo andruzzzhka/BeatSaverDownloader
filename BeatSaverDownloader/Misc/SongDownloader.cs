@@ -104,8 +104,7 @@ namespace BeatSaverDownloader.Misc
             else
             {
                 Logger.Log("Received response from BeatSaver.com...");
-
-                //string zipPath = "";
+                
                 string docPath = "";
                 string customSongsPath = "";
 
@@ -136,7 +135,7 @@ namespace BeatSaverDownloader.Misc
                 yield return new WaitWhile(() => _extractingZip); //because extracting several songs at once sometimes hangs the game
 
                 Task extract = ExtractZipAsync(songInfo, zipStream, customSongsPath);
-                yield return new WaitWhile(() => (int)extract.Status <= 4);
+                yield return new WaitWhile(() => !extract.IsCompleted);
                 songDownloaded?.Invoke(songInfo);
             }
         }

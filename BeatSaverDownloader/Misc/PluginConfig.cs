@@ -34,6 +34,12 @@ namespace BeatSaverDownloader.Misc
 
         public static void LoadOrCreateConfig()
         {
+            if (IllusionInjector.PluginManager.Plugins.Any(x => x.Name == "Song Browser"))
+            {
+                Logger.Log("Song Browser installed, disabling Song List Tweaks");
+                disableSongListTweaks = true;
+            }
+
             if (!Directory.Exists("UserData"))
             {
                 Directory.CreateDirectory("UserData");
@@ -104,13 +110,6 @@ namespace BeatSaverDownloader.Misc
 
             favoriteSongs.AddRange(File.ReadAllLines(configPath, Encoding.UTF8));
 
-            if (IllusionInjector.PluginManager.Plugins.Count(x => x.Name == "Song Browser") > 0)
-            {
-                Logger.Log("Song Browser installed, disabling Song List Tweaks");
-                disableSongListTweaks = true;
-                return;
-            }
-
             try
             {
                 if (Registry.CurrentUser.OpenSubKey(@"Software").GetSubKeyNames().Contains("178eef3d-4cea-5a1b-bfd0-07a21d068990"))
@@ -142,7 +141,7 @@ namespace BeatSaverDownloader.Misc
                 }
                 else
                 {
-                    Logger.Log("Can't find the BeatDrop installation folder!");
+                    Logger.Log("Unable to find BeatDrop installation folder!");
                 }
             }
 
@@ -174,7 +173,7 @@ namespace BeatSaverDownloader.Misc
             }
             catch (Exception e)
             {
-                Logger.Log($"Can't parse BeatSaberSongBrowser settings file! Exception: {e}");
+                Logger.Log($"Unable to parse Song Browser settings file! Exception: {e}");
                 if (fs != null) { fs.Close(); }
             }
         }
