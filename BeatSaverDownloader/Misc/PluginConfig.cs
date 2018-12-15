@@ -59,10 +59,6 @@ namespace BeatSaverDownloader.Misc
                     beatsaverURL = "https://beatsaver.com";
                     Logger.Log("Created config");
                 }
-                else
-                {
-                    Logger.Log("Loaded config");
-                }
             }
 
             if (!ModPrefs.HasKey("BeatSaverDownloader", "apiAccessToken"))
@@ -98,7 +94,7 @@ namespace BeatSaverDownloader.Misc
                 maxSimultaneousDownloads = ModPrefs.GetInt("BeatSaverDownloader", "maxSimultaneousDownloads", 3, true);
             }
 
-            if (File.Exists(oldConfigPath))
+            if (File.Exists(oldConfigPath) && !File.Exists(configPath))
             {
                 File.Move(oldConfigPath, configPath);
             }
