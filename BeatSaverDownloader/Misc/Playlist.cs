@@ -81,11 +81,10 @@ namespace BeatSaverDownloader.Misc
                     PlaylistSong song = playlist.songs.First(x => x.level != null && x.level.levelID == levelId);
                     song.level = null;
                     song.levelId = "";
-
-                    if (playlist.playlistTitle == "Your favorite songs")
-                    {
-                        playlist.SavePlaylist();
-                    }
+                }
+                if (playlist.playlistTitle == "Your favorite songs")
+                {
+                    playlist.SavePlaylist();
                 }
             }
         }
@@ -97,11 +96,10 @@ namespace BeatSaverDownloader.Misc
                 PlaylistSong song = playlist.songs.First(x => x.level != null && x.level.levelID == levelId);
                 song.level = null;
                 song.levelId = "";
-
-                playlist.songs.First(x => x.level != null && x.level.levelID == levelId).level = null; if (playlist.playlistTitle == "Your favorite songs")
-                {
-                    playlist.SavePlaylist();
-                }
+            }
+            if (playlist.playlistTitle == "Your favorite songs")
+            {
+                playlist.SavePlaylist();
             }
         }
 
