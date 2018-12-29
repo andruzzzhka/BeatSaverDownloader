@@ -65,6 +65,11 @@ namespace BeatSaverDownloader.Misc
             Logger.Log("Creating sprites... Done!");
         }
 
+        public static string SpriteToBase64(Sprite input)
+        {
+            return Convert.ToBase64String(input.texture.EncodeToPNG());
+        }
+
         public static Sprite Base64ToSprite(string input)
         {
             string base64 = input;

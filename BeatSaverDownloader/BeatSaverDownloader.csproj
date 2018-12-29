@@ -41,6 +41,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Beat Saber\Beat Saber_Data\Managed\IllusionPlugin.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Beat Saber\Beat Saber_Data\Managed\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="SongLoaderPlugin, Version=4.3.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Beat Saber\Plugins\SongLoaderPlugin.dll</HintPath>
@@ -115,6 +118,7 @@
     <Compile Include="Misc\BeatSaverAPIResult.cs" />
     <Compile Include="Misc\LoadScripts.cs" />
     <Compile Include="Misc\Playlist.cs" />
+    <Compile Include="Misc\ScrappedData.cs" />
     <Compile Include="Misc\SongDownloader.cs" />
     <Compile Include="Misc\Logger.cs" />
     <Compile Include="Misc\SongBrowserSettings.cs" />

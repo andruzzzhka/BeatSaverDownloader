@@ -11,6 +11,7 @@ using CustomUI.Utilities;
 using CustomUI.MenuButton;
 using TMPro;
 using BeatSaverDownloader.Misc;
+using System;
 
 namespace BeatSaverDownloader.UI
 {
@@ -49,6 +50,13 @@ namespace BeatSaverDownloader.UI
                 SongLoader.SongsLoadedEvent += SongLoader_SongsLoadedEvent;
             else
                 SongLoader_SongsLoadedEvent(null, SongLoader.CustomLevels);
+
+            StartCoroutine(ScrappedData.Instance.DownloadScrappedData((List<ScrappedSong> songs) => {
+                if (PlaylistsCollection.loadedPlaylists.Any(x => x.playlistTitle == "Your favorite songs"))
+                {
+                    PlaylistsCollection.loadedPlaylists.First(x => x.playlistTitle == "Your favorite songs").SavePlaylist("Playlists\\favorites.json");
+                }
+            }));
         }
 
         private void SongLoader_SongsLoadedEvent(SongLoader arg1, List<CustomLevel> arg2)

@@ -99,9 +99,7 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
         private void _playlistDetailViewController_selectButtonPressed(Playlist playlist)
         {
             if (!_downloadQueueViewController.queuedSongs.Any(x => x.songQueueState == SongQueueState.Downloading || x.songQueueState == SongQueueState.Queued))
-            {
-                _downloadQueueViewController.AbortDownloads();
-                
+            {                
                 if (_playlistsNavigationController.viewControllers.IndexOf(_playlistDetailViewController) >= 0)
                 {
                     PopViewControllerFromNavigationController(_playlistsNavigationController, null, true);
@@ -191,8 +189,8 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
         {
             if (!_downloadQueueViewController.queuedSongs.Any(x => x.songQueueState == SongQueueState.Downloading || x.songQueueState == SongQueueState.Queued))
             {
-                _downloadQueueViewController.AbortDownloads();
-                SongLoader.Instance.RefreshSongs(false);
+                if(_downloadQueueViewController.queuedSongs.Any(x => x.songQueueState == SongQueueState.Downloading || x.songQueueState == SongQueueState.Queued))
+                    _downloadQueueViewController.AbortDownloads();
 
                 if (_playlistsNavigationController.viewControllers.IndexOf(_playlistDetailViewController) >= 0)
                 {

@@ -1,4 +1,5 @@
-﻿using SongLoaderPlugin;
+﻿using SimpleJSON;
+using SongLoaderPlugin;
 using SongLoaderPlugin.OverrideClasses;
 using System;
 using System.Collections;
@@ -15,9 +16,9 @@ using UnityEngine.Networking;
 
 namespace BeatSaverDownloader.Misc
 {
-    class SongDownloader : MonoBehaviour
+    public class SongDownloader : MonoBehaviour
     {
-        public event Action<Song> songDownloaded; 
+        public event Action<Song> songDownloaded;
 
         private static SongDownloader _instance = null;
         public static SongDownloader Instance
@@ -54,7 +55,7 @@ namespace BeatSaverDownloader.Misc
         {
             _alreadyDownloadedSongs = levels.Select(x => new Song(x)).ToList();
         }
-        
+
         public IEnumerator DownloadSongCoroutine(Song songInfo)
         {
             songInfo.songQueueState = SongQueueState.Downloading;
@@ -99,12 +100,12 @@ namespace BeatSaverDownloader.Misc
             if (www.isNetworkError || www.isHttpError || timeout || songInfo.songQueueState == SongQueueState.Error)
             {
                 songInfo.songQueueState = SongQueueState.Error;
-                Logger.Error("Unable to download song! "+(www.isNetworkError ? $"Network error: {www.error}" : (www.isHttpError ? $"HTTP error: {www.error}" : "Unknown error")));
+                Logger.Error("Unable to download song! " + (www.isNetworkError ? $"Network error: {www.error}" : (www.isHttpError ? $"HTTP error: {www.error}" : "Unknown error")));
             }
             else
             {
                 Logger.Log("Received response from BeatSaver.com...");
-                
+
                 string docPath = "";
                 string customSongsPath = "";
 
@@ -131,7 +132,7 @@ namespace BeatSaverDownloader.Misc
                     songInfo.songQueueState = SongQueueState.Error;
                     yield break;
                 }
-                
+
                 yield return new WaitWhile(() => _extractingZip); //because extracting several songs at once sometimes hangs the game
 
                 Task extract = ExtractZipAsync(songInfo, zipStream, customSongsPath);
@@ -165,7 +166,7 @@ namespace BeatSaverDownloader.Misc
             {
                 songInfo.path = customSongsPath;
             }
-                        
+
             _extractingZip = false;
             songInfo.songQueueState = SongQueueState.Downloaded;
             _alreadyDownloadedSongs.Add(songInfo);
@@ -274,7 +275,7 @@ namespace BeatSaverDownloader.Misc
 
         public static string GetLevelID(Song song)
         {
-            string[] values = new string[] { song.hash, song.songName, song.songSubName, song.authorName, song.beatsPerMinute};
+            string[] values = new string[] { song.hash, song.songName, song.songSubName, song.authorName, song.beatsPerMinute };
             return string.Join("∎", values) + "∎";
         }
 
@@ -302,6 +303,71 @@ namespace BeatSaverDownloader.Misc
                     hash = sb.ToString();
                     return true;
                 }
+            }
+        }
+
+        public void RequestSongByLevelID(string levelId, Action<Song> callback)
+        {
+            StartCoroutine(RequestSongByLevelIDCoroutine(levelId, callback));
+        }
+
+        public IEnumerator RequestSongByLevelIDCoroutine(string levelId, Action<Song> callback)
+        {
+            UnityWebRequest wwwId = UnityWebRequest.Get($"{PluginConfig.beatsaverURL}/api/songs/search/hash/" + levelId);
+            wwwId.timeout = 10;
+
+            yield return wwwId.SendWebRequest();
+
+
+            if (wwwId.isNetworkError || wwwId.isHttpError)
+            {
+                Logger.Error(wwwId.error);
+            }
+            else
+            {
+#if DEBUG
+                Logger.Log("Received response from BeatSaver...");
+#endif
+                JSONNode node = JSON.Parse(wwwId.downloadHandler.text);
+
+                if (node["songs"].Count == 0)
+                {
+                    Logger.Error($"Song {levelId} doesn't exist on BeatSaver!");
+                    callback?.Invoke(null);
+                    yield break;
+                }
+
+                Song _tempSong = Song.FromSearchNode(node["songs"][0]);
+                callback?.Invoke(_tempSong);
+            }
+        }
+
+        public void RequestSongByKey(string key, Action<Song> callback)
+        {
+            StartCoroutine(RequestSongByKeyCoroutine(key, callback));
+        }
+
+        public IEnumerator RequestSongByKeyCoroutine(string key, Action<Song> callback)
+        {
+            UnityWebRequest wwwId = UnityWebRequest.Get($"{PluginConfig.beatsaverURL}/api/songs/detail/" + key);
+            wwwId.timeout = 10;
+
+            yield return wwwId.SendWebRequest();
+
+
+            if (wwwId.isNetworkError || wwwId.isHttpError)
+            {
+                Logger.Error(wwwId.error);
+            }
+            else
+            {
+#if DEBUG
+                Logger.Log("Received response from BeatSaver...");
+#endif
+                JSONNode node = JSON.Parse(wwwId.downloadHandler.text);
+
+                Song _tempSong = new Song(node["song"]);
+                callback?.Invoke(_tempSong);
             }
         }
     }

@@ -17,10 +17,11 @@ using System.IO;
 using BeatSaverDownloader.Misc;
 using HMUI;
 using BeatSaverDownloader.UI.FlowCoordinators;
+using TMPro;
 
 namespace BeatSaverDownloader.UI
 {
-    public enum SortMode { Default, Author, Newest };
+    public enum SortMode { Default, Difficulty, Newest };
 
     class SongListTweaks : MonoBehaviour
     {
@@ -52,7 +53,6 @@ namespace BeatSaverDownloader.UI
         private BeatmapCharacteristicSO[] _beatmapCharacteristics;
 
         private BeatmapCharacteristicSO _lastCharacteristic;
-        private LevelSO _lastSong;
 
         private PlaylistsFlowCoordinator _playlistsFlowCoordinator;
         private MainFlowCoordinator _mainFlowCoordinator;
@@ -73,6 +73,8 @@ namespace BeatSaverDownloader.UI
 
         private Button _favoriteButton;
         private Button _deleteButton;
+
+        private TextMeshProUGUI _starStatText;
 
         public void OnLoad()
         {
@@ -123,7 +125,8 @@ namespace BeatSaverDownloader.UI
             _difficultyViewController.didSelectDifficultyEvent += _difficultyViewController_didSelectDifficultyEvent;
 
             _levelListViewController = Resources.FindObjectsOfTypeAll<LevelListViewController>().FirstOrDefault();
-            
+            _levelListViewController.didSelectLevelEvent += _levelListViewController_didSelectLevelEvent; ;
+
             RectTransform _tableViewRectTransform = _levelListViewController.GetComponentsInChildren<RectTransform>().First(x => x.name == "TableViewContainer");
 
             _tableViewRectTransform.sizeDelta = new Vector2(0f, -20f);
@@ -175,8 +178,8 @@ namespace BeatSaverDownloader.UI
             _authorButton = _levelListViewController.CreateUIButton("CreditsButton", new Vector2(20f, 36.25f), new Vector2(20f, 6f), () =>
             {
                 SelectTopButtons(TopButtonsState.Select);
-                SetLevels(_lastCharacteristic, SortMode.Author, "");
-            }, "Author");
+                SetLevels(_lastCharacteristic, SortMode.Difficulty, "");
+            }, "Difficulty");
 
             _authorButton.SetButtonTextSize(3f);
             _authorButton.ToggleWordWrapping(false);
@@ -221,6 +224,25 @@ namespace BeatSaverDownloader.UI
             _deleteButton.GetComponentsInChildren<RectTransform>().First(x => x.name == "GlowContainer").gameObject.SetActive(false);
             _deleteButton.interactable = !PluginConfig.disableDeleteButton;
 
+            //based on https://github.com/halsafar/BeatSaberSongBrowser/blob/master/SongBrowserPlugin/UI/Browser/SongBrowserUI.cs#L192
+            var statsPanel = _detailViewController.GetComponentsInChildren<CanvasRenderer>(true).First(x => x.name == "LevelParamsPanel"); 
+            var statTransforms = statsPanel.GetComponentsInChildren<RectTransform>();
+            var valueTexts = statsPanel.GetComponentsInChildren<TextMeshProUGUI>().Where(x => x.name == "ValueText").ToList();
+
+            foreach (RectTransform r in statTransforms)
+            {
+                if (r.name == "Separator")
+                {
+                    continue;
+                }
+                r.sizeDelta = new Vector2(r.sizeDelta.x * 0.85f, r.sizeDelta.y * 0.85f);
+            }
+
+            var _starStatTransform = Instantiate(statTransforms[1], statsPanel.transform, false);
+            _starStatText = _starStatTransform.GetComponentInChildren<TextMeshProUGUI>();
+            _starStatTransform.GetComponentInChildren<UnityEngine.UI.Image>().sprite = Base64Sprites.StarFull;
+            _starStatText.text = "--";
+
             initialized = true;
         }
 
@@ -247,6 +269,8 @@ namespace BeatSaverDownloader.UI
 
             PlaylistsCollection.loadedPlaylists.Insert(0, _favPlaylist);
             PlaylistsCollection.loadedPlaylists.Insert(0, _allPlaylist);
+
+            _favPlaylist.SavePlaylist("Playlists\\favorites.json");
         }
 
         private void _playlistsFlowCoordinator_didFinishEvent(Playlist playlist)
@@ -322,6 +346,33 @@ namespace BeatSaverDownloader.UI
         {
             _favoriteButton.SetButtonIcon(PluginConfig.favoriteSongs.Any(x => x.Contains(beatmap.level.levelID)) ? Base64Sprites.RemoveFromFavorites : Base64Sprites.AddToFavorites);
             _deleteButton.interactable = !PluginConfig.disableDeleteButton && (beatmap.level.levelID.Length >= 32);
+            if (beatmap.level.levelID.Length >= 32) {
+                ScrappedSong song = ScrappedData.Songs.FirstOrDefault(x => x.Hash == beatmap.level.levelID.Substring(0, 32));
+                if(song.Diffs.Any(x => x.Diff == beatmap.difficulty.ToString()))
+                    _starStatText.text = (song == null ? "--" : song.Diffs.First(x => x.Diff == beatmap.difficulty.ToString()).Stars.ToString());
+            }
+            else
+            {
+                _starStatText.text = "--";
+            }
+        }
+        
+        private void _levelListViewController_didSelectLevelEvent(LevelListViewController sender, IBeatmapLevel beatmap)
+        {
+            if (_difficultyViewController.isInViewControllerHierarchy && _difficultyViewController.selectedDifficultyBeatmap != null && beatmap.levelID.Length >= 32)
+            {
+                ScrappedSong song = ScrappedData.Songs.FirstOrDefault(x => x.Hash == beatmap.levelID.Substring(0, 32));
+                if (song != null && song.Diffs.Any(x => x.Diff == _difficultyViewController.selectedDifficultyBeatmap.difficulty.ToString()))
+                    _starStatText.text = song.Diffs.First(x => x.Diff == _difficultyViewController.selectedDifficultyBeatmap.difficulty.ToString()).Stars.ToString();
+                else
+                {
+                    _starStatText.text = "--";
+                }
+            }
+            else
+            {
+                _starStatText.text = "--";
+            }
         }
 
         private void PlaylistsButtonPressed()
@@ -411,7 +462,9 @@ namespace BeatSaverDownloader.UI
                 switch (sortMode)
                 {
                     case SortMode.Newest: { levels = SortLevelsByCreationTime(levels); }; break;
-                    case SortMode.Author: { levels = levels.OrderBy(x => x.levelAuthorName).ThenBy(x => x.songAuthorName).ThenBy(x => x.songName + " " + x.songSubName).ToArray(); }; break;
+                    case SortMode.Difficulty: {
+                            levels = levels.AsParallel().OrderBy(x => { int index = ScrappedData.Songs.FindIndex(y => x.levelID.StartsWith(y.Hash)); return (index == -1 ? (x.levelID.Length < 32 ? int.MaxValue : int.MaxValue-1) : index); }).ToArray();
+                        }; break;
                 }
             }
             else
