@@ -348,7 +348,7 @@ namespace BeatSaverDownloader.UI
             _deleteButton.interactable = !PluginConfig.disableDeleteButton && (beatmap.level.levelID.Length >= 32);
             if (beatmap.level.levelID.Length >= 32) {
                 ScrappedSong song = ScrappedData.Songs.FirstOrDefault(x => x.Hash == beatmap.level.levelID.Substring(0, 32));
-                if(song.Diffs.Any(x => x.Diff == beatmap.difficulty.ToString()))
+                if(song != null && song.Diffs.Any(x => x.Diff == beatmap.difficulty.ToString()))
                     _starStatText.text = (song == null ? "--" : song.Diffs.First(x => x.Diff == beatmap.difficulty.ToString()).Stars.ToString());
             }
             else
