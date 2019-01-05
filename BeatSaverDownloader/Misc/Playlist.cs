@@ -47,7 +47,7 @@ namespace BeatSaverDownloader.Misc
                     {
                         Playlist playlist = Playlist.LoadPlaylist(path);
                         if (Path.GetFileName(path) == "favorites.json" && playlist.playlistTitle == "Your favorite songs")
-                            return;
+                            continue;
                         loadedPlaylists.Add(playlist);
                         Logger.Log($"Found \"{playlist.playlistTitle}\" by {playlist.playlistAuthor}");
                     }
@@ -254,22 +254,36 @@ namespace BeatSaverDownloader.Misc
         public IEnumerator SavePlaylistCoroutine(string path = "")
         {
             Logger.Log($"Saving playlist \"{playlistTitle}\"...");
-            image = Base64Sprites.SpriteToBase64(icon);
-            songCount = songs.Count;
-            
+            try
+            {
+                image = Base64Sprites.SpriteToBase64(icon);
+                songCount = songs.Count;
+            }catch(Exception e)
+            {
+                Logger.Exception("Unable to save playlist! Exception: "+e);
+                yield break;
+            }
             foreach (PlaylistSong song in songs)
             {
                 yield return song.MatchKey();
             }
-            
-            if (!string.IsNullOrEmpty(path))
-            {
-                fileLoc = Path.GetFullPath(path);
-            }
-            
-            File.WriteAllText(fileLoc, JsonConvert.SerializeObject(this));
 
-            Logger.Log("Playlist saved!");
+            try
+            {
+                if (!string.IsNullOrEmpty(path))
+                {
+                    fileLoc = Path.GetFullPath(path);
+                }
+
+                File.WriteAllText(fileLoc, JsonConvert.SerializeObject(this));
+
+                Logger.Log("Playlist saved!");
+            }
+            catch (Exception e)
+            {
+                Logger.Exception("Unable to save playlist! Exception: " + e);
+                yield break;
+            }
         }
     }
 }

@@ -10,7 +10,7 @@ namespace BeatSaverDownloader.Misc
     class Logger
     {
 #if DEBUG
-        private static StreamWriter logWriter = new StreamWriter("Downloader.log") { AutoFlush = true};
+        private static StreamWriter logWriter;
 #endif
 
         private static string _assemblyName;
@@ -34,7 +34,17 @@ namespace BeatSaverDownloader.Misc
             Console.WriteLine("[" + AssemblyName + " | LOG] " + message);
             Console.ForegroundColor = _lastColor;
 #if DEBUG
-            logWriter.WriteLine("[" + AssemblyName + " | LOG] " + message);
+            if (logWriter == null)
+            {
+                try
+                {
+                    logWriter = new StreamWriter("Downloader.log") { AutoFlush = true };
+
+                }
+                catch { }
+            }
+            if (logWriter != null)
+                logWriter.WriteLine("[" + AssemblyName + " | LOG] " + message);
 #endif
         }
 
@@ -45,7 +55,17 @@ namespace BeatSaverDownloader.Misc
             Console.WriteLine("[" + AssemblyName + " | WARNING] " + message);
             Console.ForegroundColor = _lastColor;
 #if DEBUG
-            logWriter.WriteLine("[" + AssemblyName + " | WARNING] " + message);
+            if (logWriter == null)
+            {
+                try
+                {
+                    logWriter = new StreamWriter("Downloader.log") { AutoFlush = true };
+
+                }
+                catch { }
+            }
+            if (logWriter != null)
+                logWriter.WriteLine("[" + AssemblyName + " | WARNING] " + message);
 #endif
         }
 
@@ -56,7 +76,17 @@ namespace BeatSaverDownloader.Misc
             Console.WriteLine("[" + AssemblyName + " | ERROR] " + message);
             Console.ForegroundColor = _lastColor;
 #if DEBUG
-            logWriter.WriteLine("[" + AssemblyName + " | ERROR] " + message);
+            if (logWriter == null)
+            {
+                try
+                {
+                    logWriter = new StreamWriter("Downloader.log") { AutoFlush = true };
+
+                }
+                catch { }
+            }
+            if (logWriter != null)
+                logWriter.WriteLine("[" + AssemblyName + " | ERROR] " + message);
 #endif
         }
 
@@ -67,7 +97,17 @@ namespace BeatSaverDownloader.Misc
             Console.WriteLine("[" + AssemblyName + " | CRITICAL] " + message);
             Console.ForegroundColor = _lastColor;
 #if DEBUG
-            logWriter.WriteLine("[" + AssemblyName + " | CRITICAL] " + message);
+            if (logWriter == null)
+            {
+                try
+                {
+                    logWriter = new StreamWriter("Downloader.log") { AutoFlush = true };
+
+                }
+                catch { }
+            }
+            if (logWriter != null)
+                logWriter.WriteLine("[" + AssemblyName + " | CRITICAL] " + message);
 #endif
         }
     }

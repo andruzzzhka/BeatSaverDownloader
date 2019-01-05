@@ -15,7 +15,7 @@ namespace BeatSaverDownloader
     {
         string IPlugin.Name { get { return "BeatSaver Downloader"; } }
 
-        string IPlugin.Version { get { return "3.1.0"; } }
+        string IPlugin.Version { get { return "3.1.2"; } }
         
         public void OnApplicationQuit()
         {
@@ -38,10 +38,16 @@ namespace BeatSaverDownloader
 
             if (from.name == "EmptyTransition" && to.name.Contains("Menu"))
             {
-                PluginUI.Instance.OnLoad();
-                VotingUI.Instance.OnLoad();
-                if (!PluginConfig.disableSongListTweaks)
-                    SongListTweaks.Instance.OnLoad();
+                try
+                {
+                    PluginUI.Instance.OnLoad();
+                    VotingUI.Instance.OnLoad();
+                    if (!PluginConfig.disableSongListTweaks)
+                        SongListTweaks.Instance.OnLoad();
+                }catch(Exception e)
+                {
+                    Logger.Exception("Exception on scene change: "+e);
+                }
             }
         }
 
