@@ -201,7 +201,14 @@ namespace BeatSaverDownloader.Misc
             if (zippedSong)
             {
                 Logger.Log("Deleting \"" + path.Substring(path.LastIndexOf('/')) + "\"...");
-                Directory.Delete(path, true);
+                if(PluginConfig.deleteToRecycleBin)
+                {
+                    FileOperationAPIWrapper.MoveToRecycleBin(path);
+                }
+                else
+                {
+                    Directory.Delete(path, true);
+                }
 
                 string songHash = Directory.GetParent(path).Name;
 
@@ -210,7 +217,7 @@ namespace BeatSaverDownloader.Misc
                     if (Directory.GetFileSystemEntries(path.Substring(0, path.LastIndexOf('/'))).Length == 0)
                     {
                         Logger.Log("Deleting empty folder \"" + path.Substring(0, path.LastIndexOf('/')) + "\"...");
-                        Directory.Delete(path.Substring(0, path.LastIndexOf('/')), false);
+                        Directory.Delete(path.Substring(0, path.LastIndexOf('/')), false);                       
                     }
                 }
                 catch
@@ -241,7 +248,15 @@ namespace BeatSaverDownloader.Misc
             else
             {
                 Logger.Log("Deleting \"" + path.Substring(path.LastIndexOf('/')) + "\"...");
-                Directory.Delete(path, true);
+
+                if (PluginConfig.deleteToRecycleBin)
+                {
+                    FileOperationAPIWrapper.MoveToRecycleBin(path);
+                }
+                else
+                {
+                    Directory.Delete(path, true);
+                }
 
                 try
                 {

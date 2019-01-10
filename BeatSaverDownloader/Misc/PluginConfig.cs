@@ -28,6 +28,7 @@ namespace BeatSaverDownloader.Misc
 
         public static bool disableSongListTweaks = false;
         public static bool disableDeleteButton = false;
+        public static bool deleteToRecycleBin = true;
 
         public static int maxSimultaneousDownloads = 3;
 
@@ -82,6 +83,15 @@ namespace BeatSaverDownloader.Misc
             else
             {
                 disableDeleteButton = ModPrefs.GetBool("BeatSaverDownloader", "disableDeleteButton", false, true);
+            }
+
+            if (!ModPrefs.HasKey("BeatSaverDownloader", "deleteToRecycleBin"))
+            {
+                ModPrefs.SetBool("BeatSaverDownloader", "deleteToRecycleBin", true);
+            }
+            else
+            {
+                deleteToRecycleBin = ModPrefs.GetBool("BeatSaverDownloader", "deleteToRecycleBin", true, true);
             }
 
             if (!ModPrefs.HasKey("BeatSaverDownloader", "maxSimultaneousDownloads"))
