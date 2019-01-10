@@ -18,6 +18,8 @@ using BeatSaverDownloader.Misc;
 using HMUI;
 using BeatSaverDownloader.UI.FlowCoordinators;
 using TMPro;
+using Harmony;
+using System.Reflection;
 
 namespace BeatSaverDownloader.UI
 {
@@ -96,6 +98,17 @@ namespace BeatSaverDownloader.UI
 
             Logger.Log("Setting up song list tweaks...");
 
+            try
+            {
+
+                var harmony = HarmonyInstance.Create("BeatSaverDownloaderHarmonyInstance");
+                harmony.PatchAll(Assembly.GetExecutingAssembly());
+            }
+            catch(Exception e)
+            {
+                Logger.Log("Unable to patch level list! Exception: "+e);
+            }
+
             _playlistsFlowCoordinator = (new GameObject("PlaylistsFlowCoordinator")).AddComponent<PlaylistsFlowCoordinator>();
             _playlistsFlowCoordinator.didFinishEvent += _playlistsFlowCoordinator_didFinishEvent;
 
@@ -110,7 +123,8 @@ namespace BeatSaverDownloader.UI
             }
             else
             {
-                SongLoader.SongsLoadedEvent += (SongLoader sender, List<CustomLevel> levels) => {
+                SongLoader.SongsLoadedEvent += (SongLoader sender, List<CustomLevel> levels) =>
+                {
                     _levelCollection = SongLoader.CustomLevelCollectionSO;
                 };
             }
@@ -137,7 +151,7 @@ namespace BeatSaverDownloader.UI
 
             RectTransform _pageDown = _tableViewRectTransform.GetComponentsInChildren<RectTransform>(true).First(x => x.name == "PageDownButton");
             _pageDown.anchoredPosition = new Vector2(0f, 1f);
-            
+
             _searchButton = _levelListViewController.CreateUIButton("CreditsButton", new Vector2(-20f, 36.25f), new Vector2(20f, 6f), SearchPressed, "Search");
             _searchButton.SetButtonTextSize(3f);
             _searchButton.ToggleWordWrapping(false);
@@ -200,7 +214,8 @@ namespace BeatSaverDownloader.UI
 
             _favoriteButton = customButtonsRect.GetComponentsInChildren<Button>().First(x => x.name == "PracticeButton");
             _favoriteButton.SetButtonIcon(Base64Sprites.AddToFavorites);
-            _favoriteButton.onClick.AddListener(() => {
+            _favoriteButton.onClick.AddListener(() =>
+            {
                 if (PluginConfig.favoriteSongs.Any(x => x.Contains(_detailViewController.difficultyBeatmap.level.levelID)))
                 {
                     PluginConfig.favoriteSongs.Remove(_detailViewController.difficultyBeatmap.level.levelID);
@@ -213,7 +228,7 @@ namespace BeatSaverDownloader.UI
                     PluginConfig.favoriteSongs.Add(_detailViewController.difficultyBeatmap.level.levelID);
                     PluginConfig.SaveConfig();
                     _favoriteButton.SetButtonIcon(Base64Sprites.RemoveFromFavorites);
-                    PlaylistsCollection.AddSongToPlaylist(PlaylistsCollection.loadedPlaylists.First(x => x.playlistTitle == "Your favorite songs"), new PlaylistSong() { levelId = _detailViewController.difficultyBeatmap.level.levelID, songName = _detailViewController.difficultyBeatmap.level.songName, level = SongDownloader.GetLevel(_detailViewController.difficultyBeatmap.level.levelID)});
+                    PlaylistsCollection.AddSongToPlaylist(PlaylistsCollection.loadedPlaylists.First(x => x.playlistTitle == "Your favorite songs"), new PlaylistSong() { levelId = _detailViewController.difficultyBeatmap.level.levelID, songName = _detailViewController.difficultyBeatmap.level.songName, level = SongDownloader.GetLevel(_detailViewController.difficultyBeatmap.level.levelID) });
                 }
             });
 
@@ -225,7 +240,7 @@ namespace BeatSaverDownloader.UI
             _deleteButton.interactable = !PluginConfig.disableDeleteButton;
 
             //based on https://github.com/halsafar/BeatSaberSongBrowser/blob/master/SongBrowserPlugin/UI/Browser/SongBrowserUI.cs#L192
-            var statsPanel = _detailViewController.GetComponentsInChildren<CanvasRenderer>(true).First(x => x.name == "LevelParamsPanel"); 
+            var statsPanel = _detailViewController.GetComponentsInChildren<CanvasRenderer>(true).First(x => x.name == "LevelParamsPanel");
             var statTransforms = statsPanel.GetComponentsInChildren<RectTransform>();
             var valueTexts = statsPanel.GetComponentsInChildren<TextMeshProUGUI>().Where(x => x.name == "ValueText").ToList();
 
@@ -243,13 +258,16 @@ namespace BeatSaverDownloader.UI
             _starStatTransform.GetComponentInChildren<UnityEngine.UI.Image>().sprite = Base64Sprites.StarFull;
             _starStatText.text = "--";
 
+            ResultsViewController _standardLevelResultsViewController = Resources.FindObjectsOfTypeAll<ResultsViewController>().First(x => x.name == "StandardLevelResultsViewController");
+            _standardLevelResultsViewController.continueButtonPressedEvent += _standardLevelResultsViewController_continueButtonPressedEvent;
+            
             initialized = true;
         }
-
+        
         public void AddDefaultPlaylists()
         {
             Logger.Log("Creating default playlists...");
-                        
+
             List<LevelSO> levels = _levelCollection.levels.ToList();
 
             Playlist _allPlaylist = new Playlist() { playlistTitle = "All songs", playlistAuthor = "", image = Base64Sprites.BeastSaberLogoB64, icon = Base64Sprites.BeastSaberLogo, fileLoc = "" };
@@ -261,7 +279,7 @@ namespace BeatSaverDownloader.UI
             _favPlaylist.songs = new List<PlaylistSong>();
             _favPlaylist.songs.AddRange(levels.Where(x => PluginConfig.favoriteSongs.Contains(x.levelID)).Select(x => new PlaylistSong() { songName = $"{x.songName} {x.songSubName}", level = x, oneSaber = x.beatmapCharacteristics.Any(y => y.characteristicName == "One Saber"), path = "", key = "", levelId = x.levelID }));
             Logger.Log($"Created \"{_favPlaylist.playlistTitle}\" playlist with {_favPlaylist.songs.Count} songs!");
-            
+
             if (PlaylistsCollection.loadedPlaylists.Any(x => x.playlistTitle == "All songs" || x.playlistTitle == "Your favorite songs"))
             {
                 PlaylistsCollection.loadedPlaylists.RemoveAll(x => x.playlistTitle == "All songs" || x.playlistTitle == "Your favorite songs");
@@ -285,13 +303,13 @@ namespace BeatSaverDownloader.UI
 
         private void SongListTweaks_didFinishEvent(MainMenuViewController sender, MainMenuViewController.MenuButton result)
         {
-            if(result == MainMenuViewController.MenuButton.SoloFreePlay)
+            if (result == MainMenuViewController.MenuButton.SoloFreePlay)
             {
                 _freePlayFlowCoordinator = FindObjectOfType<SoloFreePlayFlowCoordinator>();
                 _lastCharacteristic = _beatmapCharacteristics.First(x => x.characteristicName == "Standard");
                 lastPlaylist = null;
             }
-            else if(result == MainMenuViewController.MenuButton.Party)
+            else if (result == MainMenuViewController.MenuButton.Party)
             {
                 _freePlayFlowCoordinator = FindObjectOfType<PartyFreePlayFlowCoordinator>();
                 _lastCharacteristic = _beatmapCharacteristics.First(x => x.characteristicName == "Standard");
@@ -346,9 +364,10 @@ namespace BeatSaverDownloader.UI
         {
             _favoriteButton.SetButtonIcon(PluginConfig.favoriteSongs.Any(x => x.Contains(beatmap.level.levelID)) ? Base64Sprites.RemoveFromFavorites : Base64Sprites.AddToFavorites);
             _deleteButton.interactable = !PluginConfig.disableDeleteButton && (beatmap.level.levelID.Length >= 32);
-            if (beatmap.level.levelID.Length >= 32) {
+            if (beatmap.level.levelID.Length >= 32)
+            {
                 ScrappedSong song = ScrappedData.Songs.FirstOrDefault(x => x.Hash == beatmap.level.levelID.Substring(0, 32));
-                if(song != null && song.Diffs.Any(x => x.Diff == beatmap.difficulty.ToString()))
+                if (song != null && song.Diffs.Any(x => x.Diff == beatmap.difficulty.ToString()))
                     _starStatText.text = (song == null ? "--" : song.Diffs.First(x => x.Diff == beatmap.difficulty.ToString()).Stars.ToString());
             }
             else
@@ -356,7 +375,7 @@ namespace BeatSaverDownloader.UI
                 _starStatText.text = "--";
             }
         }
-        
+
         private void _levelListViewController_didSelectLevelEvent(LevelListViewController sender, IBeatmapLevel beatmap)
         {
             if (_difficultyViewController.isInViewControllerHierarchy && _difficultyViewController.selectedDifficultyBeatmap != null && beatmap.levelID.Length >= 32)
@@ -378,7 +397,7 @@ namespace BeatSaverDownloader.UI
         private void PlaylistsButtonPressed()
         {
             _playlistsFlowCoordinator.parentFlowCoordinator = _freePlayFlowCoordinator;
-            _freePlayFlowCoordinator.InvokePrivateMethod("PresentFlowCoordinator", new object[] { _playlistsFlowCoordinator , null, false, false});
+            _freePlayFlowCoordinator.InvokePrivateMethod("PresentFlowCoordinator", new object[] { _playlistsFlowCoordinator, null, false, false });
         }
 
         private void DeletePressed()
@@ -405,7 +424,7 @@ namespace BeatSaverDownloader.UI
                     if (selectedIndex > -1)
                     {
                         int removedLevels = levels.RemoveAll(x => x == _detailViewController.difficultyBeatmap.level);
-                        Logger.Log("Removed "+removedLevels+" level(s) from song list!");
+                        Logger.Log("Removed " + removedLevels + " level(s) from song list!");
 
                         if (selectedIndex > 0)
                             selectedIndex--;
@@ -415,9 +434,10 @@ namespace BeatSaverDownloader.UI
                         listTableView.ScrollToRow(selectedIndex, false);
                         listTableView.SelectRow(selectedIndex, true);
                     }
-                }catch(Exception e)
+                }
+                catch (Exception e)
                 {
-                    Logger.Error("Unable to delete song! Exception: "+e);
+                    Logger.Error("Unable to delete song! Exception: " + e);
                 }
             }
         }
@@ -462,8 +482,9 @@ namespace BeatSaverDownloader.UI
                 switch (sortMode)
                 {
                     case SortMode.Newest: { levels = SortLevelsByCreationTime(levels); }; break;
-                    case SortMode.Difficulty: {
-                            levels = levels.AsParallel().OrderBy(x => { int index = ScrappedData.Songs.FindIndex(y => x.levelID.StartsWith(y.Hash)); return (index == -1 ? (x.levelID.Length < 32 ? int.MaxValue : int.MaxValue-1) : index); }).ToArray();
+                    case SortMode.Difficulty:
+                        {
+                            levels = levels.AsParallel().OrderBy(x => { int index = ScrappedData.Songs.FindIndex(y => x.levelID.StartsWith(y.Hash)); return (index == -1 ? (x.levelID.Length < 32 ? int.MaxValue : int.MaxValue - 1) : index); }).ToArray();
                         }; break;
                 }
             }
@@ -549,6 +570,128 @@ namespace BeatSaverDownloader.UI
                     partyCoordinator.InvokePrivateMethod("PopViewControllersFromNavigationController", new object[] { partyCoordinator.GetPrivateField<DismissableNavigationController>("_navigationController"), controllers, null, false });
                 }
             }
+        }
+
+
+        private void _standardLevelResultsViewController_continueButtonPressedEvent(ResultsViewController sender)
+        {
+            try
+            {
+                TableView _levelListTableView = _levelListViewController.GetComponentInChildren<TableView>();
+
+                HashSet<int> rows = new HashSet<int>(_levelListTableView.GetPrivateField<HashSet<int>>("_selectedRows"));
+                float scrollPosition = _levelListTableView.GetPrivateField<ScrollRect>("_scrollRect").verticalNormalizedPosition;
+
+                _levelListTableView.ReloadData();
+
+                _levelListTableView.GetPrivateField<ScrollRect>("_scrollRect").verticalNormalizedPosition = scrollPosition;
+                _levelListTableView.SetPrivateField("_targetVerticalNormalizedPosition", scrollPosition); 
+                if (rows.Count > 0)
+                    _levelListTableView.SelectRow(rows.First(), true);
+            }catch(Exception e)
+            {
+                Logger.Warning("Unable to refresh song list! Exception: "+e);
+            }
+        }
+    }
+
+    [HarmonyPatch(typeof(LevelListTableView))]
+    [HarmonyPatch("CellForRow")]
+    [HarmonyPatch(new Type[] { typeof(int) })]
+    class LevelListTableViewPatch
+    {
+        static Material noGlow;
+
+        static TableCell Postfix(TableCell __result, LevelListTableView __instance, int row)
+        {
+            string levelId = __instance.GetPrivateField<IBeatmapLevel[]>("_levels")[row].levelID;
+            levelId = levelId.Substring(0, Math.Min(32, levelId.Length));
+
+            UnityEngine.UI.Image[] images = __result.transform.GetComponentsInChildren<UnityEngine.UI.Image>(true);
+            UnityEngine.UI.Image icon = null;
+
+            if (images.Any(x => x.name == "ExtraIcon"))
+            {
+                icon = images.First(x => x.name == "ExtraIcon");
+            }
+            else
+            {
+                RectTransform iconRT = new GameObject("ExtraIcon", typeof(RectTransform)).GetComponent<RectTransform>();
+                iconRT.SetParent(__result.transform, false);
+
+                iconRT.anchorMin = new Vector2(0.95f, 0.25f);
+                iconRT.anchorMax = new Vector2(0.95f, 0.25f);
+                iconRT.anchoredPosition = new Vector2(0f, 0f);
+                iconRT.sizeDelta = new Vector2(4f, 4f);
+
+                icon = iconRT.gameObject.AddComponent<UnityEngine.UI.Image>();
+
+                if (noGlow == null)
+                {
+                    noGlow = Resources.FindObjectsOfTypeAll<Material>().First(x => x.name == "UINoGlow");
+                }
+
+                icon.material = noGlow;
+            }
+
+            if (PluginConfig.favoriteSongs.Any(x => x.StartsWith(levelId)))
+            {
+                icon.enabled = true;
+                icon.sprite = Base64Sprites.StarFull;
+            }
+            else if (PluginConfig.votedSongs.ContainsKey(levelId))
+            {
+                switch (PluginConfig.votedSongs[levelId].voteType)
+                {
+                    case VoteType.Upvote:
+                        {
+                            icon.enabled = true;
+                            icon.sprite = Base64Sprites.ThumbUp;
+                        }
+                        break;
+                    case VoteType.Downvote:
+                        {
+                            icon.enabled = true;
+                            icon.sprite = Base64Sprites.ThumbDown;
+                        }
+                        break;
+                }
+            }
+            else
+            {
+                icon.enabled = false;
+            }
+
+            return __result;
+        }
+    }
+
+    [HarmonyPatch(typeof(LevelListTableCell))]
+    [HarmonyPatch("SelectionDidChange")]
+    [HarmonyPatch(new Type[] { typeof(TableCell.TransitionType) })]
+    class LevelListTableCellPatch
+    {
+        static void Postfix(LevelListTableCell __instance, TableCell.TransitionType transitionType)
+        {
+            UnityEngine.UI.Image[] images = __instance.transform.GetComponentsInChildren<UnityEngine.UI.Image>(true);
+            UnityEngine.UI.Image icon = null;
+
+            if (images.Any(x => x.name == "ExtraIcon"))
+            {
+                icon = images.First(x => x.name == "ExtraIcon");
+                if (icon.enabled)
+                {
+                    if (__instance.selected)
+                    {
+                        icon.color = Color.black;
+                    }
+                    else
+                    {
+                        icon.color = Color.white;
+                    }
+                }
+            }
+            
         }
     }
 }

@@ -24,6 +24,9 @@
     <DefineConstants>TRACE;DEBUG</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="0Harmony">
+      <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Beat Saber\Beat Saber_Data\Managed\0Harmony.dll</HintPath>
+    </Reference>
     <Reference Include="Assembly-CSharp">
       <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Beat Saber\Beat Saber_Data\Managed\Assembly-CSharp.dll</HintPath>
     </Reference>

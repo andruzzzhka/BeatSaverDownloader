@@ -7,19 +7,38 @@ using System.Linq;
 using System.Text;
 using System.Xml.Serialization;
 using SongBrowserPlugin;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace BeatSaverDownloader.Misc
 {
+    enum VoteType { Upvote, Downvote };
+
+    struct SongVote
+    {
+        public string key;
+        [JsonConverter(typeof(StringEnumConverter))]
+        public VoteType voteType;
+
+        public SongVote(string key, VoteType voteType)
+        {
+            this.key = key;
+            this.voteType = voteType;
+        }
+    }
+
     internal class PluginConfig
     {
         static public bool beatDropInstalled = false;
         static public string beatDropPlaylistsLocation = "";
 
+        static private string votedSongsPath = "UserData\\votedSongs.json";
         static private string configPath = "UserData\\favoriteSongs.cfg";
         static private string oldConfigPath = "favoriteSongs.cfg";
         static private string songBrowserSettings = "song_browser_settings.xml";
 
         public static List<string> favoriteSongs = new List<string>();
+        public static Dictionary<string, SongVote> votedSongs = new Dictionary<string, SongVote>();
 
         public static string beatsaverURL = "https://beatsaver.com";
         public static string apiAccessToken { get; private set; }
@@ -113,8 +132,17 @@ namespace BeatSaverDownloader.Misc
             {
                 File.Create(configPath).Close();
             }
-
+            
             favoriteSongs.AddRange(File.ReadAllLines(configPath, Encoding.UTF8));
+
+            if (!File.Exists(votedSongsPath))
+            {
+                File.WriteAllText(votedSongsPath, JsonConvert.SerializeObject(votedSongs), Encoding.UTF8);
+            }
+            else
+            {
+                votedSongs = JsonConvert.DeserializeObject<Dictionary<string, SongVote>>(File.ReadAllText(votedSongsPath, Encoding.UTF8));
+            }
 
             try
             {
@@ -186,8 +214,9 @@ namespace BeatSaverDownloader.Misc
 
         public static void SaveConfig()
         {
+            File.WriteAllText(votedSongsPath, JsonConvert.SerializeObject(votedSongs, Formatting.Indented), Encoding.UTF8);
             File.WriteAllLines(configPath, favoriteSongs.Distinct().ToArray(), Encoding.UTF8);
-            
+
             ModPrefs.SetBool("BeatSaverDownloader", "disableDeleteButton", disableDeleteButton);
             ModPrefs.SetBool("BeatSaverDownloader", "deleteToRecycleBin", deleteToRecycleBin);
             ModPrefs.SetInt("BeatSaverDownloader", "maxSimultaneousDownloads", maxSimultaneousDownloads);

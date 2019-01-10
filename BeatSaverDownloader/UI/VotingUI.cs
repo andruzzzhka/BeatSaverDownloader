@@ -19,9 +19,7 @@ namespace BeatSaverDownloader.UI
 {
     class VotingUI : MonoBehaviour
     {
-
         public bool initialized = false;
-
 
         private static VotingUI _instance = null;
         public static VotingUI Instance
@@ -65,7 +63,7 @@ namespace BeatSaverDownloader.UI
             _standardLevelResultsViewController = Resources.FindObjectsOfTypeAll<ResultsViewController>().First(x => x.name == "StandardLevelResultsViewController");
             _standardLevelResultsViewController.didActivateEvent += _standardLevelResultsViewController_didActivateEvent;
 
-            _upvoteButton   = _standardLevelResultsViewController.CreateUIButton("PracticeButton", new Vector2(65f,  10f), () => { StartCoroutine(VoteForSong(true));  }, "", Base64Sprites.ThumbUp);
+            _upvoteButton = _standardLevelResultsViewController.CreateUIButton("PracticeButton", new Vector2(65f, 10f), () => { StartCoroutine(VoteForSong(true)); }, "", Base64Sprites.ThumbUp);
             _downvoteButton = _standardLevelResultsViewController.CreateUIButton("PracticeButton", new Vector2(65f, -10f), () => { StartCoroutine(VoteForSong(false)); }, "", Base64Sprites.ThumbDown);
             _ratingText = _standardLevelResultsViewController.CreateText("LOADING...", new Vector2(65f, 0f));
             _ratingText.alignment = TextAlignmentOptions.Center;
@@ -121,9 +119,18 @@ namespace BeatSaverDownloader.UI
                     _lastBeatSaverSong = Song.FromSearchNode(node["songs"][0]);
 
                     _ratingText.text = (int.Parse(_lastBeatSaverSong.upvotes) - int.Parse(_lastBeatSaverSong.downvotes)).ToString();
-                    
+
                     _upvoteButton.interactable = (PluginConfig.apiAccessToken != PluginConfig.apiTokenPlaceholder);
                     _downvoteButton.interactable = (PluginConfig.apiAccessToken != PluginConfig.apiTokenPlaceholder);
+
+                    if (PluginConfig.votedSongs.ContainsKey(_lastLevel.levelID.Substring(0, 32)))
+                    {
+                        switch (PluginConfig.votedSongs[_lastLevel.levelID.Substring(0, 32)].voteType)
+                        {
+                            case VoteType.Upvote: { _upvoteButton.interactable = false; } break;
+                            case VoteType.Downvote: { _downvoteButton.interactable = false; } break;
+                        }
+                    }
 
                 }
                 catch (Exception e)
@@ -158,31 +165,58 @@ namespace BeatSaverDownloader.UI
                 }
 
                 _firstVote = false;
-
-                _upvoteButton.interactable = true;
-                _downvoteButton.interactable = true;
-
+                
                 switch (voteWWW.responseCode)
                 {
                     case 200:
                         {
                             JSONNode node = JSON.Parse(voteWWW.downloadHandler.text);
                             _ratingText.text = (int.Parse(node["upVotes"]) - int.Parse(node["downVotes"])).ToString();
+
+                            if (upvote)
+                            {
+                                _upvoteButton.interactable = false;
+                                _downvoteButton.interactable = true;
+                            }
+                            else
+                            {
+                                _downvoteButton.interactable = false;
+                                _upvoteButton.interactable = true;
+                            }
+
+                            if (!PluginConfig.votedSongs.ContainsKey(_lastLevel.levelID.Substring(0, 32)))
+                            {
+                                PluginConfig.votedSongs.Add(_lastLevel.levelID.Substring(0, 32), new SongVote(_lastBeatSaverSong.id, upvote ? VoteType.Upvote : VoteType.Downvote));
+                                PluginConfig.SaveConfig();
+                            }
+                            else if (PluginConfig.votedSongs[_lastLevel.levelID.Substring(0, 32)].voteType != (upvote ? VoteType.Upvote : VoteType.Downvote))
+                            {
+                                PluginConfig.votedSongs[_lastLevel.levelID.Substring(0, 32)] = new SongVote(_lastBeatSaverSong.id, upvote ? VoteType.Upvote : VoteType.Downvote);
+                                PluginConfig.SaveConfig();
+                            }
                         }; break;
                     case 403:
                         {
+                            _upvoteButton.interactable = false;
+                            _downvoteButton.interactable = false;
                             _ratingText.text = "Read-only token";
                         }; break;
                     case 401:
                         {
+                            _upvoteButton.interactable = false;
+                            _downvoteButton.interactable = false;
                             _ratingText.text = "Token not found";
                         }; break;
                     case 400:
                         {
+                            _upvoteButton.interactable = false;
+                            _downvoteButton.interactable = false;
                             _ratingText.text = "Bad token";
                         }; break;
                     default:
                         {
+                            _upvoteButton.interactable = true;
+                            _downvoteButton.interactable = true;
                             _ratingText.text = "Error " + voteWWW.responseCode;
                         }; break;
                 }
