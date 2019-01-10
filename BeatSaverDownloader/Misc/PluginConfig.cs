@@ -187,6 +187,10 @@ namespace BeatSaverDownloader.Misc
         public static void SaveConfig()
         {
             File.WriteAllLines(configPath, favoriteSongs.Distinct().ToArray(), Encoding.UTF8);
+            
+            ModPrefs.SetBool("BeatSaverDownloader", "disableDeleteButton", disableDeleteButton);
+            ModPrefs.SetBool("BeatSaverDownloader", "deleteToRecycleBin", deleteToRecycleBin);
+            ModPrefs.SetInt("BeatSaverDownloader", "maxSimultaneousDownloads", maxSimultaneousDownloads);
         }
     }
 }

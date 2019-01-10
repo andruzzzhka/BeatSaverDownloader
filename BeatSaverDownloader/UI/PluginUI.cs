@@ -12,6 +12,7 @@ using CustomUI.MenuButton;
 using TMPro;
 using BeatSaverDownloader.Misc;
 using System;
+using CustomUI.Settings;
 
 namespace BeatSaverDownloader.UI
 {
@@ -72,6 +73,20 @@ namespace BeatSaverDownloader.UI
             
             MenuButtonUI.AddButton("More songs...", BeatSaverButtonPressed);
             //_moreSongsButton.interactable = false;
+
+            var downloaderSubMenu = SettingsUI.CreateSubMenu("Downloader");
+
+            var disableDeleteButton = downloaderSubMenu.AddBool("Disable delete button");
+            disableDeleteButton.GetValue += delegate { return PluginConfig.disableDeleteButton; };
+            disableDeleteButton.SetValue += delegate (bool value) { PluginConfig.disableDeleteButton = value; PluginConfig.SaveConfig(); };
+
+            var deleteToRecycleBin = downloaderSubMenu.AddBool("Delete to Recycle Bin");
+            deleteToRecycleBin.GetValue += delegate { return PluginConfig.deleteToRecycleBin; };
+            deleteToRecycleBin.SetValue += delegate (bool value) { PluginConfig.deleteToRecycleBin = value; PluginConfig.SaveConfig(); };
+
+            var maxSimultaneousDownloads = downloaderSubMenu.AddInt("Max simultaneous downloads", 1, 10, 1);
+            maxSimultaneousDownloads.GetValue += delegate { return PluginConfig.maxSimultaneousDownloads; };
+            maxSimultaneousDownloads.SetValue += delegate (int value) { PluginConfig.maxSimultaneousDownloads = value; PluginConfig.SaveConfig(); };
 
             initialized = true;
         }
