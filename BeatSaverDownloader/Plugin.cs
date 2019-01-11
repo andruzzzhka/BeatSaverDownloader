@@ -53,6 +53,7 @@ namespace BeatSaverDownloader
 
         private void SongLoader_SongsLoadedEvent(SongLoader sender, List<CustomLevel> levels)
         {
+            PlaylistsCollection.ReloadPlaylists();
             PlaylistsCollection.MatchSongsForAllPlaylists(true);
         }
 

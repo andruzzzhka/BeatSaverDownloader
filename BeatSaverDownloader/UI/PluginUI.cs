@@ -7,12 +7,13 @@ using BeatSaverDownloader.UI.FlowCoordinators;
 using SongLoaderPlugin;
 using SongLoaderPlugin.OverrideClasses;
 using CustomUI.BeatSaber;
-using CustomUI.Utilities;
 using CustomUI.MenuButton;
 using TMPro;
 using BeatSaverDownloader.Misc;
 using System;
 using CustomUI.Settings;
+using System.Collections;
+using CustomUI.Utilities;
 
 namespace BeatSaverDownloader.UI
 {
@@ -41,12 +42,13 @@ namespace BeatSaverDownloader.UI
         public MoreSongsFlowCoordinator moreSongsFlowCoordinator;
         public MorePlaylistsFlowCoordinator morePlaylistsFlowCoordinator;
 
-        //private Button _moreSongsButton;
+        private Button _moreSongsButton;
 
         public void OnLoad()
         {
             initialized = false;
-            SetupUI();
+
+            StartCoroutine(SetupUI());
 
             if (!SongLoader.AreSongsLoaded)
                 SongLoader.SongsLoadedEvent += SongLoader_SongsLoadedEvent;
@@ -63,18 +65,14 @@ namespace BeatSaverDownloader.UI
 
         private void SongLoader_SongsLoadedEvent(SongLoader arg1, List<CustomLevel> arg2)
         {
-            //_moreSongsButton.interactable = true;
+            _moreSongsButton.interactable = true;
         }
 
-        private void SetupUI()
+        private IEnumerator SetupUI()
         {
-            if (initialized) return;
+            if (initialized) yield break;
             
             RectTransform mainMenu = (Resources.FindObjectsOfTypeAll<MainMenuViewController>().First().rectTransform);
-
-            MenuButtonUI.AddButton("More songs...", BeatSaverButtonPressed);
-            MenuButtonUI.AddButton("More playlists...", PlaylistsButtonPressed);
-            //_moreSongsButton.interactable = false;
 
             var downloaderSubMenu = SettingsUI.CreateSubMenu("Downloader");
 
@@ -86,9 +84,23 @@ namespace BeatSaverDownloader.UI
             deleteToRecycleBin.GetValue += delegate { return PluginConfig.deleteToRecycleBin; };
             deleteToRecycleBin.SetValue += delegate (bool value) { PluginConfig.deleteToRecycleBin = value; PluginConfig.SaveConfig(); };
 
+            var enableSongIcons = downloaderSubMenu.AddBool("Enable additional song icons");
+            enableSongIcons.GetValue += delegate { return PluginConfig.enableSongIcons; };
+            enableSongIcons.SetValue += delegate (bool value) { PluginConfig.enableSongIcons = value; PluginConfig.SaveConfig(); };
+
             var maxSimultaneousDownloads = downloaderSubMenu.AddInt("Max simultaneous downloads", 1, 10, 1);
             maxSimultaneousDownloads.GetValue += delegate { return PluginConfig.maxSimultaneousDownloads; };
             maxSimultaneousDownloads.SetValue += delegate (int value) { PluginConfig.maxSimultaneousDownloads = value; PluginConfig.SaveConfig(); };
+            
+            MenuButtonUI.AddButton("More songs", BeatSaverButtonPressed);
+            MenuButtonUI.AddButton("More playlists", PlaylistsButtonPressed);
+
+            yield return null;
+
+            _moreSongsButton = mainMenu.GetComponentsInChildren<Button>().First(x => x.GetComponentInChildren<TextMeshProUGUI>().text == "More songs");
+            _moreSongsButton.interactable = SongLoader.AreSongsLoaded;
+
+            BeatSaberUI.AddHintText((RectTransform)_moreSongsButton.transform, "Download more songs from BeatSaver.com!");
 
             initialized = true;
         }

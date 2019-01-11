@@ -95,9 +95,7 @@ namespace BeatSaverDownloader.UI.ViewControllers
 
         internal void Refresh()
         {
-            _songsTableView.ReloadData();
-            if (_lastSelectedRow > -1)
-                _songsTableView.SelectRow(_lastSelectedRow);
+            _songsTableView.RefreshTable();
         }
 
         protected override void DidDeactivate(DeactivationType type)

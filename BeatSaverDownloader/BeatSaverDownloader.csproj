@@ -126,6 +126,7 @@
     <Compile Include="Misc\SongDownloader.cs" />
     <Compile Include="Misc\Logger.cs" />
     <Compile Include="Misc\SongBrowserSettings.cs" />
+    <Compile Include="Misc\TableViewHelpers.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Misc\PluginConfig.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

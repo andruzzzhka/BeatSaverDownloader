@@ -579,15 +579,7 @@ namespace BeatSaverDownloader.UI
             {
                 TableView _levelListTableView = _levelListViewController.GetComponentInChildren<TableView>();
 
-                HashSet<int> rows = new HashSet<int>(_levelListTableView.GetPrivateField<HashSet<int>>("_selectedRows"));
-                float scrollPosition = _levelListTableView.GetPrivateField<ScrollRect>("_scrollRect").verticalNormalizedPosition;
-
-                _levelListTableView.ReloadData();
-
-                _levelListTableView.GetPrivateField<ScrollRect>("_scrollRect").verticalNormalizedPosition = scrollPosition;
-                _levelListTableView.SetPrivateField("_targetVerticalNormalizedPosition", scrollPosition); 
-                if (rows.Count > 0)
-                    _levelListTableView.SelectRow(rows.First(), true);
+                _levelListTableView.RefreshTable();
             }catch(Exception e)
             {
                 Logger.Warning("Unable to refresh song list! Exception: "+e);
@@ -604,6 +596,8 @@ namespace BeatSaverDownloader.UI
 
         static TableCell Postfix(TableCell __result, LevelListTableView __instance, int row)
         {
+            if (!PluginConfig.enableSongIcons) return __result;
+
             string levelId = __instance.GetPrivateField<IBeatmapLevel[]>("_levels")[row].levelID;
             levelId = levelId.Substring(0, Math.Min(32, levelId.Length));
 
@@ -673,6 +667,8 @@ namespace BeatSaverDownloader.UI
     {
         static void Postfix(LevelListTableCell __instance, TableCell.TransitionType transitionType)
         {
+            if (!PluginConfig.enableSongIcons) return;
+
             UnityEngine.UI.Image[] images = __instance.transform.GetComponentsInChildren<UnityEngine.UI.Image>(true);
             UnityEngine.UI.Image icon = null;
 

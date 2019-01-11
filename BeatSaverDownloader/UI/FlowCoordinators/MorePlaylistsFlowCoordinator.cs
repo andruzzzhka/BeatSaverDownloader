@@ -23,6 +23,7 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
         private BackButtonNavigationController _playlistsNavigationController;
         private PlaylistListViewController _playlistsListViewController;
         private PlaylistDetailViewController _playlistDetailViewController;
+        private GameObject _loadingIndicator;
 
         private List<Playlist> playlists = new List<Playlist>();
 
@@ -45,6 +46,8 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
                 _playlistDetailViewController.selectButtonPressed += _playlistDetailViewController_selectButtonPressed;
                 _playlistDetailViewController.SetSelectButtonText("Add");
                 _playlistDetailViewController.addDownloadButton = false;
+
+                _loadingIndicator = BeatSaberUI.CreateLoadingSpinner(_playlistsNavigationController.transform);
             }
 
             SetViewControllersToNavigationConctroller(_playlistsNavigationController, new VRUIViewController[]
@@ -62,7 +65,8 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
             _playlistDetailViewController.SetSelectButtonState(false);
             StartCoroutine(DownloadPlaylistFile(playlist.fileLoc, (path) => {
                 _playlistDetailViewController.SetSelectButtonState(true);
-                PlaylistsCollection.loadedPlaylists.Add(Playlist.LoadPlaylist(path));
+                PlaylistsCollection.ReloadPlaylists(false);
+                _playlistsListViewController.Refresh();
             }));
         }
 
@@ -105,6 +109,7 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
         {
             yield return null;
 
+            _loadingIndicator.SetActive(true);
             _playlistsListViewController.SetContent(null);
 
             UnityWebRequest www = UnityWebRequest.Get(playlistAPI_URL);
@@ -114,6 +119,7 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
             if (www.isNetworkError || www.isHttpError)
             {
                 Logger.Error($"Unable to connect to BeastSaber playlist API! " + (www.isNetworkError ? $"Network error: {www.error}" : (www.isHttpError ? $"HTTP error: {www.error}" : "Unknown error")));
+                _loadingIndicator.SetActive(false);
             }
             else
             {
@@ -128,11 +134,14 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
                         playlists.Add(new Playlist(node[i]));
                     }
 
+
+                    _loadingIndicator.SetActive(false);
                     _playlistsListViewController.SetContent(playlists);
                 }
                 catch (Exception e)
                 {
                     Logger.Exception("Unable to parse response! Exception: " + e);
+                    _loadingIndicator.SetActive(false);
                 }
             }
         }

@@ -17,12 +17,10 @@ namespace BeatSaverDownloader.Misc
     {
         public static List<Playlist> loadedPlaylists = new List<Playlist>();
 
-        public static void ReloadPlaylists()
+        public static void ReloadPlaylists(bool fullRefresh = true)
         {
             try
             {
-                loadedPlaylists.Clear();
-
                 List<string> playlistFiles = new List<string>();
 
                 if (PluginConfig.beatDropInstalled)
@@ -41,19 +39,51 @@ namespace BeatSaverDownloader.Misc
 
                 Logger.Log($"Found {localJSONPlaylists.Length + localBPLISTPlaylists.Length} playlists in Playlists folder");
 
-                foreach (string path in playlistFiles)
+                if (fullRefresh)
                 {
-                    try
+                    loadedPlaylists.Clear();
+                    
+                    foreach (string path in playlistFiles)
                     {
-                        Playlist playlist = Playlist.LoadPlaylist(path);
-                        if (Path.GetFileName(path) == "favorites.json" && playlist.playlistTitle == "Your favorite songs")
-                            continue;
-                        loadedPlaylists.Add(playlist);
-                        Logger.Log($"Found \"{playlist.playlistTitle}\" by {playlist.playlistAuthor}");
+                        try
+                        {
+                            Playlist playlist = Playlist.LoadPlaylist(path);
+                            if (Path.GetFileName(path) == "favorites.json" && playlist.playlistTitle == "Your favorite songs")
+                                continue;
+                            loadedPlaylists.Add(playlist);
+                            Logger.Log($"Found \"{playlist.playlistTitle}\" by {playlist.playlistAuthor}");
+                        }
+                        catch (Exception e)
+                        {
+                            Logger.Log($"Unable to parse playlist @ {path}! Exception: {e}");
+                        }
                     }
-                    catch (Exception e)
+                }
+                else
+                {
+                    foreach (string path in playlistFiles)
                     {
-                        Logger.Log($"Unable to parse playlist @ {path}! Exception: {e}");
+                        if(!loadedPlaylists.Any(x => x.fileLoc == path))
+                        {
+                            Logger.Log("Found new playlist! Path: "+path);
+                            try
+                            {
+                                Playlist playlist = Playlist.LoadPlaylist(path);
+                                if (Path.GetFileName(path) == "favorites.json" && playlist.playlistTitle == "Your favorite songs")
+                                    continue;
+                                loadedPlaylists.Add(playlist);
+                                Logger.Log($"Found \"{playlist.playlistTitle}\" by {playlist.playlistAuthor}");
+
+                                if (SongLoader.AreSongsLoaded)
+                                {
+                                    MatchSongsForPlaylist(playlist);
+                                }
+                            }
+                            catch (Exception e)
+                            {
+                                Logger.Log($"Unable to parse playlist @ {path}! Exception: {e}");
+                            }
+                        }
                     }
                 }
             }
@@ -114,10 +144,10 @@ namespace BeatSaverDownloader.Misc
                     {
                         try
                         {
-                            x.level = SongLoader.CustomLevels.FirstOrDefault(y => (y.customSongInfo.path.Contains(x.key) && Directory.Exists(y.customSongInfo.path)) || (string.IsNullOrEmpty(x.levelId) ? false : y.levelID.StartsWith(x.levelId)));
+                            x.level = SongLoader.CustomLevels.FirstOrDefault(y => ( !string.IsNullOrEmpty(x.key) && y.customSongInfo.path.Contains(x.key) && Directory.Exists(y.customSongInfo.path)) || (string.IsNullOrEmpty(x.levelId) ? false : y.levelID.StartsWith(x.levelId)));
                         }catch(Exception e)
                         {
-                            Logger.Warning($"Unable to match song with key {x.key}! Exception: {e}");
+                            Logger.Warning($"Unable to match song with {(string.IsNullOrEmpty(x.key) ? " unknown key!" : ("key " + x.key + " !"))} Exception: {e}");
                         }
                     }
                 });
@@ -248,7 +278,9 @@ namespace BeatSaverDownloader.Misc
 
         public static Playlist LoadPlaylist(string path)
         {
-            return new Playlist(JSON.Parse(File.ReadAllText(path)));
+            Playlist playlist = new Playlist(JSON.Parse(File.ReadAllText(path)));
+            playlist.fileLoc = path;
+            return playlist;
         }
 
         public void SavePlaylist(string path = "")
