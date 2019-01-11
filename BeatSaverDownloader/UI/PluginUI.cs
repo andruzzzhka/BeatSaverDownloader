@@ -39,6 +39,7 @@ namespace BeatSaverDownloader.UI
         }
 
         public MoreSongsFlowCoordinator moreSongsFlowCoordinator;
+        public MorePlaylistsFlowCoordinator morePlaylistsFlowCoordinator;
 
         //private Button _moreSongsButton;
 
@@ -70,8 +71,9 @@ namespace BeatSaverDownloader.UI
             if (initialized) return;
             
             RectTransform mainMenu = (Resources.FindObjectsOfTypeAll<MainMenuViewController>().First().rectTransform);
-            
+
             MenuButtonUI.AddButton("More songs...", BeatSaverButtonPressed);
+            MenuButtonUI.AddButton("More playlists...", PlaylistsButtonPressed);
             //_moreSongsButton.interactable = false;
 
             var downloaderSubMenu = SettingsUI.CreateSubMenu("Downloader");
@@ -95,10 +97,20 @@ namespace BeatSaverDownloader.UI
         {
             if (moreSongsFlowCoordinator == null)
                 moreSongsFlowCoordinator = new GameObject("MoreSongsFlowCoordinator").AddComponent<MoreSongsFlowCoordinator>();
-            
+
             MainFlowCoordinator mainFlow = Resources.FindObjectsOfTypeAll<MainFlowCoordinator>().First();
-            
+
             mainFlow.InvokeMethod("PresentFlowCoordinator", moreSongsFlowCoordinator, null, false, false);
+        }
+
+        public void PlaylistsButtonPressed()
+        {
+            if (morePlaylistsFlowCoordinator == null)
+                morePlaylistsFlowCoordinator = new GameObject("MorePlaylistsFlowCoordinator").AddComponent<MorePlaylistsFlowCoordinator>();
+
+            MainFlowCoordinator mainFlow = Resources.FindObjectsOfTypeAll<MainFlowCoordinator>().First();
+
+            mainFlow.InvokeMethod("PresentFlowCoordinator", morePlaylistsFlowCoordinator, null, false, false);
         }
 
     }

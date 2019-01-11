@@ -1,5 +1,6 @@
 ﻿using BeatSaverDownloader.Misc;
 using BeatSaverDownloader.UI.FlowCoordinators;
+using CustomUI.BeatSaber;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,11 +27,14 @@ namespace BeatSaverDownloader.UI.ViewControllers
         
         private Button _downloadButton;
         private Button _selectButton;
+        private string _selectButtonText = "Select";
 
         private TextMeshProUGUI authorText;
         private TextMeshProUGUI totalSongsText;
         private TextMeshProUGUI downloadedSongsText;
-        
+
+        public bool addDownloadButton = true;
+
         protected override void DidActivate(bool firstActivation, ActivationType type)
         {
 
@@ -72,20 +76,41 @@ namespace BeatSaverDownloader.UI.ViewControllers
                 }
 
                 _selectButton = GetComponentsInChildren<Button>().First(x => x.name == "PlayButton");
-                _selectButton.GetComponentsInChildren<TextMeshProUGUI>().First().text = "SELECT";
+                _selectButton.SetButtonText(_selectButtonText);
                 _selectButton.onClick.RemoveAllListeners();
                 _selectButton.onClick.AddListener(() => { selectButtonPressed?.Invoke(_currentPlaylist); });
 
-                _downloadButton = GetComponentsInChildren<Button>().First(x => x.name == "PracticeButton");
-                _downloadButton.GetComponentsInChildren<Image>().First(x => x.name == "Icon").sprite = Base64Sprites.DownloadIcon;
-                _downloadButton.onClick.RemoveAllListeners();
-                _downloadButton.onClick.AddListener(() => { downloadButtonPressed?.Invoke(_currentPlaylist); });
+                if (addDownloadButton)
+                {
+                    _downloadButton = GetComponentsInChildren<Button>().First(x => x.name == "PracticeButton");
+                    _downloadButton.GetComponentsInChildren<Image>().First(x => x.name == "Icon").sprite = Base64Sprites.DownloadIcon;
+                    _downloadButton.onClick.RemoveAllListeners();
+                    _downloadButton.onClick.AddListener(() => { downloadButtonPressed?.Invoke(_currentPlaylist); });
+                }
+                else
+                {
+                    Destroy(GetComponentsInChildren<Button>().First(x => x.name == "PracticeButton").gameObject);
+                }
             }
         }
 
         public void SetDownloadState(bool downloaded)
         {
             _downloadButton.interactable = !downloaded;
+        }
+
+        public void SetSelectButtonState(bool enabled)
+        {
+            _selectButton.interactable = enabled;
+        }
+
+        public void SetSelectButtonText(string text)
+        {
+            _selectButtonText = text;
+            if (_selectButton != null)
+            {
+                _selectButton.SetButtonText(_selectButtonText);
+            }
         }
 
         public void SetContent(Playlist newPlaylist)
@@ -95,10 +120,18 @@ namespace BeatSaverDownloader.UI.ViewControllers
             songNameText.text = newPlaylist.playlistTitle;
 
             authorText.text = newPlaylist.playlistAuthor;
-            totalSongsText.text = newPlaylist.songs.Count.ToString();
-            downloadedSongsText.text = newPlaylist.songs.Where(x => x.level != null).Count().ToString();
-            
-            SetDownloadState(newPlaylist.songs.All(x => x.level != null));
+
+            if (newPlaylist.songs.Count > 0)
+            {
+                totalSongsText.text = newPlaylist.songs.Count.ToString();
+                downloadedSongsText.text = newPlaylist.songs.Where(x => x.level != null).Count().ToString();
+                SetDownloadState(newPlaylist.songs.All(x => x.level != null));
+            }
+            else
+            {
+                totalSongsText.text = newPlaylist.playlistSongCount.ToString();
+                downloadedSongsText.text = "??";
+            }
         }
 
         void RemoveCustomUIElements(Transform parent)

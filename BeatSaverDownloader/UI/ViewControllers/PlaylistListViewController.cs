@@ -9,6 +9,7 @@ using VRUI;
 using UnityEngine.UI;
 using BeatSaverDownloader.Misc;
 using CustomUI.Utilities;
+using TMPro;
 
 namespace BeatSaverDownloader.UI.ViewControllers
 {
@@ -17,6 +18,8 @@ namespace BeatSaverDownloader.UI.ViewControllers
         public event Action<Playlist> didSelectRow;
 
         public List<Playlist> playlistList = new List<Playlist>();
+
+        public bool highlightDownloadedPlaylists = false;
 
         private Button _pageUpButton;
         private Button _pageDownButton;
@@ -140,6 +143,21 @@ namespace BeatSaverDownloader.UI.ViewControllers
             _tableCell.songName = playlistList[row].playlistTitle;
             _tableCell.author = playlistList[row].playlistAuthor;
             _tableCell.coverImage = playlistList[row].icon;
+
+            if (highlightDownloadedPlaylists)
+            {
+                if (PlaylistsCollection.loadedPlaylists.Any(x => x.PlaylistEqual(playlistList[row])))
+                {
+                    foreach (UnityEngine.UI.Image img in _tableCell.GetComponentsInChildren<UnityEngine.UI.Image>())
+                    {
+                        img.color = new Color(1f, 1f, 1f, 0.2f);
+                    }
+                    foreach (TextMeshProUGUI text in _tableCell.GetComponentsInChildren<TextMeshProUGUI>())
+                    {
+                        text.faceColor = new Color(1f, 1f, 1f, 0.2f);
+                    }
+                }
+            }
 
             return _tableCell;
         }

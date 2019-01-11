@@ -57,6 +57,7 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
                 
                 _playlistDetailViewController.downloadButtonPressed += _playlistDetailViewController_downloadButtonPressed;
                 _playlistDetailViewController.selectButtonPressed += _playlistDetailViewController_selectButtonPressed;
+                _playlistDetailViewController.SetSelectButtonText("Select");
 
                 _downloadQueueViewController = BeatSaberUI.CreateViewController<DownloadQueueViewController>();
 

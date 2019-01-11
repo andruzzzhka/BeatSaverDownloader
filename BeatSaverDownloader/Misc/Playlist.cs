@@ -112,7 +112,13 @@ namespace BeatSaverDownloader.Misc
                 {
                     if (x.level == null || matchAll)
                     {
-                        x.level = SongLoader.CustomLevels.FirstOrDefault(y => (y.customSongInfo.path.Contains(x.key) && Directory.Exists(y.customSongInfo.path)) || (string.IsNullOrEmpty(x.levelId) ? false : y.levelID.StartsWith(x.levelId)));
+                        try
+                        {
+                            x.level = SongLoader.CustomLevels.FirstOrDefault(y => (y.customSongInfo.path.Contains(x.key) && Directory.Exists(y.customSongInfo.path)) || (string.IsNullOrEmpty(x.levelId) ? false : y.levelID.StartsWith(x.levelId)));
+                        }catch(Exception e)
+                        {
+                            Logger.Warning($"Unable to match song with key {x.key}! Exception: {e}");
+                        }
                     }
                 });
             }
@@ -169,7 +175,7 @@ namespace BeatSaverDownloader.Misc
         public string playlistTitle { get; set; }
         public string playlistAuthor { get; set; }
         public string image { get; set; }
-        public int songCount { get; set; }
+        public int playlistSongCount { get; set; }
         public List<PlaylistSong> songs { get; set; }
         public string fileLoc { get; set; }
         public string customDetailUrl { get; set; }
@@ -231,7 +237,7 @@ namespace BeatSaverDownloader.Misc
 
             if (playlistNode["playlistSongCount"] != null)
             {
-                songCount = playlistNode["playlistSongCount"].AsInt;
+                playlistSongCount = playlistNode["playlistSongCount"].AsInt;
             }
             if (playlistNode["fileLoc"] != null)
                 fileLoc = playlistNode["fileLoc"];
@@ -257,7 +263,7 @@ namespace BeatSaverDownloader.Misc
             try
             {
                 image = Base64Sprites.SpriteToBase64(icon);
-                songCount = songs.Count;
+                playlistSongCount = songs.Count;
             }catch(Exception e)
             {
                 Logger.Exception("Unable to save playlist! Exception: "+e);
@@ -284,6 +290,19 @@ namespace BeatSaverDownloader.Misc
                 Logger.Exception("Unable to save playlist! Exception: " + e);
                 yield break;
             }
+        }
+
+        public bool PlaylistEqual(object obj)
+        {
+            var playlist = obj as Playlist;
+
+            int songCountThis = (songs != null ? (songs.Count > 0 ? songs.Count : playlistSongCount) : playlistSongCount);
+            int songCountObj  = (playlist.songs != null ? (playlist.songs.Count > 0 ? playlist.songs.Count : playlist.playlistSongCount) : playlist.playlistSongCount);
+
+            return playlist != null &&
+                   playlistTitle == playlist.playlistTitle &&
+                   playlistAuthor == playlist.playlistAuthor &&
+                   songCountThis == songCountObj;
         }
     }
 }

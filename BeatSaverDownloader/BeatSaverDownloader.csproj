@@ -129,6 +129,7 @@
     <Compile Include="Plugin.cs" />
     <Compile Include="Misc\PluginConfig.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="UI\FlowCoordinators\MorePlaylistsFlowCoordinator.cs" />
     <Compile Include="UI\FlowCoordinators\MoreSongsFlowCoordinator.cs" />
     <Compile Include="UI\PluginUI.cs" />
     <Compile Include="UI\SongListTweaks.cs" />
