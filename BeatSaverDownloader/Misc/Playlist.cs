@@ -5,6 +5,7 @@ using SongLoaderPlugin.OverrideClasses;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -136,9 +137,12 @@ namespace BeatSaverDownloader.Misc
         public static void MatchSongsForPlaylist(Playlist playlist, bool matchAll = false)
         {
             if (!SongLoader.AreSongsLoaded || SongLoader.AreSongsLoading || playlist.playlistTitle == "All songs" || playlist.playlistTitle == "Your favorite songs") return;
+            Logger.Log("Started matching songs for playlist \""+playlist.playlistTitle+"\"...");
             if (!playlist.songs.All(x => x.level != null) || matchAll)
             {
-                playlist.songs.ForEach(x =>
+                Stopwatch execTime = new Stopwatch();
+                execTime.Start();
+                playlist.songs.AsParallel().ForAll(x =>
                 {
                     if (x.level == null || matchAll)
                     {
@@ -154,31 +158,38 @@ namespace BeatSaverDownloader.Misc
                             }
                             if (x.level == null && !string.IsNullOrEmpty(x.key)) //if level is still null, check that we have key and if we do, try to match level
                             {
-                                if (ScrappedData.Songs.Any(y => y.Key == x.key))
+                                ScrappedSong song = ScrappedData.Songs.FirstOrDefault(z => z.Key == x.key);
+                                if (song != null)
                                 {
-                                    x.level = SongLoader.CustomLevels.FirstOrDefault(y => y.levelID.StartsWith(ScrappedData.Songs.First(z => z.Key == x.key).Hash));
+                                    x.level = SongLoader.CustomLevels.FirstOrDefault(y => y.levelID.StartsWith(song.Hash));
                                 }
                                 else
                                 {
                                     x.level = SongLoader.CustomLevels.FirstOrDefault(y => y.customSongInfo.path.Contains(x.key));
                                 }
                             }
-                        }catch(Exception e)
+                        }
+                        catch (Exception e)
                         {
                             Logger.Warning($"Unable to match song with {(string.IsNullOrEmpty(x.key) ? " unknown key!" : ("key " + x.key + " !"))} Exception: {e}");
                         }
                     }
                 });
+                Logger.Log($"Matched all songs for playlist \"{playlist.playlistTitle}\"! Time: {execTime.Elapsed.TotalSeconds.ToString("0.00")}s");
+                execTime.Reset();
             }
         }
 
         public static void MatchSongsForAllPlaylists(bool matchAll = false)
         {
             Logger.Log("Matching songs for all playlists!");
-            foreach (Playlist playlist in loadedPlaylists)
+            Task.Run(() =>
             {
-                MatchSongsForPlaylist(playlist, matchAll);
-            }
+                for (int i = 0; i < loadedPlaylists.Count; i++)
+                {
+                    MatchSongsForPlaylist(loadedPlaylists[i], matchAll);
+                }
+            });
         }
     }
 
