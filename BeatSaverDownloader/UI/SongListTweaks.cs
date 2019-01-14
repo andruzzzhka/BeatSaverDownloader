@@ -272,12 +272,12 @@ namespace BeatSaverDownloader.UI
 
             Playlist _allPlaylist = new Playlist() { playlistTitle = "All songs", playlistAuthor = "", image = Base64Sprites.BeastSaberLogoB64, icon = Base64Sprites.BeastSaberLogo, fileLoc = "" };
             _allPlaylist.songs = new List<PlaylistSong>();
-            _allPlaylist.songs.AddRange(levels.Select(x => new PlaylistSong() { songName = $"{x.songName} {x.songSubName}", level = x, oneSaber = x.beatmapCharacteristics.Any(y => y.characteristicName == "One Saber"), path = "", key = "", levelId = x.levelID }));
+            _allPlaylist.songs.AddRange(levels.Select(x => new PlaylistSong() { songName = $"{x.songName} {x.songSubName}", level = x, oneSaber = x.beatmapCharacteristics.Any(y => y.characteristicName == "One Saber"), path = "", key = "", levelId = x.levelID, hash = CustomHelpers.CheckHex(x.levelID.Substring(0, Math.Min(32, x.levelID.Length))) }));
             Logger.Log($"Created \"{_allPlaylist.playlistTitle}\" playlist with {_allPlaylist.songs.Count} songs!");
 
             Playlist _favPlaylist = new Playlist() { playlistTitle = "Your favorite songs", playlistAuthor = "", image = Base64Sprites.BeastSaberLogoB64, icon = Base64Sprites.BeastSaberLogo, fileLoc = "" };
             _favPlaylist.songs = new List<PlaylistSong>();
-            _favPlaylist.songs.AddRange(levels.Where(x => PluginConfig.favoriteSongs.Contains(x.levelID)).Select(x => new PlaylistSong() { songName = $"{x.songName} {x.songSubName}", level = x, oneSaber = x.beatmapCharacteristics.Any(y => y.characteristicName == "One Saber"), path = "", key = "", levelId = x.levelID }));
+            _favPlaylist.songs.AddRange(levels.Where(x => PluginConfig.favoriteSongs.Contains(x.levelID)).Select(x => new PlaylistSong() { songName = $"{x.songName} {x.songSubName}", level = x, oneSaber = x.beatmapCharacteristics.Any(y => y.characteristicName == "One Saber"), path = "", key = "", levelId = x.levelID, hash = CustomHelpers.CheckHex(x.levelID.Substring(0, Math.Min(32, x.levelID.Length))) }));
             Logger.Log($"Created \"{_favPlaylist.playlistTitle}\" playlist with {_favPlaylist.songs.Count} songs!");
 
             if (PlaylistsCollection.loadedPlaylists.Any(x => x.playlistTitle == "All songs" || x.playlistTitle == "Your favorite songs"))

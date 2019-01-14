@@ -9,7 +9,7 @@ using UnityEngine.UI;
 
 namespace BeatSaverDownloader.Misc
 {
-    public static class TableViewHelpers
+    public static class CustomHelpers
     {
 
         public static void RefreshTable(this TableView tableView, bool callbackTable = true)
@@ -25,6 +25,20 @@ namespace BeatSaverDownloader.Misc
                 tableView.SelectRow(rows.First(), callbackTable);
         }
 
+        static char[] hexChars = new char[]{ '0' , '1' , '2' , '3' , '4' , '5' , '6' , '7' , '8' , '9' , 'A' , 'B' , 'C' , 'D' , 'E' , 'F' };
+
+        public static string CheckHex(string input)
+        {
+            input = input.ToUpper();
+            if(input.All(x => hexChars.Contains(x)))
+            {
+                return input;
+            }
+            else
+            {
+                return "";
+            }
+        }
 
     }
 }

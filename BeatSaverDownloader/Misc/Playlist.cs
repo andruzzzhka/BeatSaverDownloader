@@ -144,7 +144,25 @@ namespace BeatSaverDownloader.Misc
                     {
                         try
                         {
-                            x.level = SongLoader.CustomLevels.FirstOrDefault(y => ( !string.IsNullOrEmpty(x.key) && y.customSongInfo.path.Contains(x.key) && Directory.Exists(y.customSongInfo.path)) || (string.IsNullOrEmpty(x.levelId) ? false : y.levelID.StartsWith(x.levelId)));
+                            if (!string.IsNullOrEmpty(x.levelId)) //check that we have levelId and if we do, try to match level
+                            {
+                                x.level = SongLoader.CustomLevels.FirstOrDefault(y => y.levelID == x.levelId);
+                            }
+                            if (x.level == null && !string.IsNullOrEmpty(x.hash)) //if level is still null, check that we have hash and if we do, try to match level
+                            {
+                                x.level = SongLoader.CustomLevels.FirstOrDefault(y => y.levelID.StartsWith(x.hash.ToUpper()));
+                            }
+                            if (x.level == null && !string.IsNullOrEmpty(x.key)) //if level is still null, check that we have key and if we do, try to match level
+                            {
+                                if (ScrappedData.Songs.Any(y => y.Key == x.key))
+                                {
+                                    x.level = SongLoader.CustomLevels.FirstOrDefault(y => y.levelID.StartsWith(ScrappedData.Songs.First(z => z.Key == x.key).Hash));
+                                }
+                                else
+                                {
+                                    x.level = SongLoader.CustomLevels.FirstOrDefault(y => y.customSongInfo.path.Contains(x.key));
+                                }
+                            }
                         }catch(Exception e)
                         {
                             Logger.Warning($"Unable to match song with {(string.IsNullOrEmpty(x.key) ? " unknown key!" : ("key " + x.key + " !"))} Exception: {e}");
@@ -168,8 +186,10 @@ namespace BeatSaverDownloader.Misc
     {
         public string key { get; set; }
         public string songName { get; set; }
-        public string levelId { get; set; }
+        public string hash { get; set; }
 
+        [NonSerialized]
+        public string levelId;
         [NonSerialized]
         public LevelSO level;
         [NonSerialized]
@@ -181,8 +201,16 @@ namespace BeatSaverDownloader.Misc
         {
             if (!string.IsNullOrEmpty(key))
                 yield break;
-            
-            if (!string.IsNullOrEmpty(levelId))
+
+            if (!string.IsNullOrEmpty(hash))
+            {
+                ScrappedSong song = ScrappedData.Songs.FirstOrDefault(x => hash.ToUpper() == x.Hash);
+                if (song != null)
+                    key = song.Key;
+                else
+                    yield return SongDownloader.Instance.RequestSongByLevelIDCoroutine(hash, (Song bsSong) => { key = bsSong.id; });
+            }
+            else if (!string.IsNullOrEmpty(levelId))
             {
                 ScrappedSong song = ScrappedData.Songs.FirstOrDefault(x => levelId.StartsWith(x.Hash));
                 if (song != null)
@@ -260,6 +288,7 @@ namespace BeatSaverDownloader.Misc
                 PlaylistSong song = new PlaylistSong();
                 song.key = node["key"];
                 song.songName = node["songName"];
+                song.hash = node["hash"];
                 song.levelId = node["levelId"];
 
                 songs.Add(song);
@@ -313,7 +342,7 @@ namespace BeatSaverDownloader.Misc
                     fileLoc = Path.GetFullPath(path);
                 }
 
-                File.WriteAllText(fileLoc, JsonConvert.SerializeObject(this));
+                File.WriteAllText(fileLoc, JsonConvert.SerializeObject(this, Formatting.Indented));
 
                 Logger.Log("Playlist saved!");
             }
