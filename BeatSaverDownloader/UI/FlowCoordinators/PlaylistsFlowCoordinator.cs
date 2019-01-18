@@ -158,10 +158,30 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
 
         public IEnumerator GetInfoForSong(Playlist playlist, PlaylistSong song, Action<Song> songCallback)
         {
-            string url = $"{PluginConfig.beatsaverURL}/api/songs/detail/{song.key}";
-            if (!string.IsNullOrEmpty(playlist.customDetailUrl))
+            string url = "";
+            bool _usingHash = false;
+            if (!string.IsNullOrEmpty(song.key))
             {
-                url = playlist.customDetailUrl + song.key;
+                url = $"{PluginConfig.beatsaverURL}/api/songs/detail/{song.key}";
+                if (!string.IsNullOrEmpty(playlist.customDetailUrl))
+                {
+                    url = playlist.customDetailUrl + song.key;
+                }
+            }
+            else if (!string.IsNullOrEmpty(song.hash))
+            {
+                url = $"{PluginConfig.beatsaverURL}/api/songs/search/hash/{song.hash}";
+                _usingHash = true;
+            }
+            else if (!string.IsNullOrEmpty(song.levelId))
+            {
+                string hash = CustomHelpers.CheckHex(song.levelId.Substring(0, Math.Min(32, song.levelId.Length)));
+                url = $"{PluginConfig.beatsaverURL}/api/songs/search/hash/{hash}";
+                _usingHash = true;
+            }
+            else
+            {
+                yield break;
             }
 
             UnityWebRequest www = UnityWebRequest.Get(url);
@@ -177,7 +197,21 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
                 try
                 {
                     JSONNode node = JSON.Parse(www.downloadHandler.text);
-                    songCallback?.Invoke(new Song(node["song"]));
+
+                    if (_usingHash)
+                    {
+                        if (node["songs"].Count == 0)
+                        {
+                            Logger.Error($"Song {song.songName} doesn't exist on BeatSaver!");
+                            songCallback?.Invoke(null);
+                            yield break;
+                        }
+                        songCallback?.Invoke(Song.FromSearchNode(node["songs"][0]));
+                    }
+                    else
+                    {
+                        songCallback?.Invoke(new Song(node["song"]));
+                    }
                 }
                 catch (Exception e)
                 {

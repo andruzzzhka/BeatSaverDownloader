@@ -25,7 +25,7 @@ namespace BeatSaverDownloader.UI
 {
     public enum SortMode { Default, Difficulty, Newest };
 
-    class SongListTweaks : MonoBehaviour
+    public class SongListTweaks : MonoBehaviour
     {
 
         public bool initialized = false;
@@ -497,7 +497,7 @@ namespace BeatSaverDownloader.UI
             PopDifficultyAndDetails();
         }
 
-        LevelSO[] SortLevelsByCreationTime(LevelSO[] levels)
+        public LevelSO[] SortLevelsByCreationTime(LevelSO[] levels)
         {
             DirectoryInfo customSongsFolder = new DirectoryInfo(Environment.CurrentDirectory.Replace('\\', '/') + "/CustomSongs/");
 
@@ -596,66 +596,72 @@ namespace BeatSaverDownloader.UI
 
         static TableCell Postfix(TableCell __result, LevelListTableView __instance, int row)
         {
-            if (!PluginConfig.enableSongIcons) return __result;
-
-            string levelId = __instance.GetPrivateField<IBeatmapLevel[]>("_levels")[row].levelID;
-            levelId = levelId.Substring(0, Math.Min(32, levelId.Length));
-
-            UnityEngine.UI.Image[] images = __result.transform.GetComponentsInChildren<UnityEngine.UI.Image>(true);
-            UnityEngine.UI.Image icon = null;
-
-            if (images.Any(x => x.name == "ExtraIcon"))
+            try
             {
-                icon = images.First(x => x.name == "ExtraIcon");
-            }
-            else
-            {
-                RectTransform iconRT = new GameObject("ExtraIcon", typeof(RectTransform)).GetComponent<RectTransform>();
-                iconRT.SetParent(__result.transform, false);
+                if (!PluginConfig.enableSongIcons) return __result;
 
-                iconRT.anchorMin = new Vector2(0.95f, 0.25f);
-                iconRT.anchorMax = new Vector2(0.95f, 0.25f);
-                iconRT.anchoredPosition = new Vector2(0f, 0f);
-                iconRT.sizeDelta = new Vector2(4f, 4f);
+                string levelId = __instance.GetPrivateField<IBeatmapLevel[]>("_levels")[row].levelID;
+                levelId = levelId.Substring(0, Math.Min(32, levelId.Length));
 
-                icon = iconRT.gameObject.AddComponent<UnityEngine.UI.Image>();
+                UnityEngine.UI.Image[] images = __result.transform.GetComponentsInChildren<UnityEngine.UI.Image>(true);
+                UnityEngine.UI.Image icon = null;
 
-                if (noGlow == null)
+                if (images.Any(x => x.name == "ExtraIcon"))
                 {
-                    noGlow = Resources.FindObjectsOfTypeAll<Material>().First(x => x.name == "UINoGlow");
+                    icon = images.First(x => x.name == "ExtraIcon");
+                }
+                else
+                {
+                    RectTransform iconRT = new GameObject("ExtraIcon", typeof(RectTransform)).GetComponent<RectTransform>();
+                    iconRT.SetParent(__result.transform, false);
+
+                    iconRT.anchorMin = new Vector2(0.95f, 0.25f);
+                    iconRT.anchorMax = new Vector2(0.95f, 0.25f);
+                    iconRT.anchoredPosition = new Vector2(0f, 0f);
+                    iconRT.sizeDelta = new Vector2(4f, 4f);
+
+                    icon = iconRT.gameObject.AddComponent<UnityEngine.UI.Image>();
+
+                    if (noGlow == null)
+                    {
+                        noGlow = Resources.FindObjectsOfTypeAll<Material>().First(x => x.name == "UINoGlow");
+                    }
+
+                    icon.material = noGlow;
                 }
 
-                icon.material = noGlow;
-            }
-
-            if (PluginConfig.favoriteSongs.Any(x => x.StartsWith(levelId)))
-            {
-                icon.enabled = true;
-                icon.sprite = Base64Sprites.StarFull;
-            }
-            else if (PluginConfig.votedSongs.ContainsKey(levelId))
-            {
-                switch (PluginConfig.votedSongs[levelId].voteType)
+                if (PluginConfig.favoriteSongs.Any(x => x.StartsWith(levelId)))
                 {
-                    case VoteType.Upvote:
-                        {
-                            icon.enabled = true;
-                            icon.sprite = Base64Sprites.ThumbUp;
-                        }
-                        break;
-                    case VoteType.Downvote:
-                        {
-                            icon.enabled = true;
-                            icon.sprite = Base64Sprites.ThumbDown;
-                        }
-                        break;
+                    icon.enabled = true;
+                    icon.sprite = Base64Sprites.StarFull;
+                }
+                else if (PluginConfig.votedSongs.ContainsKey(levelId))
+                {
+                    switch (PluginConfig.votedSongs[levelId].voteType)
+                    {
+                        case VoteType.Upvote:
+                            {
+                                icon.enabled = true;
+                                icon.sprite = Base64Sprites.ThumbUp;
+                            }
+                            break;
+                        case VoteType.Downvote:
+                            {
+                                icon.enabled = true;
+                                icon.sprite = Base64Sprites.ThumbDown;
+                            }
+                            break;
+                    }
+                }
+                else
+                {
+                    icon.enabled = false;
                 }
             }
-            else
+            catch
             {
-                icon.enabled = false;
-            }
 
+            }
             return __result;
         }
     }
@@ -667,25 +673,32 @@ namespace BeatSaverDownloader.UI
     {
         static void Postfix(LevelListTableCell __instance, TableCell.TransitionType transitionType)
         {
-            if (!PluginConfig.enableSongIcons) return;
-
-            UnityEngine.UI.Image[] images = __instance.transform.GetComponentsInChildren<UnityEngine.UI.Image>(true);
-            UnityEngine.UI.Image icon = null;
-
-            if (images.Any(x => x.name == "ExtraIcon"))
+            try
             {
-                icon = images.First(x => x.name == "ExtraIcon");
-                if (icon.enabled)
+                if (!PluginConfig.enableSongIcons) return;
+
+                UnityEngine.UI.Image[] images = __instance.transform.GetComponentsInChildren<UnityEngine.UI.Image>(true);
+                UnityEngine.UI.Image icon = null;
+
+                if (images.Any(x => x.name == "ExtraIcon"))
                 {
-                    if (__instance.selected)
+                    icon = images.First(x => x.name == "ExtraIcon");
+                    if (icon.enabled)
                     {
-                        icon.color = Color.black;
-                    }
-                    else
-                    {
-                        icon.color = Color.white;
+                        if (__instance.selected)
+                        {
+                            icon.color = Color.black;
+                        }
+                        else
+                        {
+                            icon.color = Color.white;
+                        }
                     }
                 }
+            }
+            catch
+            {
+
             }
             
         }

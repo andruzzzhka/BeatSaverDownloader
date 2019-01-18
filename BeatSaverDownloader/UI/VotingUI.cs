@@ -17,7 +17,7 @@ using Logger = BeatSaverDownloader.Misc.Logger;
 
 namespace BeatSaverDownloader.UI
 {
-    class VotingUI : MonoBehaviour
+    public class VotingUI : MonoBehaviour
     {
         public bool initialized = false;
 

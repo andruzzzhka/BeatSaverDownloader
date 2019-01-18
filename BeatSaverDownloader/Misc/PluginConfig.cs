@@ -12,9 +12,9 @@ using Newtonsoft.Json.Converters;
 
 namespace BeatSaverDownloader.Misc
 {
-    enum VoteType { Upvote, Downvote };
+    public enum VoteType { Upvote, Downvote };
 
-    struct SongVote
+    public struct SongVote
     {
         public string key;
         [JsonConverter(typeof(StringEnumConverter))]
@@ -27,7 +27,7 @@ namespace BeatSaverDownloader.Misc
         }
     }
 
-    internal class PluginConfig
+    public class PluginConfig
     {
         static public bool beatDropInstalled = false;
         static public string beatDropPlaylistsLocation = "";

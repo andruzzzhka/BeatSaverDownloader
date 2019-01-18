@@ -13,7 +13,7 @@ using CustomUI.Utilities;
 
 namespace BeatSaverDownloader.UI.ViewControllers
 {
-    enum TopButtonsState { Select, SortBy, Search, Playlists };
+    public enum TopButtonsState { Select, SortBy, Search, Playlists };
 
     class MoreSongsListViewController : VRUIViewController, TableView.IDataSource
     {
