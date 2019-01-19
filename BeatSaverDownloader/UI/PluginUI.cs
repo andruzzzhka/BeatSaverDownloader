@@ -42,7 +42,7 @@ namespace BeatSaverDownloader.UI
         public MoreSongsFlowCoordinator moreSongsFlowCoordinator;
         public MorePlaylistsFlowCoordinator morePlaylistsFlowCoordinator;
 
-        private Button _moreSongsButton;
+        private MenuButton _moreSongsButton;
 
         public void OnLoad()
         {
@@ -71,7 +71,7 @@ namespace BeatSaverDownloader.UI
         private IEnumerator SetupUI()
         {
             if (initialized) yield break;
-            
+
             RectTransform mainMenu = (Resources.FindObjectsOfTypeAll<MainMenuViewController>().First().rectTransform);
 
             var downloaderSubMenu = SettingsUI.CreateSubMenu("Downloader");
@@ -91,16 +91,14 @@ namespace BeatSaverDownloader.UI
             var maxSimultaneousDownloads = downloaderSubMenu.AddInt("Max simultaneous downloads", 1, 10, 1);
             maxSimultaneousDownloads.GetValue += delegate { return PluginConfig.maxSimultaneousDownloads; };
             maxSimultaneousDownloads.SetValue += delegate (int value) { PluginConfig.maxSimultaneousDownloads = value; PluginConfig.SaveConfig(); };
-            
-            MenuButtonUI.AddButton("More songs", BeatSaverButtonPressed);
+
+            _moreSongsButton = MenuButtonUI.AddButton("More songs", "Download more songs from BeatSaver.com!", BeatSaverButtonPressed);
+            _moreSongsButton.interactable = SongLoader.AreSongsLoaded;
+
             MenuButtonUI.AddButton("More playlists", PlaylistsButtonPressed);
 
             yield return null;
 
-            _moreSongsButton = mainMenu.GetComponentsInChildren<Button>().First(x => x.GetComponentInChildren<TextMeshProUGUI>().text == "More songs");
-            _moreSongsButton.interactable = SongLoader.AreSongsLoaded;
-
-            BeatSaberUI.AddHintText((RectTransform)_moreSongsButton.transform, "Download more songs from BeatSaver.com!");
 
             initialized = true;
         }
