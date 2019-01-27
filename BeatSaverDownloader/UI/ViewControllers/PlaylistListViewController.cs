@@ -61,21 +61,26 @@ namespace BeatSaverDownloader.UI.ViewControllers
                 });
 
                 _songListTableCellInstance = Resources.FindObjectsOfTypeAll<LevelListTableCell>().First(x => (x.name == "LevelListTableCell"));
-                _songsTableView = new GameObject().AddComponent<TableView>();
-                _songsTableView.transform.SetParent(rectTransform, false);
+                
+                RectTransform container = new GameObject("Content", typeof(RectTransform)).transform as RectTransform;
+                container.SetParent(rectTransform, false);
+                container.anchorMin = new Vector2(0f, 0.5f);
+                container.anchorMax = new Vector2(1f, 0.5f);
+                container.sizeDelta = new Vector2(0f, 60f);
+                container.anchoredPosition = new Vector2(0f, -3f);
 
+                _songsTableView = new GameObject("CustomTableView").AddComponent<TableView>();
+                _songsTableView.gameObject.AddComponent<RectMask2D>();
+                _songsTableView.transform.SetParent(container, false);
+                
                 _songsTableView.SetPrivateField("_isInitialized", false);
                 _songsTableView.SetPrivateField("_preallocatedCells", new TableView.CellsGroup[0]);
                 _songsTableView.Init();
 
-                RectMask2D viewportMask = Instantiate(Resources.FindObjectsOfTypeAll<RectMask2D>().First(), _songsTableView.transform, false);
-                viewportMask.transform.DetachChildren();
-                _songsTableView.GetComponentsInChildren<RectTransform>().First(x => x.name == "Content").transform.SetParent(viewportMask.rectTransform, false);
-
-                (_songsTableView.transform as RectTransform).anchorMin = new Vector2(0f, 0.5f);
-                (_songsTableView.transform as RectTransform).anchorMax = new Vector2(1f, 0.5f);
-                (_songsTableView.transform as RectTransform).sizeDelta = new Vector2(0f, 60f);
-                (_songsTableView.transform as RectTransform).anchoredPosition = new Vector3(0f, -3f);
+                (_songsTableView.transform as RectTransform).anchorMin = new Vector2(0f, 0f);
+                (_songsTableView.transform as RectTransform).anchorMax = new Vector2(1f, 1f);
+                (_songsTableView.transform as RectTransform).sizeDelta = new Vector2(0f, 0f);
+                (_songsTableView.transform as RectTransform).anchoredPosition = new Vector2(0f, 0f);
 
                 _songsTableView.SetPrivateField("_pageUpButton", _pageUpButton);
                 _songsTableView.SetPrivateField("_pageDownButton", _pageDownButton);
