@@ -68,6 +68,7 @@ namespace BeatSaverDownloader.UI
             _ratingText = _standardLevelResultsViewController.CreateText("LOADING...", new Vector2(65f, 0f));
             _ratingText.alignment = TextAlignmentOptions.Center;
             _ratingText.fontSize = 7f;
+            _ratingText.lineSpacing = -38f;
 
             initialized = true;
         }
@@ -152,7 +153,7 @@ namespace BeatSaverDownloader.UI
             voteWWW.timeout = 30;
             yield return voteWWW.SendWebRequest();
 
-            if (voteWWW.isNetworkError || voteWWW.isHttpError)
+            if (voteWWW.isNetworkError)
             {
                 Logger.Error(voteWWW.error);
                 _ratingText.text = voteWWW.error;
@@ -199,25 +200,25 @@ namespace BeatSaverDownloader.UI
                         {
                             _upvoteButton.interactable = false;
                             _downvoteButton.interactable = false;
-                            _ratingText.text = "Read-only token";
+                            _ratingText.text = "Read-only\ntoken";
                         }; break;
                     case 401:
                         {
                             _upvoteButton.interactable = false;
                             _downvoteButton.interactable = false;
-                            _ratingText.text = "Token not found";
+                            _ratingText.text = "Token\nnot found";
                         }; break;
                     case 400:
                         {
                             _upvoteButton.interactable = false;
                             _downvoteButton.interactable = false;
-                            _ratingText.text = "Bad token";
+                            _ratingText.text = "Bad\ntoken";
                         }; break;
                     default:
                         {
                             _upvoteButton.interactable = true;
                             _downvoteButton.interactable = true;
-                            _ratingText.text = "Error " + voteWWW.responseCode;
+                            _ratingText.text = "Error\n" + voteWWW.responseCode;
                         }; break;
                 }
             }
