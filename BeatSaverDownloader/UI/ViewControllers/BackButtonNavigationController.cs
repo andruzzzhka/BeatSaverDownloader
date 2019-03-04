@@ -18,8 +18,9 @@ namespace BeatSaverDownloader.UI.ViewControllers
 
         protected override void DidActivate(bool firstActivation, ActivationType activationType)
         {
-            if (firstActivation && activationType == ActivationType.AddedToHierarchy) {
-                _backButton = BeatSaberUI.CreateBackButton(rectTransform, didFinishEvent.Invoke);
+            if (firstActivation)
+            {
+                _backButton = BeatSaberUI.CreateBackButton(rectTransform, () => { didFinishEvent?.Invoke(); });
             }
         }
     }

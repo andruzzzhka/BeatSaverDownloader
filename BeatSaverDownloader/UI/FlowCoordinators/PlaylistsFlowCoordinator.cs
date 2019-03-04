@@ -30,35 +30,28 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
         private bool _downloadingPlaylist;
 
         private Playlist _lastPlaylist;
-
-        public void Awake()
+        
+        protected override void DidActivate(bool firstActivation, ActivationType activationType)
         {
-            if (_playlistsNavigationController == null)
+            if (firstActivation)
             {
+                title = "Playlists";
+
                 _playlistsNavigationController = BeatSaberUI.CreateViewController<BackButtonNavigationController>();
+                _playlistsNavigationController.didFinishEvent += _playlistsNavigationController_didFinishEvent;
 
                 GameObject _playlistDetailGameObject = Instantiate(Resources.FindObjectsOfTypeAll<StandardLevelDetailViewController>().First(), _playlistsNavigationController.rectTransform, false).gameObject;
                 _playlistDetailViewController = _playlistDetailGameObject.AddComponent<PlaylistDetailViewController>();
                 Destroy(_playlistDetailGameObject.GetComponent<StandardLevelDetailViewController>());
                 _playlistDetailViewController.name = "PlaylistDetailViewController";
-            }
-        }
 
-        protected override void DidActivate(bool firstActivation, ActivationType activationType)
-        {
-            if (firstActivation && activationType == ActivationType.AddedToHierarchy)
-            {
-                title = "Playlists";
-
-                _playlistsNavigationController.didFinishEvent += _playlistsNavigationController_didFinishEvent;
-
-                _playlistListViewController = BeatSaberUI.CreateViewController<PlaylistListViewController>();
-                _playlistListViewController.didSelectRow += _playlistListViewController_didSelectRow;
-                
                 _playlistDetailViewController.downloadButtonPressed += _playlistDetailViewController_downloadButtonPressed;
                 _playlistDetailViewController.selectButtonPressed += _playlistDetailViewController_selectButtonPressed;
                 _playlistDetailViewController.SetSelectButtonText("Select");
 
+                _playlistListViewController = BeatSaberUI.CreateViewController<PlaylistListViewController>();
+                _playlistListViewController.didSelectRow += _playlistListViewController_didSelectRow;
+                
                 _downloadQueueViewController = BeatSaberUI.CreateViewController<DownloadQueueViewController>();
 
                 SetViewControllersToNavigationConctroller(_playlistsNavigationController, new VRUIViewController[]

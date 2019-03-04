@@ -41,6 +41,7 @@ namespace BeatSaverDownloader.UI
 
         public MoreSongsFlowCoordinator moreSongsFlowCoordinator;
         public MorePlaylistsFlowCoordinator morePlaylistsFlowCoordinator;
+        public ReviewFlowCoordinator reviewFlowCoordinator;
 
         private MenuButton _moreSongsButton;
 

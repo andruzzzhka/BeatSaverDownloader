@@ -51,14 +51,14 @@ namespace BeatSaverDownloader.UI
             }
         }
 
+        public FlowCoordinator freePlayFlowCoordinator;
+
         private LevelCollectionSO _levelCollection;
         private BeatmapCharacteristicSO[] _beatmapCharacteristics;
 
         private BeatmapCharacteristicSO _lastCharacteristic;
-
         private PlaylistsFlowCoordinator _playlistsFlowCoordinator;
         private MainFlowCoordinator _mainFlowCoordinator;
-        private FlowCoordinator _freePlayFlowCoordinator;
         private LevelListViewController _levelListViewController;
         private BeatmapDifficultyViewController _difficultyViewController;
         private StandardLevelDetailViewController _detailViewController;
@@ -109,7 +109,7 @@ namespace BeatSaverDownloader.UI
                 Logger.Log("Unable to patch level list! Exception: "+e);
             }
 
-            _playlistsFlowCoordinator = (new GameObject("PlaylistsFlowCoordinator")).AddComponent<PlaylistsFlowCoordinator>();
+            _playlistsFlowCoordinator = new GameObject("PlaylistsFlowCoordinator").AddComponent<PlaylistsFlowCoordinator>();
             _playlistsFlowCoordinator.didFinishEvent += _playlistsFlowCoordinator_didFinishEvent;
 
             _beatmapCharacteristics = Resources.FindObjectsOfTypeAll<BeatmapCharacteristicSO>();
@@ -303,23 +303,20 @@ namespace BeatSaverDownloader.UI
 
         private void SongListTweaks_didFinishEvent(MainMenuViewController sender, MainMenuViewController.MenuButton result)
         {
+            _lastCharacteristic = _beatmapCharacteristics.First(x => x.characteristicName == "Standard");
             if (result == MainMenuViewController.MenuButton.SoloFreePlay)
             {
-                _freePlayFlowCoordinator = FindObjectOfType<SoloFreePlayFlowCoordinator>();
-                _lastCharacteristic = _beatmapCharacteristics.First(x => x.characteristicName == "Standard");
-                lastPlaylist = null;
+                freePlayFlowCoordinator = FindObjectOfType<SoloFreePlayFlowCoordinator>();
             }
             else if (result == MainMenuViewController.MenuButton.Party)
             {
-                _freePlayFlowCoordinator = FindObjectOfType<PartyFreePlayFlowCoordinator>();
-                _lastCharacteristic = _beatmapCharacteristics.First(x => x.characteristicName == "Standard");
-                lastPlaylist = null;
+                freePlayFlowCoordinator = FindObjectOfType<PartyFreePlayFlowCoordinator>();
             }
             else
             {
-                _freePlayFlowCoordinator = null;
-                lastPlaylist = null;
+                freePlayFlowCoordinator = null;
             }
+            lastPlaylist = null;
         }
 
         public void SelectTopButtons(TopButtonsState _newState)
@@ -396,8 +393,8 @@ namespace BeatSaverDownloader.UI
 
         private void PlaylistsButtonPressed()
         {
-            _playlistsFlowCoordinator.parentFlowCoordinator = _freePlayFlowCoordinator;
-            _freePlayFlowCoordinator.InvokePrivateMethod("PresentFlowCoordinator", new object[] { _playlistsFlowCoordinator, null, false, false });
+            _playlistsFlowCoordinator.parentFlowCoordinator = freePlayFlowCoordinator;
+            freePlayFlowCoordinator.InvokePrivateMethod("PresentFlowCoordinator", new object[] { _playlistsFlowCoordinator, null, false, false });
         }
 
         private void DeletePressed()
@@ -406,12 +403,12 @@ namespace BeatSaverDownloader.UI
             _simpleDialog.Init("Delete song", $"Do you really want to delete \"{ level.songName} {level.songSubName}\"?", "Delete", "Cancel");
             _simpleDialog.didFinishEvent -= _simpleDialog_didFinishEvent;
             _simpleDialog.didFinishEvent += _simpleDialog_didFinishEvent;
-            _freePlayFlowCoordinator.InvokePrivateMethod("PresentViewController", new object[] { _simpleDialog, null, false });
+            freePlayFlowCoordinator.InvokePrivateMethod("PresentViewController", new object[] { _simpleDialog, null, false });
         }
 
         private void _simpleDialog_didFinishEvent(SimpleDialogPromptViewController sender, bool delete)
         {
-            _freePlayFlowCoordinator.InvokePrivateMethod("DismissViewController", new object[] { _simpleDialog, null, false });
+            freePlayFlowCoordinator.InvokePrivateMethod("DismissViewController", new object[] { _simpleDialog, null, false });
             if (delete)
             {
                 try
@@ -451,18 +448,18 @@ namespace BeatSaverDownloader.UI
                 _searchViewController.searchButtonPressed += _searchViewController_searchButtonPressed;
             }
 
-            _freePlayFlowCoordinator.InvokePrivateMethod("PresentViewController", new object[] { _searchViewController, null, false });
+            freePlayFlowCoordinator.InvokePrivateMethod("PresentViewController", new object[] { _searchViewController, null, false });
         }
 
         private void _searchViewController_searchButtonPressed(string request)
         {
-            _freePlayFlowCoordinator.InvokePrivateMethod("DismissViewController", new object[] { _searchViewController, null, false });
+            freePlayFlowCoordinator.InvokePrivateMethod("DismissViewController", new object[] { _searchViewController, null, false });
             SetLevels(_lastCharacteristic, SortMode.Default, request);
         }
 
         private void _searchViewController_backButtonPressed()
         {
-            _freePlayFlowCoordinator.InvokePrivateMethod("DismissViewController", new object[] { _searchViewController, null, false });
+            freePlayFlowCoordinator.InvokePrivateMethod("DismissViewController", new object[] { _searchViewController, null, false });
         }
 
         public void SetLevels(BeatmapCharacteristicSO characteristic, SortMode sortMode, string searchRequest)
@@ -534,11 +531,11 @@ namespace BeatSaverDownloader.UI
 
         private void PopDifficultyAndDetails()
         {
-            bool isSolo = (_freePlayFlowCoordinator is SoloFreePlayFlowCoordinator);
+            bool isSolo = (freePlayFlowCoordinator is SoloFreePlayFlowCoordinator);
 
             if (isSolo)
             {
-                SoloFreePlayFlowCoordinator soloCoordinator = _freePlayFlowCoordinator as SoloFreePlayFlowCoordinator;
+                SoloFreePlayFlowCoordinator soloCoordinator = freePlayFlowCoordinator as SoloFreePlayFlowCoordinator;
                 int controllers = 0;
                 if (soloCoordinator.GetPrivateField<BeatmapDifficultyViewController>("_beatmapDifficultyViewControllerViewController").isInViewControllerHierarchy)
                 {
@@ -555,7 +552,7 @@ namespace BeatSaverDownloader.UI
             }
             else
             {
-                PartyFreePlayFlowCoordinator partyCoordinator = _freePlayFlowCoordinator as PartyFreePlayFlowCoordinator;
+                PartyFreePlayFlowCoordinator partyCoordinator = freePlayFlowCoordinator as PartyFreePlayFlowCoordinator;
                 int controllers = 0;
                 if (partyCoordinator.GetPrivateField<BeatmapDifficultyViewController>("_beatmapDifficultyViewControllerViewController").isInViewControllerHierarchy)
                 {

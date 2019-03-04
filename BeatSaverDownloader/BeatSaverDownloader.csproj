@@ -36,6 +36,9 @@
     <Reference Include="BeatSaberCustomUI">
       <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Beat Saber\Plugins\BeatSaberCustomUI.dll</HintPath>
     </Reference>
+    <Reference Include="BS_Utils">
+      <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Beat Saber\Plugins\BS_Utils.dll</HintPath>
+    </Reference>
     <Reference Include="IllusionInjector, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Beat Saber\Beat Saber_Data\Managed\IllusionInjector.dll</HintPath>
@@ -132,16 +135,19 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="UI\FlowCoordinators\MorePlaylistsFlowCoordinator.cs" />
     <Compile Include="UI\FlowCoordinators\MoreSongsFlowCoordinator.cs" />
+    <Compile Include="UI\FlowCoordinators\ReviewFlowCoordinator.cs" />
     <Compile Include="UI\PluginUI.cs" />
     <Compile Include="UI\SongListTweaks.cs" />
     <Compile Include="UI\UIElements\CustomUIKeyboard.cs" />
     <Compile Include="UI\UIElements\DownloadQueueTableCell.cs" />
+    <Compile Include="UI\UIElements\StarsUIControl.cs" />
     <Compile Include="UI\ViewControllers\DownloadQueueViewController.cs" />
     <Compile Include="UI\ViewControllers\MoreSongsListViewController.cs" />
     <Compile Include="UI\ViewControllers\BackButtonNavigationController.cs" />
     <Compile Include="UI\ViewControllers\PlaylistDetailViewController.cs" />
     <Compile Include="UI\ViewControllers\PlaylistListViewController.cs" />
     <Compile Include="UI\FlowCoordinators\PlaylistsFlowCoordinator.cs" />
+    <Compile Include="UI\ViewControllers\ReviewViewController.cs" />
     <Compile Include="UI\ViewControllers\SearchKeyboardViewController.cs" />
     <Compile Include="UI\ViewControllers\SongDetailViewController.cs" />
     <Compile Include="UI\VotingUI.cs" />
