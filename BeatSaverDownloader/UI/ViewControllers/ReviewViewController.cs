@@ -11,6 +11,7 @@ using UnityEngine.UI;
 using System.Collections;
 using BeatSaverDownloader.UI.UIElements;
 using CustomUI.Settings;
+using BeatSaverDownloader.Misc;
 
 namespace BeatSaverDownloader.UI.ViewControllers
 {
@@ -24,9 +25,11 @@ namespace BeatSaverDownloader.UI.ViewControllers
         private StarsUIControl _readabilityControl;
         private StarsUIControl _patternQualityControl;
         private StarsUIControl _levelDesignControl;
+        
+        private TextMeshProUGUI _statusText;
 
-        Button _submitButton;
-
+        private Button _submitButton;
+        
         protected override void DidActivate(bool firstActivation, ActivationType activationType)
         {
             if (firstActivation)
@@ -67,27 +70,35 @@ namespace BeatSaverDownloader.UI.ViewControllers
                 _levelDesignControl = new GameObject("LevelDesignUIControl", typeof(RectTransform)).AddComponent<StarsUIControl>();
                 _levelDesignControl.Init(rectTransform, new Vector2(10f, -20.5f));
 
-                _submitButton = this.CreateUIButton("CreditsButton", new Vector2(3f, -31f), new Vector2(30f, 10f), () => { didPressSubmit?.Invoke(_funFactorControl.currentValue, _rhythmControl.currentValue, _flowControl.currentValue, _patternQualityControl.currentValue, _readabilityControl.currentValue, _levelDesignControl.currentValue); }, "Submit");
-            }
-        }
-       
-        public void Update()
-        {
-            if (_funFactorControl != null &&
-                _flowControl != null &&
-                _rhythmControl != null &&
-                _readabilityControl != null &&
-                _patternQualityControl != null &&
-                _levelDesignControl != null &&
-                _submitButton != null)
-            {
-                _submitButton.interactable = true;
+                _statusText = BeatSaberUI.CreateText(rectTransform, "<color=green>Success!", new Vector2(0f, -32f));
+                _statusText.alignment = TextAlignmentOptions.Center;
+                _statusText.fontSize = 7f;
+                _statusText.enableWordWrapping = false;
+
+                _submitButton = this.CreateUIButton("CreditsButton", new Vector2(3f, -31f), new Vector2(30f, 10f), () => { didPressSubmit?.Invoke(_funFactorControl.value, _rhythmControl.value, _flowControl.value, _patternQualityControl.value, _readabilityControl.value, _levelDesignControl.value); }, "Submit");
             }
         }
 
-        public void SetSubmitButtonState(bool enabled)
+        public void SetReviewValues(float funFactor, float rhythm, float flow, float patternQuality, float readability, float levelQuality)
         {
-            _submitButton.interactable = enabled;
+            _funFactorControl.value = (int)funFactor;
+            _rhythmControl.value = (int)rhythm;
+            _flowControl.value = (int)flow;
+            _patternQualityControl.value = (int)patternQuality;
+            _readabilityControl.value = (int)readability;
+            _levelDesignControl.value = (int)levelQuality;
+        }
+
+        public void SetSubmitButtonState(bool enabled, bool interactable)
+        {
+            _submitButton.gameObject.SetActive(enabled);
+            _submitButton.interactable = interactable;
+        }
+
+        public void SetStatusText(bool enabled, string text)
+        {
+            _statusText.gameObject.SetActive(enabled);
+            _statusText.text = text;
         }
     }
 }

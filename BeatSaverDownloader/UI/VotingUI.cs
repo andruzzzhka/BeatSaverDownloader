@@ -77,7 +77,7 @@ namespace BeatSaverDownloader.UI
             _ratingText.fontSize = 7f;
             _ratingText.lineSpacing = -38f;
 
-            _reviewButton = _standardLevelResultsViewController.CreateUIButton("PracticeButton", new Vector2(65f, -20f), () => { ShowReviewScreen(); }, "", Base64Sprites.PlaylistIcon);
+            _reviewButton = _standardLevelResultsViewController.CreateUIButton("PracticeButton", new Vector2(65f, -20f), () => { ShowReviewScreen(); }, "", Base64Sprites.ReviewIcon);
 
             initialized = true;
         }
@@ -93,15 +93,18 @@ namespace BeatSaverDownloader.UI
                 _upvoteButton.gameObject.SetActive(false);
                 _downvoteButton.gameObject.SetActive(false);
                 _ratingText.gameObject.SetActive(false);
+                _reviewButton.gameObject.SetActive(false);
             }
             else
             {
                 _upvoteButton.gameObject.SetActive(true);
                 _downvoteButton.gameObject.SetActive(true);
                 _ratingText.gameObject.SetActive(true);
+                _reviewButton.gameObject.SetActive(true);
 
                 _upvoteButton.interactable = false;
                 _downvoteButton.interactable = false;
+                _reviewButton.interactable = false;
                 _ratingText.text = "LOADING...";
 
                 StartCoroutine(GetRatingForSong(_lastLevel));
@@ -121,6 +124,7 @@ namespace BeatSaverDownloader.UI
 
             PluginUI.Instance.reviewFlowCoordinator.parentFlowCoordinator = SongListTweaks.Instance.freePlayFlowCoordinator;
             PluginUI.Instance.reviewFlowCoordinator.songkey = _lastBeatSaverSong.id;
+            PluginUI.Instance.reviewFlowCoordinator.levelId = _lastLevel.levelID;
             SongListTweaks.Instance.freePlayFlowCoordinator.InvokePrivateMethod("PresentFlowCoordinator", new object[] { PluginUI.Instance.reviewFlowCoordinator, null, false, false });
         }
 
@@ -148,6 +152,8 @@ namespace BeatSaverDownloader.UI
 
                     _upvoteButton.interactable =     (PluginConfig.apiAccessToken != PluginConfig.apiTokenPlaceholder || (VRPlatformHelper.instance.vrPlatformSDK == VRPlatformHelper.VRPlatformSDK.OpenVR || Environment.CommandLine.ToLower().Contains("-vrmode oculus") || Environment.CommandLine.ToLower().Contains("fpfc")));
                     _downvoteButton.interactable =   (PluginConfig.apiAccessToken != PluginConfig.apiTokenPlaceholder || (VRPlatformHelper.instance.vrPlatformSDK == VRPlatformHelper.VRPlatformSDK.OpenVR || Environment.CommandLine.ToLower().Contains("-vrmode oculus") || Environment.CommandLine.ToLower().Contains("fpfc")));
+
+                    _reviewButton.interactable = true;
 
                     if (PluginConfig.votedSongs.ContainsKey(_lastLevel.levelID.Substring(0, 32)))
                     {

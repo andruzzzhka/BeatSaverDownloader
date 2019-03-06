@@ -14,6 +14,7 @@ using System.Collections;
 using UnityEngine.Networking;
 using BS_Utils.Gameplay;
 using SimpleJSON;
+using BS_Utils.Utilities;
 
 namespace BeatSaverDownloader.UI.FlowCoordinators
 {
@@ -48,41 +49,96 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
         public event Action didFinishEvent;
 
         public string songkey;
+        public string levelId;
 
         public FlowCoordinator parentFlowCoordinator;
 
         private BackButtonNavigationController _navigationController;
         private ReviewViewController _reviewViewController;
-        
+        private SimpleDialogPromptViewController _simpleDialog;
+
+        private SongReview _lastReview;
+
         protected override void DidActivate(bool firstActivation, ActivationType activationType)
         {
             if (firstActivation)
             {
                 title = "BeastSaber Review";
 
+                _simpleDialog = Resources.FindObjectsOfTypeAll<MainFlowCoordinator>().FirstOrDefault().GetPrivateField<SimpleDialogPromptViewController>("_simpleDialogPromptViewController");
+                _simpleDialog = Instantiate(_simpleDialog.gameObject, _simpleDialog.transform.parent).GetComponent<SimpleDialogPromptViewController>();
+
                 _navigationController = BeatSaberUI.CreateViewController<BackButtonNavigationController>();
                 _navigationController.didFinishEvent += () => { didFinishEvent?.Invoke();};
 
                 _reviewViewController = BeatSaberUI.CreateViewController<ReviewViewController>();
-                _reviewViewController.didPressSubmit += delegate (float funFactor, float rhythm, float flow, float patternQuality, float readability, float levelQuality) { StartCoroutine(PostReview(funFactor, rhythm, flow, patternQuality, readability, levelQuality)); };
+                _reviewViewController.didPressSubmit += delegate (float funFactor, float rhythm, float flow, float patternQuality, float readability, float levelQuality)
+                {
+                    if (songkey.Contains("-"))
+                    {
+                        songkey = songkey.Substring(0, songkey.IndexOf("-"));
+                    }
+
+                    _lastReview = new SongReview(songkey, funFactor, rhythm, flow, patternQuality, readability, levelQuality); SubmitPressed();
+                };
+
+                _reviewViewController.didActivateEvent += (arg0, arg1) =>
+                {
+                    if (arg1 == VRUIViewController.ActivationType.AddedToHierarchy)
+                    {
+                        if (PluginConfig.reviewedSongs.ContainsKey(levelId.Substring(0, 32)))
+                        {
+                            _reviewViewController.SetSubmitButtonState(false, true);
+                            _reviewViewController.SetStatusText(true, "<color=red>You have already left a review about this song!");
+
+                            _reviewViewController.SetReviewValues(
+                                PluginConfig.reviewedSongs[levelId.Substring(0, 32)].fun_factor,
+                                PluginConfig.reviewedSongs[levelId.Substring(0, 32)].rhythm,
+                                PluginConfig.reviewedSongs[levelId.Substring(0, 32)].flow,
+                                PluginConfig.reviewedSongs[levelId.Substring(0, 32)].pattern_quality,
+                                PluginConfig.reviewedSongs[levelId.Substring(0, 32)].readability,
+                                PluginConfig.reviewedSongs[levelId.Substring(0, 32)].level_quality
+                                );
+                        }
+                        else
+                        {
+                            _reviewViewController.SetSubmitButtonState(true, true);
+                            _reviewViewController.SetStatusText(false, "");
+
+                            _reviewViewController.SetReviewValues(0f, 0f, 0f, 0f, 0f, 0f);
+                        }
+                    }
+                };
             }
 
             SetViewControllersToNavigationConctroller(_navigationController, _reviewViewController);
             ProvideInitialViewControllers(_navigationController, null, null);
         }
 
+        public void SubmitPressed()
+        {
+            _simpleDialog.Init("Post a review?", "All reviews are final and you will no longer be able to leave a review about this song!\n\nAre you sure you want to continue?", "Yes", "No");
+            _simpleDialog.didFinishEvent -= DialogFinished;
+            _simpleDialog.didFinishEvent += DialogFinished;
+            PresentViewController(_simpleDialog, null, false);
+        }
+
+        private void DialogFinished(SimpleDialogPromptViewController arg1, bool postReview)
+        {
+            DismissViewController(_simpleDialog, null, false);
+
+            if(postReview)
+                StartCoroutine(PostReview(_lastReview.fun_factor, _lastReview.rhythm, _lastReview.flow, _lastReview.pattern_quality, _lastReview.readability, _lastReview.level_quality));
+        }
+
         public IEnumerator PostReview(float funFactor, float rhythm, float flow, float patternQuality, float readability, float levelQuality)
         {
             yield return null;
 
-            if (songkey.Contains("-"))
-            {
-                songkey = songkey.Substring(0, songkey.IndexOf("-"));
-            }
-
             BeastSaberReview review = new BeastSaberReview(GetUserInfo.GetUserName(), funFactor, rhythm, flow, patternQuality, readability, levelQuality);
 
-            _reviewViewController.SetSubmitButtonState(false);
+            _reviewViewController.SetSubmitButtonState(true, false);
+            _reviewViewController.SetStatusText(false, "");
 
             UnityWebRequest voteWWW = new UnityWebRequest($"https://bsaber.com/wp-json/bsaber-api/songs/{songkey}/reviews");
             voteWWW.method = "POST";
@@ -95,11 +151,11 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
             if (voteWWW.isNetworkError)
             {
                 Misc.Logger.Error(voteWWW.error);
-                _reviewViewController.SetSubmitButtonState(true);
+                _reviewViewController.SetSubmitButtonState(true, true);
+                _reviewViewController.SetStatusText(false, "");
             }
             else
             {
-                _reviewViewController.SetSubmitButtonState(true);
 
                 switch (voteWWW.responseCode)
                 {
@@ -110,15 +166,33 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
                             if (node["success"])
                             {
                                 Misc.Logger.Log("Success!");
+
+                                if (!PluginConfig.reviewedSongs.ContainsKey(levelId.Substring(0, 32)))
+                                {
+                                    PluginConfig.reviewedSongs.Add(levelId.Substring(0, 32), new SongReview(songkey, funFactor, rhythm, flow, patternQuality, readability, levelQuality));
+                                    PluginConfig.SaveConfig();
+                                }
+                                else
+                                {
+                                    PluginConfig.reviewedSongs[levelId.Substring(0, 32)] = new SongReview(songkey, funFactor, rhythm, flow, patternQuality, readability, levelQuality);
+                                    PluginConfig.SaveConfig();
+                                }
+
+                                _reviewViewController.SetSubmitButtonState(false, false);
+                                _reviewViewController.SetStatusText(true, "<color=green>Success!");
                             }
                             else
                             {
                                 Misc.Logger.Error("Something went wrong...\n Error: "+node["data"]);
+                                _reviewViewController.SetSubmitButtonState(true, true);
+                                _reviewViewController.SetStatusText(false, "");
                             }
                         }; break;
                     default:
                         {
                             Misc.Logger.Error("Error: " + voteWWW.responseCode+"\nResponse: "+ voteWWW.downloadHandler.text);
+                            _reviewViewController.SetSubmitButtonState(true, true);
+                            _reviewViewController.SetStatusText(false, "");
                         }; break;
                 }
             }

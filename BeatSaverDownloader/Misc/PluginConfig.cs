@@ -27,18 +27,42 @@ namespace BeatSaverDownloader.Misc
         }
     }
 
+    public struct SongReview
+    {
+        public string key;
+        public float fun_factor;
+        public float rhythm;
+        public float flow;
+        public float pattern_quality;
+        public float readability;
+        public float level_quality;
+
+        public SongReview(string key, float fun_factor, float rhythm, float flow, float pattern_quality, float readability, float level_quality)
+        {
+            this.key = key;
+            this.fun_factor = fun_factor;
+            this.rhythm = rhythm;
+            this.flow = flow;
+            this.pattern_quality = pattern_quality;
+            this.readability = readability;
+            this.level_quality = level_quality;
+        }
+    }
+
     public class PluginConfig
     {
         static public bool beatDropInstalled = false;
         static public string beatDropPlaylistsLocation = "";
 
         static private string votedSongsPath = "UserData\\votedSongs.json";
+        static private string reviewedSongsPath = "UserData\\reviewedSongs.json";
         static private string configPath = "UserData\\favoriteSongs.cfg";
         static private string oldConfigPath = "favoriteSongs.cfg";
         static private string songBrowserSettings = "song_browser_settings.xml";
 
         public static List<string> favoriteSongs = new List<string>();
         public static Dictionary<string, SongVote> votedSongs = new Dictionary<string, SongVote>();
+        public static Dictionary<string, SongReview> reviewedSongs = new Dictionary<string, SongReview>();
 
         public static string beatsaverURL = "https://beatsaver.com";
         public static string apiAccessToken { get; private set; }
@@ -154,6 +178,15 @@ namespace BeatSaverDownloader.Misc
                 votedSongs = JsonConvert.DeserializeObject<Dictionary<string, SongVote>>(File.ReadAllText(votedSongsPath, Encoding.UTF8));
             }
 
+            if (!File.Exists(reviewedSongsPath))
+            {
+                File.WriteAllText(reviewedSongsPath, JsonConvert.SerializeObject(reviewedSongs), Encoding.UTF8);
+            }
+            else
+            {
+                reviewedSongs = JsonConvert.DeserializeObject<Dictionary<string, SongReview>>(File.ReadAllText(reviewedSongsPath, Encoding.UTF8));
+            }
+
             try
             {
                 if (Registry.CurrentUser.OpenSubKey(@"Software").GetSubKeyNames().Contains("178eef3d-4cea-5a1b-bfd0-07a21d068990"))
@@ -225,6 +258,7 @@ namespace BeatSaverDownloader.Misc
         public static void SaveConfig()
         {
             File.WriteAllText(votedSongsPath, JsonConvert.SerializeObject(votedSongs, Formatting.Indented), Encoding.UTF8);
+            File.WriteAllText(reviewedSongsPath, JsonConvert.SerializeObject(reviewedSongs, Formatting.Indented), Encoding.UTF8);
             File.WriteAllLines(configPath, favoriteSongs.Distinct().ToArray(), Encoding.UTF8);
 
             ModPrefs.SetBool("BeatSaverDownloader", "disableDeleteButton", disableDeleteButton);

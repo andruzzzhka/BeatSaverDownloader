@@ -12,9 +12,11 @@ namespace BeatSaverDownloader.UI.UIElements
 {
     class StarsUIControl : MonoBehaviour
     {
-        public int currentValue;
+        public int value { get { return _currentValue;  } set { HandleStarPressedEvent(value, false); } }
         public event Action<int> starPressed;
-        
+
+        private int _currentValue;
+
         Button[] _starButtons = new Button[5];
 
         public void Init(RectTransform parent, Vector2 position)
@@ -30,28 +32,44 @@ namespace BeatSaverDownloader.UI.UIElements
                 TransformButton(i);
         }
 
-        private void HandleStarPressedEvent(int index)
+        private void HandleStarPressedEvent(int index, bool callbackAction = true)
         {
-            if(currentValue == index && currentValue == 1)
+            if(_currentValue == index && _currentValue == 1)
             {
-                currentValue = 0;
+                _currentValue = 0;
             }
             else
             {
-                currentValue = index;
+                _currentValue = index;
             }
 
-            for (int i = 0; i < currentValue; i++)
+            if(_currentValue > 5)
             {
-                _starButtons[i].SetButtonIcon(Base64Sprites.StarFull);
+                _currentValue = 5;
             }
-
-            for (int i = currentValue; currentValue < _starButtons.Length; i++)
+            else if(_currentValue < 0)
             {
-                _starButtons[i].SetButtonIcon(Base64Sprites.StarEmpty);
+                _currentValue = 0;
             }
 
-            starPressed?.Invoke(currentValue);
+            for (int i = 0; i < _currentValue; i++)
+            {
+                if (_starButtons.Length > i && i >= 0)
+                    _starButtons[i].SetButtonIcon(Base64Sprites.StarFull);
+                else
+                    Misc.Logger.Log("Index out of bounds! (1) Items: " + _starButtons.Length + ", Index: "+i);
+            }
+
+            for (int i = _currentValue; i < _starButtons.Length; i++)
+            {
+                if (_starButtons.Length > i && i >= 0)
+                    _starButtons[i].SetButtonIcon(Base64Sprites.StarEmpty);
+                else
+                    Misc.Logger.Log("Index out of bounds! (2) Items: " + _starButtons.Length + ", Index: " + i);
+            }
+
+            if(callbackAction)
+                starPressed?.Invoke(_currentValue);
         }
 
         private void TransformButton(int index)
