@@ -8,6 +8,7 @@ using SongLoaderPlugin;
 using SongLoaderPlugin.OverrideClasses;
 using UnityEngine;
 using Logger = BeatSaverDownloader.Misc.Logger;
+using BS_Utils.Gameplay;
 
 namespace BeatSaverDownloader
 {
@@ -44,7 +45,10 @@ namespace BeatSaverDownloader
                     VotingUI.Instance.OnLoad();
                     if (!PluginConfig.disableSongListTweaks)
                         SongListTweaks.Instance.OnLoad();
-                }catch(Exception e)
+
+                    GetUserInfo.GetUserName();
+                }
+                catch(Exception e)
                 {
                     Logger.Exception("Exception on scene change: "+e);
                 }
@@ -53,7 +57,14 @@ namespace BeatSaverDownloader
 
         private void SongLoader_SongsLoadedEvent(SongLoader sender, List<CustomLevel> levels)
         {
-            PlaylistsCollection.MatchSongsForAllPlaylists(true);
+            try
+            {
+                PlaylistsCollection.MatchSongsForAllPlaylists(true);
+            }
+            catch(Exception e)
+            {
+                Misc.Logger.Exception("Unable to match songs for all playlists! Exception: "+e);
+            }
         }
 
         private void SceneManager_sceneLoaded(Scene to, LoadSceneMode loadMode)

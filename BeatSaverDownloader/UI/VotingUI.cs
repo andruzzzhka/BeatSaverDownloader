@@ -53,10 +53,6 @@ namespace BeatSaverDownloader.UI
 
         private bool _firstVote;
 
-        protected Callback<GetAuthSessionTicketResponse_t> m_GetAuthSessionTicketResponse;
-        private HAuthTicket _lastTicket;
-        private EResult _lastTicketResult;
-
         public void OnLoad()
         {
             initialized = false;
@@ -301,11 +297,11 @@ namespace BeatSaverDownloader.UI
                                 _ratingText.text = "User does not\nhave license";
                                 yield break;
                             case EUserHasLicenseForAppResult.k_EUserHasLicenseResultHasLicense:
-                                if(m_GetAuthSessionTicketResponse == null)
-                                    m_GetAuthSessionTicketResponse = Callback<GetAuthSessionTicketResponse_t>.Create(OnAuthTicketResponse);
+                                if(SteamHelper.m_GetAuthSessionTicketResponse == null)
+                                    SteamHelper.m_GetAuthSessionTicketResponse = Callback<GetAuthSessionTicketResponse_t>.Create(OnAuthTicketResponse);
 
-                                _lastTicket = SteamUser.GetAuthSessionTicket(authTicket, 1024, out length);
-                                if (_lastTicket != HAuthTicket.Invalid)
+                                SteamHelper.lastTicket = SteamUser.GetAuthSessionTicket(authTicket, 1024, out length);
+                                if (SteamHelper.lastTicket != HAuthTicket.Invalid)
                                 {
                                     Array.Resize(ref authTicket, (int)length);
                                     authTicketHexString = BitConverter.ToString(authTicket).Replace("-", "");
@@ -330,9 +326,9 @@ namespace BeatSaverDownloader.UI
             Logger.Log("Waiting for Steam callback...");
 
             float startTime = Time.time;
-            yield return new WaitWhile(() => { return _lastTicketResult != EResult.k_EResultOK && (Time.time - startTime) < 20f; });
+            yield return new WaitWhile(() => { return SteamHelper.lastTicketResult != EResult.k_EResultOK && (Time.time - startTime) < 20f; });
 
-            if(_lastTicketResult != EResult.k_EResultOK)
+            if(SteamHelper.lastTicketResult != EResult.k_EResultOK)
             {
                 Logger.Error($"Auth ticket callback timeout");
                 _upvoteButton.interactable = true;
@@ -341,7 +337,7 @@ namespace BeatSaverDownloader.UI
                 yield break;
             }
 
-            _lastTicketResult = EResult.k_EResultRevoked;
+            SteamHelper.lastTicketResult = EResult.k_EResultRevoked;
 
             Logger.Log($"Voting...");
 
@@ -438,9 +434,9 @@ namespace BeatSaverDownloader.UI
 
         private void OnAuthTicketResponse(GetAuthSessionTicketResponse_t response)
         {
-            if(_lastTicket == response.m_hAuthTicket)
+            if(SteamHelper.lastTicket == response.m_hAuthTicket)
             {
-                _lastTicketResult = response.m_eResult;
+                SteamHelper.lastTicketResult = response.m_eResult;
             }
         }
     }

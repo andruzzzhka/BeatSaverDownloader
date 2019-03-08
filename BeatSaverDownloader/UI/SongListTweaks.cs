@@ -65,6 +65,10 @@ namespace BeatSaverDownloader.UI
         private SearchKeyboardViewController _searchViewController;
         private SimpleDialogPromptViewController _simpleDialog;
 
+        private Button _fastPageUpButton;
+        private Button _fastPageDownButton;
+
+        private Button _randomButton;
         private Button _searchButton;
         private Button _sortByButton;
         private Button _playlistsButton;
@@ -139,18 +143,59 @@ namespace BeatSaverDownloader.UI
             _difficultyViewController.didSelectDifficultyEvent += _difficultyViewController_didSelectDifficultyEvent;
 
             _levelListViewController = Resources.FindObjectsOfTypeAll<LevelListViewController>().FirstOrDefault();
-            _levelListViewController.didSelectLevelEvent += _levelListViewController_didSelectLevelEvent; ;
+            _levelListViewController.didSelectLevelEvent += _levelListViewController_didSelectLevelEvent;
 
+            TableView _songSelectionTableView = _levelListViewController.GetComponentsInChildren<TableView>().First();
             RectTransform _tableViewRectTransform = _levelListViewController.GetComponentsInChildren<RectTransform>().First(x => x.name == "TableViewContainer");
 
             _tableViewRectTransform.sizeDelta = new Vector2(0f, -20f);
             _tableViewRectTransform.anchoredPosition = new Vector2(0f, -2.5f);
 
-            RectTransform _pageUp = _tableViewRectTransform.GetComponentsInChildren<RectTransform>(true).First(x => x.name == "PageUpButton");
-            _pageUp.anchoredPosition = new Vector2(0f, -1f);
+            Button _pageUp = _tableViewRectTransform.GetComponentsInChildren<Button>(true).First(x => x.name == "PageUpButton");
+            (_pageUp.transform as RectTransform).anchoredPosition = new Vector2(0f, -1f);
 
-            RectTransform _pageDown = _tableViewRectTransform.GetComponentsInChildren<RectTransform>(true).First(x => x.name == "PageDownButton");
-            _pageDown.anchoredPosition = new Vector2(0f, 1f);
+            Button _pageDown = _tableViewRectTransform.GetComponentsInChildren<Button>(true).First(x => x.name == "PageDownButton");
+            (_pageDown.transform as RectTransform).anchoredPosition = new Vector2(0f, 1f);
+
+            _fastPageUpButton = Instantiate(_pageUp, _tableViewRectTransform, false);
+            (_fastPageUpButton.transform as RectTransform).anchorMin = new Vector2(0.5f, 1f);
+            (_fastPageUpButton.transform as RectTransform).anchorMax = new Vector2(0.5f, 1f);
+            (_fastPageUpButton.transform as RectTransform).anchoredPosition = new Vector2(-26f, 1f);
+            (_fastPageUpButton.transform as RectTransform).sizeDelta = new Vector2(8f, 6f);
+            _fastPageUpButton.GetComponentsInChildren<RectTransform>().First(x => x.name == "BG").sizeDelta = new Vector2(8f, 6f);
+            _fastPageUpButton.GetComponentsInChildren<UnityEngine.UI.Image>().First(x => x.name == "Arrow").sprite = Base64Sprites.DoubleArrow;
+            _fastPageUpButton.onClick.AddListener(delegate ()
+            {
+                for (int i = 0; i < 10; i++)
+                {
+                    _songSelectionTableView.PageScrollUp();
+                }
+            });
+
+            _fastPageDownButton = Instantiate(_pageDown, _tableViewRectTransform, false);
+            (_fastPageDownButton.transform as RectTransform).anchorMin = new Vector2(0.5f, 0f);
+            (_fastPageDownButton.transform as RectTransform).anchorMax = new Vector2(0.5f, 0f);
+            (_fastPageDownButton.transform as RectTransform).anchoredPosition = new Vector2(-26f, -1f);
+            (_fastPageDownButton.transform as RectTransform).sizeDelta = new Vector2(8f, 6f);
+            _fastPageDownButton.GetComponentsInChildren<RectTransform>().First(x => x.name == "BG").sizeDelta = new Vector2(8f, 6f);
+            _fastPageDownButton.GetComponentsInChildren<UnityEngine.UI.Image>().First(x => x.name == "Arrow").sprite = Base64Sprites.DoubleArrow;
+            _fastPageDownButton.onClick.AddListener(delegate ()
+            {
+                for (int i = 0; i < 10; i++)
+                {
+                    _songSelectionTableView.PageScrollDown();
+                }
+            });
+
+            _randomButton = _levelListViewController.CreateUIButton("PracticeButton", new Vector2(-35f, 36.25f), new Vector2(8.8f, 6f), () => 
+            {
+                int randomRow = UnityEngine.Random.Range(0, _songSelectionTableView.dataSource.NumberOfRows());
+                _songSelectionTableView.ScrollToRow(randomRow, false);
+                _songSelectionTableView.SelectRow(randomRow, true);
+            }
+            , "", Base64Sprites.RandomIcon);
+            var _randomIconLayour = _randomButton.GetComponentsInChildren<HorizontalLayoutGroup>().First(x => x.name == "Content");
+            _randomIconLayour.padding = new RectOffset(0, 0, 0, 0);
 
             _searchButton = _levelListViewController.CreateUIButton("CreditsButton", new Vector2(-20f, 36.25f), new Vector2(20f, 6f), SearchPressed, "Search");
             _searchButton.SetButtonTextSize(3f);

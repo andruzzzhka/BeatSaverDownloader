@@ -183,7 +183,7 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
                             }
                             else
                             {
-                                Misc.Logger.Error("Something went wrong...\n Error: "+node["data"]);
+                                Misc.Logger.Error("Something went wrong...\n Response: "+ voteWWW.downloadHandler.text);
                                 _reviewViewController.SetSubmitButtonState(true, true);
                                 _reviewViewController.SetStatusText(false, "");
                             }

@@ -130,6 +130,7 @@
     <Compile Include="Misc\Logger.cs" />
     <Compile Include="Misc\SongBrowserSettings.cs" />
     <Compile Include="Misc\CustomHelpers.cs" />
+    <Compile Include="Misc\SteamHelper.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Misc\PluginConfig.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
