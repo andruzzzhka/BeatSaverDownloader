@@ -86,6 +86,10 @@ namespace BeatSaverDownloader.UI
         {
             initialized = false;
             SetupTweaks();
+
+            if (PluginConfig.disableSongListTweaks)
+                return;
+
             if (SongLoader.AreSongsLoaded)
             {
                 AddDefaultPlaylists();
