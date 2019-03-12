@@ -34,6 +34,8 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
 
         private Song _lastSelectedSong;
 
+        private Song _lastDeletedSong;
+
         protected override void DidActivate(bool firstActivation, ActivationType activationType)
         {
             if (firstActivation && activationType == ActivationType.AddedToHierarchy)
@@ -123,11 +125,20 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
             }
             else
             {
-                _simpleDialog.Init("Delete song", $"Do you really want to delete \"{ song.songName} {song.songSubName}\"?", "Delete", "Cancel");
-                _simpleDialog.didFinishEvent -= (SimpleDialogPromptViewController sender, bool delete) => { DismissViewController(_simpleDialog, null, false); if (delete) DeleteSong(song); };
-                _simpleDialog.didFinishEvent += (SimpleDialogPromptViewController sender, bool delete) => { DismissViewController(_simpleDialog, null, false); if (delete) DeleteSong(song); };
+                _simpleDialog.Init("Delete song", $"Do you really want to delete \"{song.songName} {song.songSubName}\"?", "Delete", "Cancel");
+                _lastDeletedSong = song;
+                _simpleDialog.didFinishEvent -= DeleteDialogFinished;
+                _simpleDialog.didFinishEvent += DeleteDialogFinished;
                 PresentViewController(_simpleDialog, null, false);
             }
+        }
+
+        private void DeleteDialogFinished(SimpleDialogPromptViewController sender, bool delete)
+        {
+            DismissViewController(_simpleDialog, null, false);
+            if (delete)
+                DeleteSong(_lastDeletedSong);
+            _lastDeletedSong = null;
         }
 
         private void DeleteSong(Song song)

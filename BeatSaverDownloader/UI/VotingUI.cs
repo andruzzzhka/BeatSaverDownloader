@@ -146,8 +146,10 @@ namespace BeatSaverDownloader.UI
 
                     _ratingText.text = (int.Parse(_lastBeatSaverSong.upvotes) - int.Parse(_lastBeatSaverSong.downvotes)).ToString();
 
-                    _upvoteButton.interactable =     (PluginConfig.apiAccessToken != PluginConfig.apiTokenPlaceholder || (VRPlatformHelper.instance.vrPlatformSDK == VRPlatformHelper.VRPlatformSDK.OpenVR || Environment.CommandLine.ToLower().Contains("-vrmode oculus") || Environment.CommandLine.ToLower().Contains("fpfc")));
-                    _downvoteButton.interactable =   (PluginConfig.apiAccessToken != PluginConfig.apiTokenPlaceholder || (VRPlatformHelper.instance.vrPlatformSDK == VRPlatformHelper.VRPlatformSDK.OpenVR || Environment.CommandLine.ToLower().Contains("-vrmode oculus") || Environment.CommandLine.ToLower().Contains("fpfc")));
+                    bool canVote = (PluginConfig.apiAccessToken != PluginConfig.apiTokenPlaceholder || (VRPlatformHelper.instance.vrPlatformSDK == VRPlatformHelper.VRPlatformSDK.OpenVR || Environment.CommandLine.ToLower().Contains("-vrmode oculus") || Environment.CommandLine.ToLower().Contains("fpfc")));
+
+                    _upvoteButton.interactable = canVote;
+                    _downvoteButton.interactable = canVote;
 
                     _reviewButton.interactable = true;
 

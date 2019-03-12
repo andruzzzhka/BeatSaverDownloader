@@ -98,13 +98,18 @@ namespace BeatSaverDownloader.UI
 
         private void SetupTweaks()
         {
+            _mainFlowCoordinator = Resources.FindObjectsOfTypeAll<MainFlowCoordinator>().FirstOrDefault();
+            _mainFlowCoordinator.GetPrivateField<MainMenuViewController>("_mainMenuViewController").didFinishEvent += SongListTweaks_didFinishEvent;
+
+            _beatmapCharacteristics = Resources.FindObjectsOfTypeAll<BeatmapCharacteristicSO>();
+            _lastCharacteristic = _beatmapCharacteristics.First(x => x.characteristicName == "Standard");
+
             if (initialized || PluginConfig.disableSongListTweaks) return;
 
             Logger.Log("Setting up song list tweaks...");
 
             try
             {
-
                 var harmony = HarmonyInstance.Create("BeatSaverDownloaderHarmonyInstance");
                 harmony.PatchAll(Assembly.GetExecutingAssembly());
             }
@@ -115,10 +120,7 @@ namespace BeatSaverDownloader.UI
 
             _playlistsFlowCoordinator = new GameObject("PlaylistsFlowCoordinator").AddComponent<PlaylistsFlowCoordinator>();
             _playlistsFlowCoordinator.didFinishEvent += _playlistsFlowCoordinator_didFinishEvent;
-
-            _beatmapCharacteristics = Resources.FindObjectsOfTypeAll<BeatmapCharacteristicSO>();
-            _lastCharacteristic = _beatmapCharacteristics.First(x => x.characteristicName == "Standard");
-
+            
             Resources.FindObjectsOfTypeAll<BeatmapCharacteristicSelectionViewController>().First().didSelectBeatmapCharacteristicEvent += (BeatmapCharacteristicSelectionViewController sender, BeatmapCharacteristicSO selected) => { _lastCharacteristic = selected; };
 
             if (SongLoader.AreSongsLoaded)
@@ -132,9 +134,6 @@ namespace BeatSaverDownloader.UI
                     _levelCollection = SongLoader.CustomLevelCollectionSO;
                 };
             }
-
-            _mainFlowCoordinator = Resources.FindObjectsOfTypeAll<MainFlowCoordinator>().FirstOrDefault();
-            _mainFlowCoordinator.GetPrivateField<MainMenuViewController>("_mainMenuViewController").didFinishEvent += SongListTweaks_didFinishEvent;
 
             _simpleDialog = ReflectionUtil.GetPrivateField<SimpleDialogPromptViewController>(_mainFlowCoordinator, "_simpleDialogPromptViewController");
             _simpleDialog = Instantiate(_simpleDialog.gameObject, _simpleDialog.transform.parent).GetComponent<SimpleDialogPromptViewController>();
@@ -410,12 +409,12 @@ namespace BeatSaverDownloader.UI
             {
                 ScrappedSong song = ScrappedData.Songs.FirstOrDefault(x => x.Hash == beatmap.level.levelID.Substring(0, 32));
                 if (song != null && song.Diffs.Any(x => x.Diff == beatmap.difficulty.ToString()))
-                    _starStatText.text = (song == null ? "--" : song.Diffs.First(x => x.Diff == beatmap.difficulty.ToString()).Stars.ToString());
+                    _starStatText.text = song.Diffs.First(x => x.Diff == beatmap.difficulty.ToString()).Stars.ToString();
+                else
+                    _starStatText.text = "--";
             }
             else
-            {
                 _starStatText.text = "--";
-            }
         }
 
         private void _levelListViewController_didSelectLevelEvent(LevelListViewController sender, IBeatmapLevel beatmap)

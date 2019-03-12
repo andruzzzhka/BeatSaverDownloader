@@ -366,13 +366,16 @@ namespace BeatSaverDownloader.Misc
 
         public bool PlaylistEqual(object obj)
         {
+            if (obj == null) return false;
+
             var playlist = obj as Playlist;
+
+            if (playlist == null) return false;
 
             int songCountThis = (songs != null ? (songs.Count > 0 ? songs.Count : playlistSongCount) : playlistSongCount);
             int songCountObj  = (playlist.songs != null ? (playlist.songs.Count > 0 ? playlist.songs.Count : playlist.playlistSongCount) : playlist.playlistSongCount);
 
-            return playlist != null &&
-                   playlistTitle == playlist.playlistTitle &&
+            return playlistTitle == playlist.playlistTitle &&
                    playlistAuthor == playlist.playlistAuthor &&
                    songCountThis == songCountObj;
         }

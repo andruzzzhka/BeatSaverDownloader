@@ -52,17 +52,17 @@ namespace BeatSaverDownloader.UI.UIElements
                 _currentValue = 0;
             }
 
-            for (int i = 0; i < _currentValue && i < 5; i++)
+            for (int i = 0; i < _currentValue; i++)
             {
-                if (_starButtons.Length > i && i >= 0)
+                if (_starButtons.Length > i)
                     _starButtons[i].SetButtonIcon(Base64Sprites.StarFull);
                 else
                     Misc.Logger.Log("Index out of bounds! (1) Items: " + _starButtons.Length + ", Index: "+i);
             }
 
-            for (int i = _currentValue; i < _starButtons.Length && i < 5; i++)
+            for (int i = _currentValue; i < _starButtons.Length; i++)
             {
-                if (_starButtons.Length > i && i >= 0)
+                if (_starButtons.Length > i)
                     _starButtons[i].SetButtonIcon(Base64Sprites.StarEmpty);
                 else
                     Misc.Logger.Log("Index out of bounds! (2) Items: " + _starButtons.Length + ", Index: " + i);

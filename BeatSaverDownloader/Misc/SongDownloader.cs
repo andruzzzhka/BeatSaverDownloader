@@ -80,13 +80,13 @@ namespace BeatSaverDownloader.Misc
                 yield break;
             }
 
-            while ((!asyncRequest.isDone || songInfo.downloadingProgress != 1f) && songInfo.songQueueState != SongQueueState.Error)
+            while ((!asyncRequest.isDone || songInfo.downloadingProgress < 1f) && songInfo.songQueueState != SongQueueState.Error)
             {
                 yield return null;
 
                 time += Time.deltaTime;
 
-                if ((time >= 5f && asyncRequest.progress == 0f) || songInfo.songQueueState == SongQueueState.Error)
+                if (time >= 5f && asyncRequest.progress <= float.Epsilon)
                 {
                     www.Abort();
                     timeout = true;
@@ -96,6 +96,8 @@ namespace BeatSaverDownloader.Misc
                 songInfo.downloadingProgress = asyncRequest.progress;
             }
 
+            if(songInfo.songQueueState == SongQueueState.Error && (!asyncRequest.isDone || songInfo.downloadingProgress < 1f))
+                www.Abort();
 
             if (www.isNetworkError || www.isHttpError || timeout || songInfo.songQueueState == SongQueueState.Error)
             {
@@ -150,7 +152,6 @@ namespace BeatSaverDownloader.Misc
                 ZipArchive archive = new ZipArchive(zipStream, ZipArchiveMode.Read);
                 await Task.Run(() => archive.ExtractToDirectory(customSongsPath)).ConfigureAwait(false);
                 archive.Dispose();
-                zipStream.Close();
             }
             catch (Exception e)
             {
@@ -159,6 +160,7 @@ namespace BeatSaverDownloader.Misc
                 _extractingZip = false;
                 return;
             }
+            zipStream.Close();
 
             songInfo.path = Directory.GetDirectories(customSongsPath).FirstOrDefault();
 
