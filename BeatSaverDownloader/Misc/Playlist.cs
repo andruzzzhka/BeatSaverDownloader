@@ -202,7 +202,7 @@ namespace BeatSaverDownloader.Misc
         [NonSerialized]
         public string levelId;
         [NonSerialized]
-        public LevelSO level;
+        public BeatmapLevelSO level;
         [NonSerialized]
         public bool oneSaber;
         [NonSerialized]
@@ -219,7 +219,7 @@ namespace BeatSaverDownloader.Misc
                 if (song != null)
                     key = song.Key;
                 else
-                    yield return SongDownloader.Instance.RequestSongByLevelIDCoroutine(hash, (Song bsSong) => { key = bsSong.id; });
+                    yield return SongDownloader.Instance.RequestSongByLevelIDCoroutine(hash, (Song bsSong) => { if (bsSong != null) key = bsSong.id; });
             }
             else if (!string.IsNullOrEmpty(levelId))
             {
@@ -227,14 +227,14 @@ namespace BeatSaverDownloader.Misc
                 if (song != null)
                     key = song.Key;
                 else
-                    yield return SongDownloader.Instance.RequestSongByLevelIDCoroutine(levelId.Substring(0, Math.Min(32, levelId.Length)), (Song bsSong) => { key = bsSong.id; });
+                    yield return SongDownloader.Instance.RequestSongByLevelIDCoroutine(levelId.Substring(0, Math.Min(32, levelId.Length)), (Song bsSong) => { if (bsSong != null) key = bsSong.id; });
             }else if (level != null)
             {
                 ScrappedSong song = ScrappedData.Songs.FirstOrDefault(x => level.levelID.StartsWith(x.Hash));
                 if (song != null)
                     key = song.Key;
                 else
-                    yield return SongDownloader.Instance.RequestSongByLevelIDCoroutine(level.levelID.Substring(0, Math.Min(32, level.levelID.Length)), (Song bsSong) => { key = bsSong.id; });
+                    yield return SongDownloader.Instance.RequestSongByLevelIDCoroutine(level.levelID.Substring(0, Math.Min(32, level.levelID.Length)), (Song bsSong) => { if (bsSong != null) key = bsSong.id; });
             }
         }
     }
@@ -265,17 +265,17 @@ namespace BeatSaverDownloader.Misc
             {
                 try
                 {
-                    icon = Base64Sprites.Base64ToSprite(image.Substring(image.IndexOf(",") + 1));
+                    icon = Sprites.Base64ToSprite(image.Substring(image.IndexOf(",") + 1));
                 }
                 catch
                 {
                     Logger.Exception("Unable to convert playlist image to sprite!");
-                    icon = Base64Sprites.BeastSaberLogo;
+                    icon = Sprites.BeastSaberLogo;
                 }
             }
             else
             {
-                icon = Base64Sprites.BeastSaberLogo;
+                icon = Sprites.BeastSaberLogo;
             }
             playlistTitle = playlistNode["playlistTitle"];
             playlistAuthor = playlistNode["playlistAuthor"];
@@ -334,7 +334,7 @@ namespace BeatSaverDownloader.Misc
             Logger.Log($"Saving playlist \"{playlistTitle}\"...");
             try
             {
-                image = Base64Sprites.SpriteToBase64(icon);
+                image = Sprites.SpriteToBase64(icon);
                 playlistSongCount = songs.Count;
             }catch(Exception e)
             {

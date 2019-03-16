@@ -31,12 +31,11 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
 
         private Playlist _lastPlaylist;
         
-        protected override void DidActivate(bool firstActivation, ActivationType activationType)
+        public void Awake()
         {
-            if (firstActivation)
-            {
-                title = "Playlists";
 
+            if (_playlistsNavigationController == null && _playlistDetailViewController == null)
+            {
                 _playlistsNavigationController = BeatSaberUI.CreateViewController<BackButtonNavigationController>();
                 _playlistsNavigationController.didFinishEvent += _playlistsNavigationController_didFinishEvent;
 
@@ -48,6 +47,14 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
                 _playlistDetailViewController.downloadButtonPressed += _playlistDetailViewController_downloadButtonPressed;
                 _playlistDetailViewController.selectButtonPressed += _playlistDetailViewController_selectButtonPressed;
                 _playlistDetailViewController.SetSelectButtonText("Select");
+            }
+        }
+
+        protected override void DidActivate(bool firstActivation, ActivationType activationType)
+        {
+            if (firstActivation)
+            {
+                title = "Playlists";
 
                 _playlistListViewController = BeatSaberUI.CreateViewController<PlaylistListViewController>();
                 _playlistListViewController.didSelectRow += _playlistListViewController_didSelectRow;

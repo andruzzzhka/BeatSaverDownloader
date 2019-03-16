@@ -75,6 +75,7 @@ namespace BeatSaverDownloader.Misc
         public static bool enableSongIcons = true;
 
         public static int maxSimultaneousDownloads = 3;
+        public static int fastScrollSpeed = 5;
 
 
         public static void LoadOrCreateConfig()
@@ -150,11 +151,20 @@ namespace BeatSaverDownloader.Misc
             if (!ModPrefs.HasKey("BeatSaverDownloader", "maxSimultaneousDownloads"))
             {
                 ModPrefs.SetInt("BeatSaverDownloader", "maxSimultaneousDownloads", 3);
-                Logger.Log("Created config");
             }
             else
             {
                 maxSimultaneousDownloads = ModPrefs.GetInt("BeatSaverDownloader", "maxSimultaneousDownloads", 3, true);
+            }
+
+            if (!ModPrefs.HasKey("BeatSaverDownloader", "fastScrollSpeed"))
+            {
+                ModPrefs.SetInt("BeatSaverDownloader", "fastScrollSpeed", 5);
+                Logger.Log("Created config");
+            }
+            else
+            {
+                fastScrollSpeed = ModPrefs.GetInt("BeatSaverDownloader", "fastScrollSpeed", 5, true);
             }
 
             if (File.Exists(oldConfigPath) && !File.Exists(configPath))

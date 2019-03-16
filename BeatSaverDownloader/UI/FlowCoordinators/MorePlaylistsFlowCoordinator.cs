@@ -1,7 +1,6 @@
 ﻿using BeatSaverDownloader.Misc;
 using BeatSaverDownloader.UI.ViewControllers;
 using CustomUI.BeatSaber;
-using CustomUI.Utilities;
 using SimpleJSON;
 using SongLoaderPlugin;
 using System;

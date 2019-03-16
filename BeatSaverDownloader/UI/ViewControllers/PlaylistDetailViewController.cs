@@ -1,6 +1,7 @@
 ﻿using BeatSaverDownloader.Misc;
 using BeatSaverDownloader.UI.FlowCoordinators;
 using CustomUI.BeatSaber;
+using SongLoaderPlugin;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -33,22 +34,28 @@ namespace BeatSaverDownloader.UI.ViewControllers
         private TextMeshProUGUI totalSongsText;
         private TextMeshProUGUI downloadedSongsText;
 
+        private StandardLevelDetailView _levelDetails;
+
         public bool addDownloadButton = true;
+        private Image coverImage;
 
         protected override void DidActivate(bool firstActivation, ActivationType type)
         {
-
             if (firstActivation && type == ActivationType.AddedToHierarchy)
             {
+                gameObject.SetActive(true);
+                _levelDetails = GetComponentsInChildren<StandardLevelDetailView>(true).First(x => x.name == "LevelDetail");
+                _levelDetails.gameObject.SetActive(true);
+
                 RemoveCustomUIElements(rectTransform);
 
                 Destroy(GetComponentsInChildren<LevelParamsPanel>().First(x => x.name == "LevelParamsPanel").gameObject);
                 
-                RectTransform yourStats = GetComponentsInChildren<RectTransform>(true).First(x => x.name == "YourStats");
+                RectTransform yourStats = GetComponentsInChildren<RectTransform>(true).First(x => x.name == "Stats");
                 yourStats.gameObject.SetActive(true);
 
-                RectTransform buttonsRect = GetComponentsInChildren<RectTransform>().First(x => x.name == "Buttons");
-                buttonsRect.anchoredPosition = new Vector2(0f, 6f);
+                //RectTransform buttonsRect = GetComponentsInChildren<RectTransform>().First(x => x.name == "PlayButtons");
+                //buttonsRect.anchoredPosition = new Vector2(0f, 6f);
 
                 TextMeshProUGUI[] _textComponents = GetComponentsInChildren<TextMeshProUGUI>();
 
@@ -57,40 +64,40 @@ namespace BeatSaverDownloader.UI.ViewControllers
                     songNameText = _textComponents.First(x => x.name == "SongNameText");
                     _textComponents.First(x => x.name == "Title").text = "Playlist";
 
-                    _textComponents.First(x => x.name == "YourStatsTitle").text = "Playlist Info";
-
-                    _textComponents.First(x => x.name == "HighScoreText").text = "Author";
-                    authorText = _textComponents.First(x => x.name == "HighScoreValueText");
+                    _textComponents.First(x => x.name == "Title" && x.transform.parent.name == "MaxCombo").text = "Author";
+                    authorText = _textComponents.First(x => x.name == "Value" && x.transform.parent.name == "MaxCombo");
                     authorText.rectTransform.sizeDelta = new Vector2(24f, 0f);
 
-                    _textComponents.First(x => x.name == "MaxComboText").text = "Total songs";
-                    totalSongsText = _textComponents.First(x => x.name == "MaxComboValueText");
+                    _textComponents.First(x => x.name == "Title" && x.transform.parent.name == "Highscore").text = "Total songs";
+                    totalSongsText = _textComponents.First(x => x.name == "Value" && x.transform.parent.name == "Highscore");
 
-                    _textComponents.First(x => x.name == "MaxRankText").text = "Downloaded";
-                    _textComponents.First(x => x.name == "MaxRankText").rectTransform.sizeDelta = new Vector2(18f, 3f);
-                    downloadedSongsText = _textComponents.First(x => x.name == "MaxRankValueText");
+                    _textComponents.First(x => x.name == "Title" && x.transform.parent.name == "MaxRank").text = "Downloaded";
+                    downloadedSongsText = _textComponents.First(x => x.name == "Value" && x.transform.parent.name == "MaxRank");
                 }
                 catch (Exception e)
                 {
                     Logger.Exception("Unable to convert detail view controller! Exception:  " + e);
                 }
 
-                _selectButton = GetComponentsInChildren<Button>().First(x => x.name == "PlayButton");
+                _selectButton = _levelDetails.playButton;
                 _selectButton.SetButtonText(_selectButtonText);
+                _selectButton.ToggleWordWrapping(false);
                 _selectButton.onClick.RemoveAllListeners();
                 _selectButton.onClick.AddListener(() => { selectButtonPressed?.Invoke(_currentPlaylist); });
 
                 if (addDownloadButton)
                 {
-                    _downloadButton = GetComponentsInChildren<Button>().First(x => x.name == "PracticeButton");
-                    _downloadButton.GetComponentsInChildren<Image>().First(x => x.name == "Icon").sprite = Base64Sprites.DownloadIcon;
+                    _downloadButton = _levelDetails.practiceButton;
+                    _downloadButton.SetButtonIcon(Sprites.DownloadIcon);
                     _downloadButton.onClick.RemoveAllListeners();
                     _downloadButton.onClick.AddListener(() => { downloadButtonPressed?.Invoke(_currentPlaylist); });
                 }
                 else
                 {
-                    Destroy(GetComponentsInChildren<Button>().First(x => x.name == "PracticeButton").gameObject);
+                    Destroy(_levelDetails.practiceButton.gameObject);
                 }
+
+                coverImage = _levelDetails.GetPrivateField<Image>("_coverImage");
             }
         }
 
@@ -120,6 +127,8 @@ namespace BeatSaverDownloader.UI.ViewControllers
             songNameText.text = newPlaylist.playlistTitle;
 
             authorText.text = newPlaylist.playlistAuthor;
+
+            coverImage.sprite = _currentPlaylist.icon;
 
             if (newPlaylist.songs.Count > 0)
             {

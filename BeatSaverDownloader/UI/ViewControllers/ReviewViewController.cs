@@ -34,43 +34,43 @@ namespace BeatSaverDownloader.UI.ViewControllers
         {
             if (firstActivation)
             {
-                TextMeshProUGUI _funFactorText = BeatSaberUI.CreateText(rectTransform, "Fun Factor", new Vector2(-29f, 28f));
+                TextMeshProUGUI _funFactorText = BeatSaberUI.CreateText(rectTransform, "Fun Factor", new Vector2(-29f, 32f));
                 _funFactorText.fontSize = 7f;
                 _funFactorText.alignment = TextAlignmentOptions.Center;
                 _funFactorControl = new GameObject("FunFactorUIControl", typeof(RectTransform)).AddComponent<StarsUIControl>();
                 _funFactorControl.Init(rectTransform, new Vector2(-50f, 19.5f));
 
-                TextMeshProUGUI _flowText = BeatSaberUI.CreateText(rectTransform, "Flow", new Vector2(31f, 28f));
+                TextMeshProUGUI _flowText = BeatSaberUI.CreateText(rectTransform, "Flow", new Vector2(31f, 32f));
                 _flowText.fontSize = 7f;
                 _flowText.alignment = TextAlignmentOptions.Center;
                 _flowControl = new GameObject("FlowUIControl", typeof(RectTransform)).AddComponent<StarsUIControl>();
                 _flowControl.Init(rectTransform, new Vector2(10f, 19.5f));
 
-                TextMeshProUGUI _rhythmText = BeatSaberUI.CreateText(rectTransform, "Rhythm", new Vector2(-29f, 8f));
+                TextMeshProUGUI _rhythmText = BeatSaberUI.CreateText(rectTransform, "Rhythm", new Vector2(-29f, 12f));
                 _rhythmText.fontSize = 7f;
                 _rhythmText.alignment = TextAlignmentOptions.Center;
                 _rhythmControl = new GameObject("RhythmUIControl", typeof(RectTransform)).AddComponent<StarsUIControl>();
                 _rhythmControl.Init(rectTransform, new Vector2(-50f, -0.5f));
 
-                TextMeshProUGUI _readabilityText = BeatSaberUI.CreateText(rectTransform, "Readability", new Vector2(31f, 8f));
+                TextMeshProUGUI _readabilityText = BeatSaberUI.CreateText(rectTransform, "Readability", new Vector2(31f, 12f));
                 _readabilityText.fontSize = 7f;
                 _readabilityText.alignment = TextAlignmentOptions.Center;
                 _readabilityControl = new GameObject("ReadabilityUIControl", typeof(RectTransform)).AddComponent<StarsUIControl>();
                 _readabilityControl.Init(rectTransform, new Vector2(10f, -0.5f));
 
-                TextMeshProUGUI _patternQualityText = BeatSaberUI.CreateText(rectTransform, "Pattern quality", new Vector2(-29f, -12f));
+                TextMeshProUGUI _patternQualityText = BeatSaberUI.CreateText(rectTransform, "Pattern quality", new Vector2(-29f, -8f));
                 _patternQualityText.fontSize = 7f;
                 _patternQualityText.alignment = TextAlignmentOptions.Center;
                 _patternQualityControl = new GameObject("PatternQualityUIControl", typeof(RectTransform)).AddComponent<StarsUIControl>();
                 _patternQualityControl.Init(rectTransform, new Vector2(-50f, -20.5f));
 
-                TextMeshProUGUI _levelDesignText = BeatSaberUI.CreateText(rectTransform, "Level quality", new Vector2(31f, -12f));
+                TextMeshProUGUI _levelDesignText = BeatSaberUI.CreateText(rectTransform, "Level quality", new Vector2(31f, -8f));
                 _levelDesignText.fontSize = 7f;
                 _levelDesignText.alignment = TextAlignmentOptions.Center;
                 _levelDesignControl = new GameObject("LevelDesignUIControl", typeof(RectTransform)).AddComponent<StarsUIControl>();
                 _levelDesignControl.Init(rectTransform, new Vector2(10f, -20.5f));
 
-                _statusText = BeatSaberUI.CreateText(rectTransform, "<color=green>Success!", new Vector2(0f, -32f));
+                _statusText = BeatSaberUI.CreateText(rectTransform, "<color=green>Success!", new Vector2(0f, -28f));
                 _statusText.alignment = TextAlignmentOptions.Center;
                 _statusText.fontSize = 7f;
                 _statusText.enableWordWrapping = false;

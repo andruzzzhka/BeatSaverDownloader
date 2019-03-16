@@ -66,14 +66,14 @@ namespace BeatSaverDownloader.UI
             _standardLevelResultsViewController = Resources.FindObjectsOfTypeAll<ResultsViewController>().First(x => x.name == "StandardLevelResultsViewController");
             _standardLevelResultsViewController.didActivateEvent += _standardLevelResultsViewController_didActivateEvent;
 
-            _upvoteButton = _standardLevelResultsViewController.CreateUIButton("PracticeButton", new Vector2(65f, 10f), () => { VoteForSong(true); }, "", Base64Sprites.ThumbUp);
-            _downvoteButton = _standardLevelResultsViewController.CreateUIButton("PracticeButton", new Vector2(65f, -10f), () => { VoteForSong(false); }, "", Base64Sprites.ThumbDown);
-            _ratingText = _standardLevelResultsViewController.CreateText("LOADING...", new Vector2(65f, 0f));
+            _upvoteButton = _standardLevelResultsViewController.CreateUIButton("PracticeButton", new Vector2(65f, 10f), () => { VoteForSong(true); }, "", Sprites.ThumbUp);
+            _downvoteButton = _standardLevelResultsViewController.CreateUIButton("PracticeButton", new Vector2(65f, -10f), () => { VoteForSong(false); }, "", Sprites.ThumbDown);
+            _ratingText = _standardLevelResultsViewController.CreateText("LOADING...", new Vector2(65f, 4f));
             _ratingText.alignment = TextAlignmentOptions.Center;
             _ratingText.fontSize = 7f;
             _ratingText.lineSpacing = -38f;
 
-            _reviewButton = _standardLevelResultsViewController.CreateUIButton("PracticeButton", new Vector2(65f, -20f), () => { ShowReviewScreen(); }, "", Base64Sprites.ReviewIcon);
+            _reviewButton = _standardLevelResultsViewController.CreateUIButton("PracticeButton", new Vector2(65f, -20f), () => { ShowReviewScreen(); }, "", Sprites.ReviewIcon);
 
             initialized = true;
         }
@@ -142,26 +142,32 @@ namespace BeatSaverDownloader.UI
 
                     JSONNode node = JSON.Parse(www.downloadHandler.text);
 
-                    _lastBeatSaverSong = Song.FromSearchNode(node["songs"][0]);
-
-                    _ratingText.text = (int.Parse(_lastBeatSaverSong.upvotes) - int.Parse(_lastBeatSaverSong.downvotes)).ToString();
-
-                    bool canVote = (PluginConfig.apiAccessToken != PluginConfig.apiTokenPlaceholder || (VRPlatformHelper.instance.vrPlatformSDK == VRPlatformHelper.VRPlatformSDK.OpenVR || Environment.CommandLine.ToLower().Contains("-vrmode oculus") || Environment.CommandLine.ToLower().Contains("fpfc")));
-
-                    _upvoteButton.interactable = canVote;
-                    _downvoteButton.interactable = canVote;
-
-                    _reviewButton.interactable = true;
-
-                    if (PluginConfig.votedSongs.ContainsKey(_lastLevel.levelID.Substring(0, 32)))
+                    if (node["songs"].Count > 0)
                     {
-                        switch (PluginConfig.votedSongs[_lastLevel.levelID.Substring(0, 32)].voteType)
+                        _lastBeatSaverSong = Song.FromSearchNode(node["songs"][0]);
+
+                        _ratingText.text = (int.Parse(_lastBeatSaverSong.upvotes) - int.Parse(_lastBeatSaverSong.downvotes)).ToString();
+
+                        bool canVote = (PluginConfig.apiAccessToken != PluginConfig.apiTokenPlaceholder || (VRPlatformHelper.instance.vrPlatformSDK == VRPlatformHelper.VRPlatformSDK.OpenVR || Environment.CommandLine.ToLower().Contains("-vrmode oculus") || Environment.CommandLine.ToLower().Contains("fpfc")));
+
+                        _upvoteButton.interactable = canVote;
+                        _downvoteButton.interactable = canVote;
+
+                        _reviewButton.interactable = true;
+
+                        if (PluginConfig.votedSongs.ContainsKey(_lastLevel.levelID.Substring(0, 32)))
                         {
-                            case VoteType.Upvote:   { _upvoteButton.interactable = false; } break;
-                            case VoteType.Downvote: { _downvoteButton.interactable = false; } break;
+                            switch (PluginConfig.votedSongs[_lastLevel.levelID.Substring(0, 32)].voteType)
+                            {
+                                case VoteType.Upvote: { _upvoteButton.interactable = false; } break;
+                                case VoteType.Downvote: { _downvoteButton.interactable = false; } break;
+                            }
                         }
                     }
-
+                    else
+                    {
+                        Logger.Error("Song doesn't exist on BeatSaver!");
+                    }
                 }
                 catch (Exception e)
                 {

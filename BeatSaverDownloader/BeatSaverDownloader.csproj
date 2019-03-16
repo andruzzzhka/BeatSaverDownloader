@@ -64,8 +64,8 @@
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-    <Reference Include="TextMeshPro-1.0.55.2017.1.0b12">
-      <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Beat Saber\Beat Saber_Data\Managed\TextMeshPro-1.0.55.2017.1.0b12.dll</HintPath>
+    <Reference Include="Unity.TextMeshPro">
+      <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Beat Saber\Beat Saber_Data\Managed\Unity.TextMeshPro.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine">
       <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Beat Saber\Beat Saber_Data\Managed\UnityEngine.dll</HintPath>
@@ -120,8 +120,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Misc\Base64Sprites.cs" />
+    <Compile Include="Misc\Sprites.cs" />
     <Compile Include="Misc\BeatSaverAPIResult.cs" />
+    <Compile Include="Misc\BSEvents.cs" />
     <Compile Include="Misc\FileOperationAPIWrapper.cs" />
     <Compile Include="Misc\LoadScripts.cs" />
     <Compile Include="Misc\Playlist.cs" />
@@ -156,7 +157,23 @@
   <ItemGroup>
     <WCFMetadata Include="Connected Services\" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <EmbeddedResource Include="Assets\AddToFavorites.png" />
+    <EmbeddedResource Include="Assets\DeleteIcon.png" />
+    <EmbeddedResource Include="Assets\DoubleArrow.png" />
+    <EmbeddedResource Include="Assets\BeastSaberLogo.png" />
+    <EmbeddedResource Include="Assets\DownloadIcon.png" />
+    <EmbeddedResource Include="Assets\RandomIcon.png" />
+    <EmbeddedResource Include="Assets\PlayIcon.png" />
+    <EmbeddedResource Include="Assets\SongIcon.png" />
+    <EmbeddedResource Include="Assets\PlaylistIcon.png" />
+    <EmbeddedResource Include="Assets\ThumbDown.png" />
+    <EmbeddedResource Include="Assets\ThumbUp.png" />
+    <EmbeddedResource Include="Assets\ReviewIcon.png" />
+    <EmbeddedResource Include="Assets\StarEmpty.png" />
+    <EmbeddedResource Include="Assets\StarFull.png" />
+    <EmbeddedResource Include="Assets\RemoveFromFavorites.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>copy "BeatSaverDownloader.dll" "C:\Program Files (x86)\Steam\steamapps\common\Beat Saber\Plugins"</PostBuildEvent>

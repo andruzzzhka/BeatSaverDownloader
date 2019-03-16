@@ -13,7 +13,6 @@ using BeatSaverDownloader.Misc;
 using System;
 using CustomUI.Settings;
 using System.Collections;
-using CustomUI.Utilities;
 
 namespace BeatSaverDownloader.UI
 {
@@ -93,22 +92,25 @@ namespace BeatSaverDownloader.UI
             maxSimultaneousDownloads.GetValue += delegate { return PluginConfig.maxSimultaneousDownloads; };
             maxSimultaneousDownloads.SetValue += delegate (int value) { PluginConfig.maxSimultaneousDownloads = value; PluginConfig.SaveConfig(); };
 
+            var fastScrollSpeed = downloaderSubMenu.AddInt("Fast scroll speed", 2, 20, 1);
+            fastScrollSpeed.GetValue += delegate { return PluginConfig.fastScrollSpeed; };
+            fastScrollSpeed.SetValue += delegate (int value) { PluginConfig.fastScrollSpeed = value; PluginConfig.SaveConfig(); };
+
             _moreSongsButton = MenuButtonUI.AddButton("More songs", "Download more songs from BeatSaver.com!", BeatSaverButtonPressed);
             _moreSongsButton.interactable = SongLoader.AreSongsLoaded;
 
             MenuButtonUI.AddButton("More playlists", PlaylistsButtonPressed);
 
-            yield return null;
+            if (moreSongsFlowCoordinator == null)
+                moreSongsFlowCoordinator = new GameObject("MoreSongsFlowCoordinator").AddComponent<MoreSongsFlowCoordinator>();
 
+            yield return null;
 
             initialized = true;
         }
 
         public void BeatSaverButtonPressed()
         {
-            if (moreSongsFlowCoordinator == null)
-                moreSongsFlowCoordinator = new GameObject("MoreSongsFlowCoordinator").AddComponent<MoreSongsFlowCoordinator>();
-
             MainFlowCoordinator mainFlow = Resources.FindObjectsOfTypeAll<MainFlowCoordinator>().First();
 
             mainFlow.InvokeMethod("PresentFlowCoordinator", moreSongsFlowCoordinator, null, false, false);

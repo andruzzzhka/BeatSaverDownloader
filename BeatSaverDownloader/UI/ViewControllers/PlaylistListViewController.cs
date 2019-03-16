@@ -86,14 +86,14 @@ namespace BeatSaverDownloader.UI.ViewControllers
                 _songsTableView.SetPrivateField("_pageDownButton", _pageDownButton);
 
                 _songsTableView.dataSource = this;
-                _songsTableView.ScrollToRow(0, false);
+                _songsTableView.ScrollToCellWithIdx(0, TableView.ScrollPositionType.Beginning, false);
                 _lastSelectedRow = -1;
-                _songsTableView.didSelectRowEvent += _songsTableView_DidSelectRowEvent;
+                _songsTableView.didSelectCellWithIdxEvent += _songsTableView_DidSelectRowEvent;
             }
             else
             {
                 _songsTableView.ReloadData();
-                _songsTableView.ScrollToRow(0, false);
+                _songsTableView.ScrollToCellWithIdx(0, TableView.ScrollPositionType.Beginning, false);
                 _lastSelectedRow = -1;
             }
         }
@@ -118,7 +118,7 @@ namespace BeatSaverDownloader.UI.ViewControllers
             if (_songsTableView != null)
             {
                 _songsTableView.ReloadData();
-                _songsTableView.ScrollToRow(0, false);
+                _songsTableView.ScrollToCellWithIdx(0, TableView.ScrollPositionType.Center, false);
             }
         }
 
@@ -128,24 +128,33 @@ namespace BeatSaverDownloader.UI.ViewControllers
             didSelectRow?.Invoke(playlistList[row]);
         }
 
-        public float RowHeight()
+        public float CellSize()
         {
             return 10f;
         }
 
-        public int NumberOfRows()
+        public int NumberOfCells()
         {
             return playlistList.Count;
         }
 
-        public TableCell CellForRow(int row)
+        public TableCell CellForIdx(int row)
         {
             LevelListTableCell _tableCell = Instantiate(_songListTableCellInstance);
 
             _tableCell.reuseIdentifier = "PlaylistTableCell";
-            _tableCell.songName = playlistList[row].playlistTitle;
-            _tableCell.author = playlistList[row].playlistAuthor;
-            _tableCell.coverImage = playlistList[row].icon;
+            _tableCell.GetPrivateField<TextMeshProUGUI>("_songNameText").text = playlistList[row].playlistTitle;
+            _tableCell.GetPrivateField<TextMeshProUGUI>("_authorText").text = playlistList[row].playlistAuthor;
+            _tableCell.GetPrivateField<UnityEngine.UI.Image>("_coverImage").sprite = playlistList[row].icon;
+
+            _tableCell.SetPrivateField("_beatmapCharacteristicAlphas", new float[0]);
+            _tableCell.SetPrivateField("_beatmapCharacteristicImages", new UnityEngine.UI.Image[0]);
+            _tableCell.SetPrivateField("_bought", true);
+
+            foreach (var icon in _tableCell.GetComponentsInChildren<UnityEngine.UI.Image>().Where(x => x.name.StartsWith("LevelTypeIcon")))
+            {
+                Destroy(icon.gameObject);
+            }
 
             if (highlightDownloadedPlaylists)
             {

@@ -16,7 +16,7 @@ namespace BeatSaverDownloader
     {
         string IPlugin.Name { get { return "BeatSaver Downloader"; } }
 
-        string IPlugin.Version { get { return "3.2.7"; } }
+        string IPlugin.Version { get { return "3.2.8"; } }
         
         public void OnApplicationQuit()
         {
@@ -26,31 +26,29 @@ namespace BeatSaverDownloader
         public void OnApplicationStart()
         {
             SceneManager.sceneLoaded += SceneManager_sceneLoaded;
-            SceneManager.activeSceneChanged += SceneManager_activeSceneChanged;
+            SceneManager.activeSceneChanged += SceneManager_activeSceneChanged; ;
             PluginConfig.LoadOrCreateConfig();
-            Base64Sprites.ConvertToSprites();
+            Sprites.ConvertToSprites();
             PlaylistsCollection.ReloadPlaylists();
             SongLoader.SongsLoadedEvent += SongLoader_SongsLoadedEvent;
+            
+            BSEvents.OnLoad();
+            BSEvents.menuSceneLoadedFresh += OnMenuSceneLoadedFresh;
         }
 
-        private void SceneManager_activeSceneChanged(Scene from, Scene to)
+        private void OnMenuSceneLoadedFresh()
         {
-            Logger.Log($"Active scene changed from \"{from.name}\" to \"{to.name}\"");
-
-            if (from.name == "EmptyTransition" && to.name.Contains("Menu"))
+            try
             {
-                try
-                {
-                    PluginUI.Instance.OnLoad();
-                    VotingUI.Instance.OnLoad();
-                    SongListTweaks.Instance.OnLoad();
+                PluginUI.Instance.OnLoad();
+                VotingUI.Instance.OnLoad();
+                SongListTweaks.Instance.OnLoad();
 
-                    GetUserInfo.GetUserName();
-                }
-                catch(Exception e)
-                {
-                    Logger.Exception("Exception on scene change: "+e);
-                }
+                GetUserInfo.GetUserName();
+            }
+            catch (Exception e)
+            {
+                Logger.Exception("Exception on fresh menu scene change: " + e);
             }
         }
 
@@ -64,6 +62,11 @@ namespace BeatSaverDownloader
             {
                 Misc.Logger.Exception("Unable to match songs for all playlists! Exception: "+e);
             }
+        }
+        
+        private void SceneManager_activeSceneChanged(Scene arg0, Scene arg1)
+        {
+            Logger.Log($"Active scene changed from \"{arg0.name}\" to \"{arg1.name}\"");
         }
 
         private void SceneManager_sceneLoaded(Scene to, LoadSceneMode loadMode)

@@ -145,7 +145,7 @@ namespace BeatSaverDownloader.UI.ViewControllers
                 (_songsTableView.transform as RectTransform).anchoredPosition = new Vector3(0f, -3f);
                 
                 _songsTableView.dataSource = this;
-                _songsTableView.didSelectRowEvent += _songsTableView_DidSelectRowEvent;
+                _songsTableView.didSelectCellWithIdxEvent += _songsTableView_DidSelectRowEvent;
             }
             else
             {
@@ -157,7 +157,7 @@ namespace BeatSaverDownloader.UI.ViewControllers
         {
             _songsTableView.ReloadData();
             if(_lastSelectedRow > -1)
-                _songsTableView.SelectRow(_lastSelectedRow);
+                _songsTableView.SelectCellWithIdx(_lastSelectedRow);
         }
 
         protected override void DidDeactivate(DeactivationType type)
@@ -210,7 +210,7 @@ namespace BeatSaverDownloader.UI.ViewControllers
             if (_songsTableView != null)
             {
                 _songsTableView.ReloadData();
-                _songsTableView.ScrollToRow(0, false);
+                _songsTableView.ScrollToCellWithIdx(0, TableView.ScrollPositionType.Center, false);
                 _lastSelectedRow = -1;
             }
         }
@@ -235,24 +235,33 @@ namespace BeatSaverDownloader.UI.ViewControllers
             didSelectRow?.Invoke(row);
         }
 
-        public float RowHeight()
+        public float CellSize()
         {
             return 10f;
         }
 
-        public int NumberOfRows()
+        public int NumberOfCells()
         {
             return Math.Min(songsList.Count, MoreSongsFlowCoordinator.songsPerPage);
         }
 
-        public TableCell CellForRow(int row)
+        public TableCell CellForIdx(int row)
         {
             LevelListTableCell _tableCell = Instantiate(_songListTableCellInstance);
             
             _tableCell.reuseIdentifier = "MoreSongsTableCell";
-            _tableCell.songName = string.Format("{0}\n<size=80%>{1}</size>", songsList[row].songName, songsList[row].songSubName);
-            _tableCell.author = songsList[row].authorName;
-            StartCoroutine(LoadScripts.LoadSprite(songsList[row].coverUrl, _tableCell));
+            _tableCell.GetPrivateField<TextMeshProUGUI>("_songNameText").text = string.Format("{0} <size=80%>{1}</size>", songsList[row].songName, songsList[row].songSubName);
+            _tableCell.GetPrivateField<TextMeshProUGUI>("_authorText").text = songsList[row].authorName;
+            _tableCell.SetPrivateField("_beatmapCharacteristicAlphas", new float[0]);
+            _tableCell.SetPrivateField("_beatmapCharacteristicImages", new UnityEngine.UI.Image[0]);
+            _tableCell.SetPrivateField("_bought", true);
+
+            foreach (var icon in _tableCell.GetComponentsInChildren<UnityEngine.UI.Image>().Where(x => x.name.StartsWith("LevelTypeIcon")))
+            {
+                Destroy(icon.gameObject);
+            }
+
+            StartCoroutine(LoadScripts.LoadSpriteCoroutine(songsList[row].coverUrl, (cover) => { _tableCell.GetPrivateField<UnityEngine.UI.Image>("_coverImage").sprite = cover; }));
             bool alreadyDownloaded = SongDownloader.Instance.IsSongDownloaded(songsList[row]);
             
             if (alreadyDownloaded)

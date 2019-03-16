@@ -19,6 +19,9 @@ namespace BeatSaverDownloader.UI.UIElements
 
         Button[] _starButtons = new Button[5];
 
+        private static RectTransform viewControllersContainer;
+        private static Button practiceButtonTemplate;
+
         public void Init(RectTransform parent, Vector2 position)
         {
             transform.SetParent(parent, false);
@@ -55,7 +58,7 @@ namespace BeatSaverDownloader.UI.UIElements
             for (int i = 0; i < _currentValue; i++)
             {
                 if (_starButtons.Length > i)
-                    _starButtons[i].SetButtonIcon(Base64Sprites.StarFull);
+                    _starButtons[i].SetButtonIcon(Sprites.StarFull);
                 else
                     Misc.Logger.Log("Index out of bounds! (1) Items: " + _starButtons.Length + ", Index: "+i);
             }
@@ -63,7 +66,7 @@ namespace BeatSaverDownloader.UI.UIElements
             for (int i = _currentValue; i < _starButtons.Length; i++)
             {
                 if (_starButtons.Length > i)
-                    _starButtons[i].SetButtonIcon(Base64Sprites.StarEmpty);
+                    _starButtons[i].SetButtonIcon(Sprites.StarEmpty);
                 else
                     Misc.Logger.Log("Index out of bounds! (2) Items: " + _starButtons.Length + ", Index: " + i);
             }
@@ -74,7 +77,25 @@ namespace BeatSaverDownloader.UI.UIElements
 
         private void TransformButton(int index)
         {
-            _starButtons[index] = BeatSaberUI.CreateUIButton(transform as RectTransform, "PracticeButton", new Vector2(10f * index, 0f), new Vector2(10f, 10f), () => { HandleStarPressedEvent(index + 1); }, "", Base64Sprites.StarEmpty);
+            
+            if (viewControllersContainer == null)
+            {
+                viewControllersContainer = FindObjectsOfType<RectTransform>().First(x => x.name == "ViewControllers");
+                practiceButtonTemplate = viewControllersContainer.GetComponentsInChildren<Button>(true).First(x => x.name == "PracticeButton");
+            }
+
+            _starButtons[index] = Instantiate(practiceButtonTemplate, transform as RectTransform, false);
+            _starButtons[index].gameObject.SetActive(true);
+            _starButtons[index].onClick = new Button.ButtonClickedEvent();
+            _starButtons[index].onClick.AddListener(() => { HandleStarPressedEvent(index + 1); });
+            _starButtons[index].name = "CustomUIButton";
+            _starButtons[index].SetButtonText("");
+            _starButtons[index].SetButtonIcon(Sprites.StarEmpty);
+
+            (_starButtons[index].transform as RectTransform).anchorMin = new Vector2(0.5f, 0.5f);
+            (_starButtons[index].transform as RectTransform).anchorMax = new Vector2(0.5f, 0.5f);
+            (_starButtons[index].transform as RectTransform).anchoredPosition = new Vector2(10f * index, 0f);
+            (_starButtons[index].transform as RectTransform).sizeDelta = new Vector2(10f, 10f);
 
             RectTransform iconTransform = _starButtons[index].GetComponentsInChildren<RectTransform>(true).First(x => x.name == "Icon");
             iconTransform.gameObject.SetActive(true);
@@ -83,6 +104,7 @@ namespace BeatSaverDownloader.UI.UIElements
             iconTransform.anchoredPosition = new Vector2(5f, -4.8f);
 
             _starButtons[index].GetComponentsInChildren<Image>().First(x => x.name == "Stroke").enabled = false;
+            
         }
 
     }

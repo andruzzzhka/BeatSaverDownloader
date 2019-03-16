@@ -117,18 +117,15 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
 
         public void SubmitPressed()
         {
-            _simpleDialog.Init("Post a review?", "All reviews are final and you will no longer be able to leave a review about this song!\n\nAre you sure you want to continue?", "Yes", "No");
-            _simpleDialog.didFinishEvent -= DialogFinished;
-            _simpleDialog.didFinishEvent += DialogFinished;
+            _simpleDialog.Init("Post a review?", "All reviews are final and you will no longer be able to leave a review about this song!\n\nAre you sure you want to continue?", "Yes", "No", 
+                (selectedIndex) => 
+                {
+                    DismissViewController(_simpleDialog, null, false);
+
+                    if (selectedIndex == 0)
+                        StartCoroutine(PostReview(_lastReview.fun_factor, _lastReview.rhythm, _lastReview.flow, _lastReview.pattern_quality, _lastReview.readability, _lastReview.level_quality));
+                });
             PresentViewController(_simpleDialog, null, false);
-        }
-
-        private void DialogFinished(SimpleDialogPromptViewController arg1, bool postReview)
-        {
-            DismissViewController(_simpleDialog, null, false);
-
-            if(postReview)
-                StartCoroutine(PostReview(_lastReview.fun_factor, _lastReview.rhythm, _lastReview.flow, _lastReview.pattern_quality, _lastReview.readability, _lastReview.level_quality));
         }
 
         public IEnumerator PostReview(float funFactor, float rhythm, float flow, float patternQuality, float readability, float levelQuality)

@@ -296,9 +296,9 @@ namespace BeatSaverDownloader.Misc
             return string.Join("∎", values) + "∎";
         }
 
-        public static LevelSO GetLevel(string levelId)
+        public static BeatmapLevelSO GetLevel(string levelId)
         {
-            return SongLoader.CustomLevelCollectionSO.levels.FirstOrDefault(x => x.levelID == levelId);
+            return SongLoader.CustomLevelCollectionSO.beatmapLevels.FirstOrDefault(x => x.levelID == levelId) as BeatmapLevelSO;
         }
 
         public static bool CreateMD5FromFile(string path, out string hash)

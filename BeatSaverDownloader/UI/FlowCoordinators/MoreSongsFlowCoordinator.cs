@@ -1,7 +1,6 @@
 ﻿using BeatSaverDownloader.Misc;
 using BeatSaverDownloader.UI.ViewControllers;
 using CustomUI.BeatSaber;
-using CustomUI.Utilities;
 using SimpleJSON;
 using SongLoaderPlugin;
 using System;
@@ -36,17 +35,27 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
 
         private Song _lastDeletedSong;
 
+        public void Awake()
+        {
+            if (_songDetailViewController == null && _moreSongsNavigationController == null)
+            {
+                _moreSongsNavigationController = BeatSaberUI.CreateViewController<BackButtonNavigationController>();
+                _moreSongsNavigationController.didFinishEvent += _moreSongsNavigationController_didFinishEvent;
+
+                GameObject _songDetailGameObject = Instantiate(Resources.FindObjectsOfTypeAll<StandardLevelDetailViewController>().First(), _moreSongsNavigationController.rectTransform, false).gameObject;
+                Destroy(_songDetailGameObject.GetComponent<StandardLevelDetailViewController>());
+                _songDetailViewController = _songDetailGameObject.AddComponent<SongDetailViewController>();
+                _songDetailViewController.downloadButtonPressed += _songDetailViewController_downloadButtonPressed;
+                _songDetailViewController.favoriteButtonPressed += _songDetailViewController_favoriteButtonPressed;
+            }
+        }
+
         protected override void DidActivate(bool firstActivation, ActivationType activationType)
         {
             if (firstActivation && activationType == ActivationType.AddedToHierarchy)
             {
                 title = "More Songs";
-
-                SongDownloader.Instance.songDownloaded += SongDownloader_songDownloaded;
-
-                _moreSongsNavigationController = BeatSaberUI.CreateViewController<BackButtonNavigationController>();
-                _moreSongsNavigationController.didFinishEvent += _moreSongsNavigationController_didFinishEvent;
-
+                
                 _moreSongsListViewController = BeatSaberUI.CreateViewController<MoreSongsListViewController>();
                 _moreSongsListViewController.pageDownPressed += _moreSongsListViewController_pageDownPressed;
                 _moreSongsListViewController.pageUpPressed += _moreSongsListViewController_pageUpPressed;
@@ -56,18 +65,15 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
                 _moreSongsListViewController.searchButtonPressed += _moreSongsListViewController_searchButtonPressed;
                 _moreSongsListViewController.didSelectRow += _moreSongsListViewController_didSelectRow;
 
-                GameObject _songDetailGameObject = Instantiate(Resources.FindObjectsOfTypeAll<StandardLevelDetailViewController>().First(), _moreSongsNavigationController.rectTransform, false).gameObject;
-                Destroy(_songDetailGameObject.GetComponent<StandardLevelDetailViewController>());
-                _songDetailViewController = _songDetailGameObject.AddComponent<SongDetailViewController>();
-                _songDetailViewController.downloadButtonPressed += _songDetailViewController_downloadButtonPressed;
-                _songDetailViewController.favoriteButtonPressed += _songDetailViewController_favoriteButtonPressed; ;
-
                 _downloadQueueViewController = BeatSaberUI.CreateViewController<DownloadQueueViewController>();
 
                 _simpleDialog = CustomUI.Utilities.ReflectionUtil.GetPrivateField<SimpleDialogPromptViewController>(Resources.FindObjectsOfTypeAll<MainFlowCoordinator>().First(), "_simpleDialogPromptViewController");
                 _simpleDialog = Instantiate(_simpleDialog.gameObject, _simpleDialog.transform.parent).GetComponent<SimpleDialogPromptViewController>();
             }
 
+            SongDownloader.Instance.songDownloaded -= SongDownloader_songDownloaded;
+            SongDownloader.Instance.songDownloaded += SongDownloader_songDownloaded;
+            
             SetViewControllersToNavigationConctroller(_moreSongsNavigationController, new VRUIViewController[]
             {
                 _moreSongsListViewController
@@ -82,6 +88,7 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
             if (deactivationType == DeactivationType.RemovedFromHierarchy)
             {
                 PopViewControllerFromNavigationController(_moreSongsNavigationController);
+                SongDownloader.Instance.songDownloaded -= SongDownloader_songDownloaded;
             }
         }
 
@@ -125,20 +132,17 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
             }
             else
             {
-                _simpleDialog.Init("Delete song", $"Do you really want to delete \"{song.songName} {song.songSubName}\"?", "Delete", "Cancel");
+                _simpleDialog.Init("Delete song", $"Do you really want to delete \"{song.songName} {song.songSubName}\"?", "Delete", "Cancel",
+                    (selectedButton) => 
+                    {
+                        DismissViewController(_simpleDialog, null, false);
+                        if (selectedButton == 0)
+                            DeleteSong(_lastDeletedSong);
+                        _lastDeletedSong = null;
+                    });
                 _lastDeletedSong = song;
-                _simpleDialog.didFinishEvent -= DeleteDialogFinished;
-                _simpleDialog.didFinishEvent += DeleteDialogFinished;
                 PresentViewController(_simpleDialog, null, false);
             }
-        }
-
-        private void DeleteDialogFinished(SimpleDialogPromptViewController sender, bool delete)
-        {
-            DismissViewController(_simpleDialog, null, false);
-            if (delete)
-                DeleteSong(_lastDeletedSong);
-            _lastDeletedSong = null;
         }
 
         private void DeleteSong(Song song)

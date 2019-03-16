@@ -33,12 +33,13 @@ namespace BeatSaverDownloader.UI.ViewControllers
         {
             if (firstActivation && type == ActivationType.AddedToHierarchy)
             {
+                SongDownloader.Instance.songDownloaded -= SongDownloaded;
                 SongDownloader.Instance.songDownloaded += SongDownloaded;
                 _songListTableCellInstance = Resources.FindObjectsOfTypeAll<LevelListTableCell>().First(x => (x.name == "LevelListTableCell"));
                 
-                _titleText = BeatSaberUI.CreateText(rectTransform, "DOWNLOAD QUEUE", new Vector2(0f, 36f));
+                _titleText = BeatSaberUI.CreateText(rectTransform, "DOWNLOAD QUEUE", new Vector2(0f, 39f));
                 _titleText.alignment = TextAlignmentOptions.Top;
-                _titleText.fontSize = 7;
+                _titleText.fontSize = 6f;
 
                 _pageUpButton = Instantiate(Resources.FindObjectsOfTypeAll<Button>().First(x => (x.name == "PageUpButton")), rectTransform, false);
                 (_pageUpButton.transform as RectTransform).anchorMin = new Vector2(0.5f, 1f);
@@ -81,6 +82,7 @@ namespace BeatSaverDownloader.UI.ViewControllers
                 ReflectionUtil.SetPrivateField(_queuedSongsTableView, "_pageUpButton", _pageUpButton);
                 ReflectionUtil.SetPrivateField(_queuedSongsTableView, "_pageDownButton", _pageDownButton);
 
+                _queuedSongsTableView.selectionType = TableViewSelectionType.None;
                 _queuedSongsTableView.dataSource = this;
 
                 _abortButton = BeatSaberUI.CreateUIButton(rectTransform, "CreditsButton", new Vector2(36f, -30f), new Vector2(20f, 10f), AbortDownloads, "Abort All");
@@ -94,7 +96,6 @@ namespace BeatSaverDownloader.UI.ViewControllers
             foreach (Song song in queuedSongs.Where(x => x.songQueueState == SongQueueState.Downloading || x.songQueueState == SongQueueState.Queued))
             {
                 song.songQueueState = SongQueueState.Error;
-                song.downloadingProgress = 1f;
             }
             Refresh();
             allSongsDownloaded?.Invoke();
@@ -102,6 +103,7 @@ namespace BeatSaverDownloader.UI.ViewControllers
 
         protected override void DidDeactivate(DeactivationType type)
         {
+            SongDownloader.Instance.songDownloaded -= SongDownloaded;
         }
 
         public void EnqueueSong(Song song, bool startDownload = true)
@@ -111,6 +113,7 @@ namespace BeatSaverDownloader.UI.ViewControllers
             if (startDownload && queuedSongs.Count(x => x.songQueueState == SongQueueState.Downloading) < PluginConfig.maxSimultaneousDownloads)
             {
                 StartCoroutine(DownloadSong(song));
+                Refresh();
             }
         }
 
@@ -122,6 +125,7 @@ namespace BeatSaverDownloader.UI.ViewControllers
             {
                 StartCoroutine(DownloadSong(queuedSongs[i]));
             }
+            Refresh();
         }
 
         IEnumerator DownloadSong(Song song)
@@ -146,7 +150,7 @@ namespace BeatSaverDownloader.UI.ViewControllers
             Logger.Log($"Removed {removed} songs from queue");
 
             _queuedSongsTableView.ReloadData();
-            _queuedSongsTableView.ScrollToRow(0, true);
+            _queuedSongsTableView.ScrollToCellWithIdx(0, TableView.ScrollPositionType.Beginning, true);
 
             if (queuedSongs.Count(x => x.songQueueState == SongQueueState.Downloading || x.songQueueState == SongQueueState.Queued) == 0)
             {
@@ -158,17 +162,17 @@ namespace BeatSaverDownloader.UI.ViewControllers
                 StartCoroutine(DownloadSong(queuedSongs.First(x => x.songQueueState == SongQueueState.Queued)));
         }
 
-        public float RowHeight()
+        public float CellSize()
         {
             return 10f;
         }
 
-        public int NumberOfRows()
+        public int NumberOfCells()
         {
             return queuedSongs.Count;
         }
 
-        public TableCell CellForRow(int row)
+        public TableCell CellForIdx(int row)
         {
             LevelListTableCell _tableCell = Instantiate(_songListTableCellInstance);
 
