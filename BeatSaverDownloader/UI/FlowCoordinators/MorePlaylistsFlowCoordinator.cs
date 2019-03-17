@@ -26,18 +26,12 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
 
         private List<Playlist> playlists = new List<Playlist>();
 
-        protected override void DidActivate(bool firstActivation, ActivationType activationType)
+        public void Awake()
         {
-            if (firstActivation && activationType == ActivationType.AddedToHierarchy)
+            if (_playlistDetailViewController == null)
             {
-                title = "More Playlists";
-
                 _playlistsNavigationController = BeatSaberUI.CreateViewController<BackButtonNavigationController>();
                 _playlistsNavigationController.didFinishEvent += _morePlaylistsNavigationController_didFinishEvent;
-
-                _playlistsListViewController = BeatSaberUI.CreateViewController<PlaylistListViewController>();
-                _playlistsListViewController.didSelectRow += _morePlaylistsListViewController_didSelectRow;
-                _playlistsListViewController.highlightDownloadedPlaylists = true;
 
                 GameObject _songDetailGameObject = Instantiate(Resources.FindObjectsOfTypeAll<StandardLevelDetailViewController>().First(), _playlistsNavigationController.rectTransform, false).gameObject;
                 Destroy(_songDetailGameObject.GetComponent<StandardLevelDetailViewController>());
@@ -45,7 +39,19 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
                 _playlistDetailViewController.selectButtonPressed += _playlistDetailViewController_selectButtonPressed;
                 _playlistDetailViewController.SetSelectButtonText("Add");
                 _playlistDetailViewController.addDownloadButton = false;
+            }
+        }
 
+        protected override void DidActivate(bool firstActivation, ActivationType activationType)
+        {
+            if (firstActivation && activationType == ActivationType.AddedToHierarchy)
+            {
+                title = "More Playlists";
+                
+                _playlistsListViewController = BeatSaberUI.CreateViewController<PlaylistListViewController>();
+                _playlistsListViewController.didSelectRow += _morePlaylistsListViewController_didSelectRow;
+                _playlistsListViewController.highlightDownloadedPlaylists = true;
+                
                 _loadingIndicator = BeatSaberUI.CreateLoadingSpinner(_playlistsNavigationController.transform);
             }
 

@@ -6,7 +6,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Xml.Serialization;
-using SongBrowserPlugin;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
@@ -58,7 +57,6 @@ namespace BeatSaverDownloader.Misc
         static private string reviewedSongsPath = "UserData\\reviewedSongs.json";
         static private string configPath = "UserData\\favoriteSongs.cfg";
         static private string oldConfigPath = "favoriteSongs.cfg";
-        static private string songBrowserSettings = "song_browser_settings.xml";
 
         public static List<string> favoriteSongs = new List<string>();
         public static Dictionary<string, SongVote> votedSongs = new Dictionary<string, SongVote>();
@@ -235,33 +233,6 @@ namespace BeatSaverDownloader.Misc
             if (!Directory.Exists("Playlists"))
             {
                 Directory.CreateDirectory("Playlists");
-            }
-            
-            if(!disableSongListTweaks)
-                LoadSongBrowserConfig();
-        }
-
-        public static void LoadSongBrowserConfig()
-        {
-            if (!File.Exists(songBrowserSettings))
-            {
-                return;
-            }
-
-            FileStream fs = null;
-            try
-            {
-                fs = File.OpenRead(songBrowserSettings);
-                XmlSerializer serializer = new XmlSerializer(typeof(SongBrowserSettings));
-                SongBrowserSettings settings = (SongBrowserSettings)serializer.Deserialize(fs);
-                favoriteSongs.AddRange(settings.favorites);
-                fs.Close();
-                SaveConfig();
-            }
-            catch (Exception e)
-            {
-                Logger.Log($"Unable to parse Song Browser settings file! Exception: {e}");
-                if (fs != null) { fs.Close(); }
             }
         }
 

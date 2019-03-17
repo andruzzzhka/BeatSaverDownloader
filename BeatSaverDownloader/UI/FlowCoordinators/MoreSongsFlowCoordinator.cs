@@ -79,7 +79,9 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
                 _moreSongsListViewController
             });
             ProvideInitialViewControllers(_moreSongsNavigationController, _downloadQueueViewController, null);
-            
+
+            currentPage = 0;
+            currentSortMode = "top";
             StartCoroutine(GetPage(0, "top"));
         }
 

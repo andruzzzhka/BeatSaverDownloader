@@ -374,7 +374,7 @@ namespace BeatSaverDownloader.Misc
 
             int songCountThis = (songs != null ? (songs.Count > 0 ? songs.Count : playlistSongCount) : playlistSongCount);
             int songCountObj  = (playlist.songs != null ? (playlist.songs.Count > 0 ? playlist.songs.Count : playlist.playlistSongCount) : playlist.playlistSongCount);
-
+            
             return playlistTitle == playlist.playlistTitle &&
                    playlistAuthor == playlist.playlistAuthor &&
                    songCountThis == songCountObj;
