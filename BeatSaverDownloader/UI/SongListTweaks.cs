@@ -93,8 +93,14 @@ namespace BeatSaverDownloader.UI
             }
             else
             {
-                SongLoader.SongsLoadedEvent += (SongLoader arg1, List<CustomLevel> arg2) => { AddDefaultPlaylists(); };
+                SongLoader.SongsLoadedEvent += SongLoader_SongsLoadedEvent;
             }
+        }
+
+        private void SongLoader_SongsLoadedEvent(SongLoader arg1, List<CustomLevel> arg2)
+        {
+            SongLoader.SongsLoadedEvent -= SongLoader_SongsLoadedEvent;
+            AddDefaultPlaylists();
         }
 
         private void SetupTweaks()

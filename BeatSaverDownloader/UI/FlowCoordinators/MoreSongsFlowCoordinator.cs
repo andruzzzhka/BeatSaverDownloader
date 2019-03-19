@@ -98,7 +98,6 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
         {
             if (!_downloadQueueViewController.queuedSongs.Any(x => x.songQueueState == SongQueueState.Downloading || x.songQueueState == SongQueueState.Queued))
             {
-                SongLoader.Instance.RefreshSongs(false);
                 MainFlowCoordinator mainFlow = Resources.FindObjectsOfTypeAll<MainFlowCoordinator>().First();
 
                 mainFlow.InvokeMethod("DismissFlowCoordinator", this, null, false);

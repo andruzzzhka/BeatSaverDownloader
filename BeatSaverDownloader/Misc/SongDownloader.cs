@@ -173,6 +173,23 @@ namespace BeatSaverDownloader.Misc
             songInfo.songQueueState = SongQueueState.Downloaded;
             _alreadyDownloadedSongs.Add(songInfo);
             Logger.Log($"Extracted {songInfo.songName} {songInfo.songSubName}!");
+
+            HMMainThreadDispatcher.instance.Enqueue(() => {
+                try
+                {
+                    string dirName = new DirectoryInfo(customSongsPath).Name;
+#if DEBUG
+                    Logger.Log("Original path: " + customSongsPath);
+                    Logger.Log("Folder name: " + dirName);
+#endif
+                    SongLoader.Instance.RetrieveNewSong(dirName);
+                }
+                catch (Exception e)
+                {
+                    Logger.Exception("Unable to load song! Exception: " + e);
+                }
+            });
+            
         }
 
         public bool DeleteSong(Song song)

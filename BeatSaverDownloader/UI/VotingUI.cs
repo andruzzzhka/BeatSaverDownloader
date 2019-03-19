@@ -68,7 +68,7 @@ namespace BeatSaverDownloader.UI
 
             _upvoteButton = _standardLevelResultsViewController.CreateUIButton("PracticeButton", new Vector2(65f, 10f), () => { VoteForSong(true); }, "", Sprites.ThumbUp);
             _downvoteButton = _standardLevelResultsViewController.CreateUIButton("PracticeButton", new Vector2(65f, -10f), () => { VoteForSong(false); }, "", Sprites.ThumbDown);
-            _ratingText = _standardLevelResultsViewController.CreateText("LOADING...", new Vector2(65f, 4f));
+            _ratingText = _standardLevelResultsViewController.CreateText("LOADING", new Vector2(65f, 0f));
             _ratingText.alignment = TextAlignmentOptions.Center;
             _ratingText.fontSize = 7f;
             _ratingText.lineSpacing = -38f;
@@ -96,6 +96,7 @@ namespace BeatSaverDownloader.UI
                 _upvoteButton.gameObject.SetActive(true);
                 _downvoteButton.gameObject.SetActive(true);
                 _ratingText.gameObject.SetActive(true);
+                _ratingText.alignment = TextAlignmentOptions.Center;
                 _reviewButton.gameObject.SetActive(true);
 
                 _upvoteButton.interactable = false;

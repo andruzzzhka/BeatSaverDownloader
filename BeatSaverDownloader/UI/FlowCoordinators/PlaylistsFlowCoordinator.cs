@@ -82,7 +82,6 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
 
         private void _downloadQueueViewController_allSongsDownloaded()
         {
-            SongLoader.Instance.RefreshSongs(false);
             _downloadingPlaylist = false;
         }
 

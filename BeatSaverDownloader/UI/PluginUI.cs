@@ -65,6 +65,7 @@ namespace BeatSaverDownloader.UI
 
         private void SongLoader_SongsLoadedEvent(SongLoader arg1, List<CustomLevel> arg2)
         {
+            SongLoader.SongsLoadedEvent -= SongLoader_SongsLoadedEvent;
             _moreSongsButton.interactable = true;
         }
 
