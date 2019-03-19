@@ -59,6 +59,7 @@ namespace BeatSaverDownloader.UI
         private MainFlowCoordinator _mainFlowCoordinator;
         private LevelPackLevelsViewController _levelListViewController;
         private StandardLevelDetailViewController _detailViewController;
+        private LevelPacksViewController _levelPacksViewController;
         private SearchKeyboardViewController _searchViewController;
         private SimpleDialogPromptViewController _simpleDialog;
 
@@ -144,7 +145,10 @@ namespace BeatSaverDownloader.UI
             
             _levelListViewController = viewControllersContainer.GetComponentInChildren<LevelPackLevelsViewController>(true);
             _levelListViewController.didSelectLevelEvent += _levelListViewController_didSelectLevelEvent;
-                
+
+            _levelPacksViewController = viewControllersContainer.GetComponentInChildren<LevelPacksViewController>(true);
+            _levelPacksViewController.didSelectPackEvent += _levelPacksViewController_didSelectPackEvent;
+
             TableView _songSelectionTableView = _levelListViewController.GetComponentsInChildren<TableView>(true).First();
             RectTransform _tableViewRectTransform = _levelListViewController.GetComponentsInChildren<RectTransform>(true).First(x => x.name == "LevelsTableView");
                 
@@ -324,7 +328,7 @@ namespace BeatSaverDownloader.UI
             
             initialized = true;
         }
-        
+
         public void AddDefaultPlaylists()
         {
             Logger.Log("Creating default playlists...");
@@ -436,6 +440,11 @@ namespace BeatSaverDownloader.UI
             {
                 _starStatText.text = "--";
             }
+        }
+        
+        private void _levelPacksViewController_didSelectPackEvent(LevelPacksViewController arg1, IBeatmapLevelPack arg2)
+        {
+            lastPlaylist = null;
         }
 
         private void _levelListViewController_didSelectLevelEvent(LevelPackLevelsViewController sender, IPreviewBeatmapLevel beatmap)
