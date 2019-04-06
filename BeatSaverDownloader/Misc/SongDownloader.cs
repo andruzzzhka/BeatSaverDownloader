@@ -182,7 +182,18 @@ namespace BeatSaverDownloader.Misc
                     Logger.Log("Original path: " + customSongsPath);
                     Logger.Log("Folder name: " + dirName);
 #endif
+
+                    SongLoader.SongsLoadedEvent -= Plugin.instance.SongLoader_SongsLoadedEvent;
+                    Action<SongLoader, List<CustomLevel>> songsLoadedAction = null;
+                    songsLoadedAction = (arg1, arg2) =>
+                    {
+                        SongLoader.SongsLoadedEvent -= songsLoadedAction;
+                        SongLoader.SongsLoadedEvent += Plugin.instance.SongLoader_SongsLoadedEvent;
+                    };
+                    SongLoader.SongsLoadedEvent += songsLoadedAction;
+
                     SongLoader.Instance.RetrieveNewSong(dirName);
+
                 }
                 catch (Exception e)
                 {
@@ -315,7 +326,7 @@ namespace BeatSaverDownloader.Misc
 
         public static BeatmapLevelSO GetLevel(string levelId)
         {
-            return SongLoader.CustomLevelCollectionSO.beatmapLevels.FirstOrDefault(x => x.levelID == levelId) as BeatmapLevelSO;
+            return SongLoader.CustomBeatmapLevelPackCollectionSO.beatmapLevelPacks.SelectMany(x => x.beatmapLevelCollection.beatmapLevels).FirstOrDefault(x => x.levelID == levelId) as BeatmapLevelSO;
         }
 
         public static bool CreateMD5FromFile(string path, out string hash)

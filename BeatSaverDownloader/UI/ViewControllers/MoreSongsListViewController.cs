@@ -58,10 +58,10 @@ namespace BeatSaverDownloader.UI.ViewControllers
                 rectTransform.sizeDelta = new Vector2(74f, 0f);
                 rectTransform.pivot = new Vector2(0.4f, 0.5f);
 
-                _pageUpButton = Instantiate(Resources.FindObjectsOfTypeAll<Button>().First(x => (x.name == "PageUpButton")), rectTransform, false);
+                _pageUpButton = Instantiate(Resources.FindObjectsOfTypeAll<Button>().Last(x => (x.name == "PageUpButton")), rectTransform, false);
                 (_pageUpButton.transform as RectTransform).anchorMin = new Vector2(0.5f, 1f);
                 (_pageUpButton.transform as RectTransform).anchorMax = new Vector2(0.5f, 1f);
-                (_pageUpButton.transform as RectTransform).anchoredPosition = new Vector2(0f, -14f);
+                (_pageUpButton.transform as RectTransform).anchoredPosition = new Vector2(0f, -14.75f);
                 (_pageUpButton.transform as RectTransform).sizeDelta = new Vector2(40f, 10f);
                 _pageUpButton.interactable = true;
                 _pageUpButton.onClick.AddListener(delegate ()
@@ -73,7 +73,7 @@ namespace BeatSaverDownloader.UI.ViewControllers
                 _pageDownButton = Instantiate(Resources.FindObjectsOfTypeAll<Button>().First(x => (x.name == "PageDownButton")), rectTransform, false);
                 (_pageDownButton.transform as RectTransform).anchorMin = new Vector2(0.5f, 0f);
                 (_pageDownButton.transform as RectTransform).anchorMax = new Vector2(0.5f, 0f);
-                (_pageDownButton.transform as RectTransform).anchoredPosition = new Vector2(0f, 8f);
+                (_pageDownButton.transform as RectTransform).anchoredPosition = new Vector2(0f, 9f);
                 (_pageDownButton.transform as RectTransform).sizeDelta = new Vector2(40f, 10f);
                 _pageDownButton.interactable = true;
                 _pageDownButton.onClick.AddListener(delegate ()
@@ -81,10 +81,10 @@ namespace BeatSaverDownloader.UI.ViewControllers
                     pageDownPressed?.Invoke();
                 });
 
-                _sortByButton = BeatSaberUI.CreateUIButton(rectTransform, "CreditsButton", new Vector2(15f, 36.25f), new Vector2(30f, 6f), () => { SelectTopButtons(TopButtonsState.SortBy); }, "Sort by");
+                _sortByButton = BeatSaberUI.CreateUIButton(rectTransform, "CreditsButton", new Vector2(15f, 36.5f), new Vector2(30f, 6f), () => { SelectTopButtons(TopButtonsState.SortBy); }, "Sort by");
                 _sortByButton.SetButtonTextSize(3f);
 
-                _topButton = BeatSaberUI.CreateUIButton(rectTransform, "CreditsButton", new Vector2(-20f, 36.25f), new Vector2(20f, 6f), () =>
+                _topButton = BeatSaberUI.CreateUIButton(rectTransform, "CreditsButton", new Vector2(-20f, 36.5f), new Vector2(20f, 6f), () =>
                 {
                     sortByTop?.Invoke();
                     SelectTopButtons(TopButtonsState.Select);
@@ -95,7 +95,7 @@ namespace BeatSaverDownloader.UI.ViewControllers
                 _topButton.ToggleWordWrapping(false);
                 _topButton.gameObject.SetActive(false);
 
-                _newButton = BeatSaberUI.CreateUIButton(rectTransform, "CreditsButton", new Vector2(0f, 36.25f), new Vector2(20f, 6f), () =>
+                _newButton = BeatSaberUI.CreateUIButton(rectTransform, "CreditsButton", new Vector2(0f, 36.5f), new Vector2(20f, 6f), () =>
                 {
                     sortByNew?.Invoke();
                     SelectTopButtons(TopButtonsState.Select);
@@ -106,7 +106,7 @@ namespace BeatSaverDownloader.UI.ViewControllers
                 _newButton.gameObject.SetActive(false);
 
 
-                _starButton = BeatSaberUI.CreateUIButton(rectTransform, "CreditsButton", new Vector2(20f, 36.25f), new Vector2(20f, 6f), () =>
+                _starButton = BeatSaberUI.CreateUIButton(rectTransform, "CreditsButton", new Vector2(20f, 36.5f), new Vector2(20f, 6f), () =>
                 {
                     sortByPlays?.Invoke();
                     SelectTopButtons(TopButtonsState.Select);
@@ -116,7 +116,7 @@ namespace BeatSaverDownloader.UI.ViewControllers
                 _starButton.ToggleWordWrapping(false);
                 _starButton.gameObject.SetActive(false);
 
-                _searchButton = BeatSaberUI.CreateUIButton(rectTransform, "CreditsButton", new Vector2(-15, 36.25f), new Vector2(30f, 6f), () =>
+                _searchButton = BeatSaberUI.CreateUIButton(rectTransform, "CreditsButton", new Vector2(-15, 36.5f), new Vector2(30f, 6f), () =>
                 {
                     searchButtonPressed?.Invoke();
                     SelectTopButtons(TopButtonsState.Search);

@@ -44,6 +44,8 @@ namespace BeatSaverDownloader.UI.ViewControllers
             if (firstActivation && type == ActivationType.AddedToHierarchy)
             {
                 gameObject.SetActive(true);
+                rectTransform.sizeDelta = new Vector2(60f ,0f);
+
                 _levelDetails = GetComponentsInChildren<StandardLevelDetailView>(true).First(x => x.name == "LevelDetail");
                 _levelDetails.gameObject.SetActive(true);
 
@@ -63,6 +65,7 @@ namespace BeatSaverDownloader.UI.ViewControllers
                 {
                     songNameText = _textComponents.First(x => x.name == "SongNameText");
                     _textComponents.First(x => x.name == "Title").text = "Playlist";
+                    songNameText.enableWordWrapping = true;
 
                     _textComponents.First(x => x.name == "Title" && x.transform.parent.name == "MaxCombo").text = "Author";
                     authorText = _textComponents.First(x => x.name == "Value" && x.transform.parent.name == "MaxCombo");

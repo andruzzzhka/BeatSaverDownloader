@@ -17,8 +17,6 @@ namespace BeatSaverDownloader.UI.ViewControllers
 {
     class DownloadQueueViewController : VRUIViewController, TableView.IDataSource
     {
-        public event Action allSongsDownloaded;
-
         public List<Song> queuedSongs = new List<Song>();
 
         TextMeshProUGUI _titleText;
@@ -41,7 +39,7 @@ namespace BeatSaverDownloader.UI.ViewControllers
                 _titleText.alignment = TextAlignmentOptions.Top;
                 _titleText.fontSize = 6f;
 
-                _pageUpButton = Instantiate(Resources.FindObjectsOfTypeAll<Button>().First(x => (x.name == "PageUpButton")), rectTransform, false);
+                _pageUpButton = Instantiate(Resources.FindObjectsOfTypeAll<Button>().Last(x => (x.name == "PageUpButton")), rectTransform, false);
                 (_pageUpButton.transform as RectTransform).anchorMin = new Vector2(0.5f, 1f);
                 (_pageUpButton.transform as RectTransform).anchorMax = new Vector2(0.5f, 1f);
                 (_pageUpButton.transform as RectTransform).anchoredPosition = new Vector2(0f, -14f);
@@ -92,13 +90,16 @@ namespace BeatSaverDownloader.UI.ViewControllers
 
         public void AbortDownloads()
         {
-            Logger.Log("Cancelling downloads...");
-            foreach (Song song in queuedSongs.Where(x => x.songQueueState == SongQueueState.Downloading || x.songQueueState == SongQueueState.Queued))
+            if (queuedSongs.Count > 0)
             {
-                song.songQueueState = SongQueueState.Error;
+                Logger.Log("Cancelling downloads...");
+                foreach (Song song in queuedSongs.Where(x => x.songQueueState == SongQueueState.Downloading || x.songQueueState == SongQueueState.Queued))
+                {
+                    song.songQueueState = SongQueueState.Error;
+                }
+                queuedSongs.Clear();
+                Refresh();
             }
-            Refresh();
-            allSongsDownloaded?.Invoke();
         }
 
         protected override void DidDeactivate(DeactivationType type)
@@ -155,7 +156,6 @@ namespace BeatSaverDownloader.UI.ViewControllers
             if (queuedSongs.Count(x => x.songQueueState == SongQueueState.Downloading || x.songQueueState == SongQueueState.Queued) == 0)
             {
                 Logger.Log("All songs downloaded!");
-                allSongsDownloaded?.Invoke();
             }
 
             if (queuedSongs.Count(x => x.songQueueState == SongQueueState.Downloading) < PluginConfig.maxSimultaneousDownloads && queuedSongs.Any(x => x.songQueueState == SongQueueState.Queued))

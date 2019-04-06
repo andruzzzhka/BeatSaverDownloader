@@ -120,6 +120,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Misc\PlaylistLevelPackSO.cs" />
     <Compile Include="Misc\Sprites.cs" />
     <Compile Include="Misc\BeatSaverAPIResult.cs" />
     <Compile Include="Misc\BSEvents.cs" />
@@ -147,7 +148,6 @@
     <Compile Include="UI\ViewControllers\BackButtonNavigationController.cs" />
     <Compile Include="UI\ViewControllers\PlaylistDetailViewController.cs" />
     <Compile Include="UI\ViewControllers\PlaylistListViewController.cs" />
-    <Compile Include="UI\FlowCoordinators\PlaylistsFlowCoordinator.cs" />
     <Compile Include="UI\ViewControllers\ReviewViewController.cs" />
     <Compile Include="UI\ViewControllers\SearchKeyboardViewController.cs" />
     <Compile Include="UI\ViewControllers\SongDetailViewController.cs" />

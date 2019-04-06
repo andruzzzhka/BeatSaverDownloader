@@ -27,7 +27,7 @@ namespace BeatSaverDownloader.Misc
                 tableView.SelectCellWithIdx(rows.First(), callbackTable);
         }
 
-        public static IBeatmapLevelPack GetLevelPackWithLevels(BeatmapLevelSO[] levels, string packName = null, Sprite packCover = null)
+        public static BeatmapLevelPackSO GetLevelPackWithLevels(BeatmapLevelSO[] levels, string packName = null, Sprite packCover = null, string packID = null)
         {
             CustomLevelCollectionSO levelCollection = ScriptableObject.CreateInstance<CustomLevelCollectionSO>();
             levelCollection.SetPrivateField("_levelList", levels.ToList());
@@ -36,6 +36,7 @@ namespace BeatSaverDownloader.Misc
             CustomBeatmapLevelPackSO pack = CustomBeatmapLevelPackSO.GetPack(levelCollection);
             pack.SetPrivateField("_packName", string.IsNullOrEmpty(packName) ? "Custom Songs" : packName);
             pack.SetPrivateField("_coverImage", packCover ?? Sprites.BeastSaberLogo);
+            pack.SetPrivateField("_packID", string.IsNullOrEmpty(packID) ? "" : packID);
             pack.SetPrivateField("_isPackAlwaysOwned", true);
 
             return pack;

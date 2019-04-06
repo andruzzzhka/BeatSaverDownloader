@@ -16,7 +16,9 @@ namespace BeatSaverDownloader
     {
         string IPlugin.Name { get { return "BeatSaver Downloader"; } }
 
-        string IPlugin.Version { get { return "3.2.9"; } }
+        string IPlugin.Version { get { return "3.3.2"; } }
+
+        public static Plugin instance;
         
         public void OnApplicationQuit()
         {
@@ -25,6 +27,7 @@ namespace BeatSaverDownloader
         
         public void OnApplicationStart()
         {
+            instance = this;
             SceneManager.sceneLoaded += SceneManager_sceneLoaded;
             SceneManager.activeSceneChanged += SceneManager_activeSceneChanged; ;
             PluginConfig.LoadOrCreateConfig();
@@ -52,7 +55,7 @@ namespace BeatSaverDownloader
             }
         }
 
-        private void SongLoader_SongsLoadedEvent(SongLoader sender, List<CustomLevel> levels)
+        public void SongLoader_SongsLoadedEvent(SongLoader sender, List<CustomLevel> levels)
         {
             try
             {
