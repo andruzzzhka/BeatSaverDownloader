@@ -82,6 +82,7 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
 
             currentPage = 0;
             currentSortMode = "top";
+            currentSearchRequest = "";
             StartCoroutine(GetPage(0, "top"));
         }
 
