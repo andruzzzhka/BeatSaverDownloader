@@ -67,10 +67,14 @@ namespace BeatSaverDownloader.Misc
 
         static public string apiTokenPlaceholder = "replace-this-with-your-api-token";
 
+        static public string lastSelectedPack = "";
+        static public string lastSelectedSong = "";
+
         public static bool disableSongListTweaks = false;
         public static bool disableDeleteButton = false;
         public static bool deleteToRecycleBin = true;
         public static bool enableSongIcons = true;
+        public static bool rememberLastPackAndSong = true;
 
         public static int maxSimultaneousDownloads = 3;
         public static int fastScrollSpeed = 5;
@@ -144,6 +148,33 @@ namespace BeatSaverDownloader.Misc
             else
             {
                 enableSongIcons = ModPrefs.GetBool("BeatSaverDownloader", "enableSongIcons", true, true);
+            }
+
+            if (!ModPrefs.HasKey("BeatSaverDownloader", "rememberLastPackAndSong"))
+            {
+                ModPrefs.SetBool("BeatSaverDownloader", "rememberLastPackAndSong", true);
+            }
+            else
+            {
+                rememberLastPackAndSong = ModPrefs.GetBool("BeatSaverDownloader", "rememberLastPackAndSong", true, true);
+            }
+
+            if (!ModPrefs.HasKey("BeatSaverDownloader", "lastSelectedSong"))
+            {
+                ModPrefs.SetString("BeatSaverDownloader", "lastSelectedSong", "");
+            }
+            else
+            {
+                lastSelectedSong = ModPrefs.GetString("BeatSaverDownloader", "lastSelectedSong");
+            }
+
+            if (!ModPrefs.HasKey("BeatSaverDownloader", "lastSelectedPack"))
+            {
+                ModPrefs.SetString("BeatSaverDownloader", "lastSelectedPack", "");
+            }
+            else
+            {
+                lastSelectedPack = ModPrefs.GetString("BeatSaverDownloader", "lastSelectedPack");
             }
 
             if (!ModPrefs.HasKey("BeatSaverDownloader", "maxSimultaneousDownloads"))
@@ -244,7 +275,12 @@ namespace BeatSaverDownloader.Misc
 
             ModPrefs.SetBool("BeatSaverDownloader", "disableDeleteButton", disableDeleteButton);
             ModPrefs.SetBool("BeatSaverDownloader", "deleteToRecycleBin", deleteToRecycleBin);
+            ModPrefs.SetBool("BeatSaverDownloader", "enableSongIcons", enableSongIcons);
+            ModPrefs.SetBool("BeatSaverDownloader", "rememberLastPackAndSong", rememberLastPackAndSong);
             ModPrefs.SetInt("BeatSaverDownloader", "maxSimultaneousDownloads", maxSimultaneousDownloads);
+            ModPrefs.SetInt("BeatSaverDownloader", "fastScrollSpeed", fastScrollSpeed);
+            ModPrefs.SetString("BeatSaverDownloader", "lastSelectedPack", lastSelectedPack ?? "");
+            ModPrefs.SetString("BeatSaverDownloader", "lastSelectedSong", lastSelectedSong ?? "");
         }
     }
 }

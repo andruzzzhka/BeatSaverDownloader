@@ -15,6 +15,7 @@ using UnityEngine.Networking;
 using BS_Utils.Gameplay;
 using SimpleJSON;
 using BS_Utils.Utilities;
+using System.Diagnostics;
 
 namespace BeatSaverDownloader.UI.FlowCoordinators
 {
@@ -80,6 +81,15 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
                     }
 
                     _lastReview = new SongReview(songkey, funFactor, rhythm, flow, patternQuality, readability, levelQuality); SubmitPressed();
+                };
+                _reviewViewController.didPressOpenInBrowser += delegate ()
+                {
+                    if (songkey.Contains("-"))
+                    {
+                        songkey = songkey.Substring(0, songkey.IndexOf("-"));
+                    }
+
+                    Process.Start($"https://bsaber.com/songs/{songkey}/");
                 };
 
                 _reviewViewController.didActivateEvent += (arg0, arg1) =>

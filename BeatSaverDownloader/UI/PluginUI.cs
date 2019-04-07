@@ -89,6 +89,10 @@ namespace BeatSaverDownloader.UI
             enableSongIcons.GetValue += delegate { return PluginConfig.enableSongIcons; };
             enableSongIcons.SetValue += delegate (bool value) { PluginConfig.enableSongIcons = value; PluginConfig.SaveConfig(); };
 
+            var rememberLastPackAndSong = downloaderSubMenu.AddBool("Remember last pack and song");
+            rememberLastPackAndSong.GetValue += delegate { return PluginConfig.rememberLastPackAndSong; };
+            rememberLastPackAndSong.SetValue += delegate (bool value) { PluginConfig.rememberLastPackAndSong = value; PluginConfig.SaveConfig(); };
+
             var maxSimultaneousDownloads = downloaderSubMenu.AddInt("Max simultaneous downloads", 1, 10, 1);
             maxSimultaneousDownloads.GetValue += delegate { return PluginConfig.maxSimultaneousDownloads; };
             maxSimultaneousDownloads.SetValue += delegate (int value) { PluginConfig.maxSimultaneousDownloads = value; PluginConfig.SaveConfig(); };

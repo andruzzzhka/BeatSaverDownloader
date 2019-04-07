@@ -33,7 +33,22 @@ namespace BeatSaverDownloader.UI
         public bool initialized = false;
 
         public static SortMode lastSortMode = SortMode.Default;
-        public static IBeatmapLevelPack lastPack { get { return _lastPack; } set { _lastPack = value; if(_lastPack != null) Logger.Log($"Selected pack: {_lastPack.packName}"); } }
+
+        public static IBeatmapLevelPack lastPack
+        {
+            get {
+                return _lastPack;
+            }
+            set {
+                _lastPack = value;
+                if (_lastPack != null)
+                {
+                    Logger.Log($"Selected pack: {_lastPack.packName}");
+                    PluginConfig.lastSelectedPack = _lastPack.packID;
+                    PluginConfig.SaveConfig();
+                }
+            }
+        }
         private static IBeatmapLevelPack _lastPack;
 
         private static SongListTweaks _instance = null;
@@ -382,21 +397,92 @@ namespace BeatSaverDownloader.UI
             {
                 freePlayFlowCoordinator = FindObjectOfType<SoloFreePlayFlowCoordinator>();
                 (freePlayFlowCoordinator as SoloFreePlayFlowCoordinator).didFinishEvent += soloFreePlayFlowCoordinator_didFinishEvent;
+                SongDownloader.Instance.songDownloaded -= SongDownloader_songDownloaded;
                 SongDownloader.Instance.songDownloaded += SongDownloader_songDownloaded;
 
-                lastPack = SongLoaderPlugin.SongLoader.CustomBeatmapLevelPackCollectionSO.beatmapLevelPacks[_levelPacksViewController.GetPrivateField<int>("_selectedPackNum")];
+                if (PluginConfig.rememberLastPackAndSong)
+                {
+                    StartCoroutine(SelectLastPackAndSong());
+                }
+                else
+                {
+                    lastPack = SongLoaderPlugin.SongLoader.CustomBeatmapLevelPackCollectionSO.beatmapLevelPacks[_levelPacksViewController.GetPrivateField<int>("_selectedPackNum")];
+                }
             }
             else if (result == MainMenuViewController.MenuButton.Party)
             {
                 freePlayFlowCoordinator = FindObjectOfType<PartyFreePlayFlowCoordinator>();
                 (freePlayFlowCoordinator as PartyFreePlayFlowCoordinator).didFinishEvent += partyFreePlayFlowCoordinator_didFinishEvent;
+                SongDownloader.Instance.songDownloaded -= SongDownloader_songDownloaded;
                 SongDownloader.Instance.songDownloaded += SongDownloader_songDownloaded;
 
-                lastPack = SongLoaderPlugin.SongLoader.CustomBeatmapLevelPackCollectionSO.beatmapLevelPacks[_levelPacksViewController.GetPrivateField<int>("_selectedPackNum")];
+                if (PluginConfig.rememberLastPackAndSong)
+                {
+                    StartCoroutine(SelectLastPackAndSong());
+                }
+                else
+                {
+                    lastPack = SongLoaderPlugin.SongLoader.CustomBeatmapLevelPackCollectionSO.beatmapLevelPacks[_levelPacksViewController.GetPrivateField<int>("_selectedPackNum")];
+                }
             }
             else
             {
                 freePlayFlowCoordinator = null;
+            }
+        }
+
+        private IEnumerator SelectLastPackAndSong()
+        {
+            yield return null;
+            yield return null;
+
+            if (!string.IsNullOrEmpty(PluginConfig.lastSelectedPack) && SongLoaderPlugin.SongLoader.CustomBeatmapLevelPackCollectionSO.beatmapLevelPacks.Any(x => x.packID == PluginConfig.lastSelectedPack))
+            {
+                int packIndex = Array.FindIndex(SongLoaderPlugin.SongLoader.CustomBeatmapLevelPackCollectionSO.beatmapLevelPacks, x => x.packID == PluginConfig.lastSelectedPack);
+
+                if (packIndex < 0)
+                {
+                    Logger.Warning($"Unable to find last selected pack with ID \"{PluginConfig.lastSelectedPack}\"");
+                    lastPack = SongLoaderPlugin.SongLoader.CustomBeatmapLevelPackCollectionSO.beatmapLevelPacks[_levelPacksViewController.GetPrivateField<int>("_selectedPackNum")];
+                    yield break;
+                }
+
+                lastPack = SongLoaderPlugin.SongLoader.CustomBeatmapLevelPackCollectionSO.beatmapLevelPacks[packIndex];
+                var packsTableView = _levelPacksViewController.GetPrivateField<LevelPacksTableView>("_levelPacksTableView").GetPrivateField<TableView>("_tableView");
+                packsTableView.SelectCellWithIdx(packIndex, true);
+
+                Logger.Log("Selected pack with index " + packIndex);
+
+                yield return null;
+
+                if (!string.IsNullOrEmpty(PluginConfig.lastSelectedSong) && SongLoaderPlugin.SongLoader.CustomBeatmapLevelPackCollectionSO.beatmapLevelPacks[packIndex].beatmapLevelCollection.beatmapLevels.Any(x => x.levelID == PluginConfig.lastSelectedSong))
+                {
+
+                    var levelsTableView = _levelListViewController.GetPrivateField<LevelPackLevelsTableView>("_levelPackLevelsTableView");
+
+                    int songIndex = Array.FindIndex(SongLoaderPlugin.SongLoader.CustomBeatmapLevelPackCollectionSO.beatmapLevelPacks[packIndex].beatmapLevelCollection.beatmapLevels, x => x.levelID == PluginConfig.lastSelectedSong);
+
+                    if (songIndex < 0)
+                    {
+                        Logger.Warning($"Unable to find last selected song with ID \"{PluginConfig.lastSelectedSong}\"");
+                        yield break;
+                    }
+
+                    if (levelsTableView.GetPrivateField<bool>("_showLevelPackHeader"))
+                    {
+                        songIndex++;
+                    }
+
+                    var tableView = levelsTableView.GetPrivateField<TableView>("_tableView");
+                    tableView.ScrollToCellWithIdx(songIndex, TableView.ScrollPositionType.Beginning, false);
+                    tableView.SelectCellWithIdx(songIndex, true);
+                    
+                    Logger.Log("Selected song with index " + songIndex);
+                }
+            }
+            else
+            {
+                lastPack = SongLoaderPlugin.SongLoader.CustomBeatmapLevelPackCollectionSO.beatmapLevelPacks[_levelPacksViewController.GetPrivateField<int>("_selectedPackNum")];
             }
         }
         
@@ -560,6 +646,9 @@ namespace BeatSaverDownloader.UI
 
         private void _levelListViewController_didSelectLevelEvent(LevelPackLevelsViewController sender, IPreviewBeatmapLevel beatmap)
         {
+            PluginConfig.lastSelectedSong = beatmap.levelID;
+            PluginConfig.SaveConfig();
+
             _favoriteButton.SetButtonIcon(PluginConfig.favoriteSongs.Any(x => x.Contains(beatmap.levelID)) ? Sprites.RemoveFromFavorites : Sprites.AddToFavorites);
             _favoriteButton.interactable = !(beatmap is PreviewBeatmapLevelSO);
 

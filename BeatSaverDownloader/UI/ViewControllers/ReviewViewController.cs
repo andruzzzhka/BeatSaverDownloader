@@ -18,6 +18,7 @@ namespace BeatSaverDownloader.UI.ViewControllers
     class ReviewViewController : VRUIViewController
     {
         public event Action<float, float, float, float, float, float> didPressSubmit;
+        public event Action didPressOpenInBrowser;
 
         private StarsUIControl _funFactorControl;
         private StarsUIControl _flowControl;
@@ -29,7 +30,8 @@ namespace BeatSaverDownloader.UI.ViewControllers
         private TextMeshProUGUI _statusText;
 
         private Button _submitButton;
-        
+        private Button _openInBrowserButton;
+
         protected override void DidActivate(bool firstActivation, ActivationType activationType)
         {
             if (firstActivation)
@@ -70,12 +72,14 @@ namespace BeatSaverDownloader.UI.ViewControllers
                 _levelDesignControl = new GameObject("LevelDesignUIControl", typeof(RectTransform)).AddComponent<StarsUIControl>();
                 _levelDesignControl.Init(rectTransform, new Vector2(10f, -20.5f));
 
-                _statusText = BeatSaberUI.CreateText(rectTransform, "<color=green>Success!", new Vector2(0f, -28f));
+                _statusText = BeatSaberUI.CreateText(rectTransform, "<color=green>Success!", new Vector2(0f, -30f));
                 _statusText.alignment = TextAlignmentOptions.Center;
                 _statusText.fontSize = 7f;
                 _statusText.enableWordWrapping = false;
 
                 _submitButton = this.CreateUIButton("CreditsButton", new Vector2(3f, -31f), new Vector2(30f, 10f), () => { didPressSubmit?.Invoke(_funFactorControl.value, _rhythmControl.value, _flowControl.value, _patternQualityControl.value, _readabilityControl.value, _levelDesignControl.value); }, "Submit");
+                _openInBrowserButton = this.CreateUIButton("CreditsButton", new Vector2(-28f, -31f), new Vector2(30f, 10f), () => { didPressOpenInBrowser?.Invoke(); }, "Open in\nbrowser");
+                _openInBrowserButton.ToggleWordWrapping(false);
             }
         }
 
@@ -92,6 +96,7 @@ namespace BeatSaverDownloader.UI.ViewControllers
         public void SetSubmitButtonState(bool enabled, bool interactable)
         {
             _submitButton.gameObject.SetActive(enabled);
+            _openInBrowserButton.gameObject.SetActive(enabled);
             _submitButton.interactable = interactable;
         }
 
