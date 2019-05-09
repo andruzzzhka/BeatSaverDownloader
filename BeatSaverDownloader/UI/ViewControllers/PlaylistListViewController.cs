@@ -115,7 +115,7 @@ namespace BeatSaverDownloader.UI.ViewControllers
             if (_songsTableView != null)
             {
                 _songsTableView.ReloadData();
-                _songsTableView.ScrollToCellWithIdx(0, TableView.ScrollPositionType.Center, false);
+                _songsTableView.ScrollToCellWithIdx(0, TableView.ScrollPositionType.Beginning, false);
             }
         }
 

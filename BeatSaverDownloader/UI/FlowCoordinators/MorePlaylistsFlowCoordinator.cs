@@ -72,6 +72,7 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
                 _playlistDetailViewController.SetSelectButtonState(true);
                 PlaylistsCollection.ReloadPlaylists(false);
                 _playlistsListViewController.Refresh();
+                SongListTweaks.Instance.UpdateLevelPacks();
             }));
         }
 

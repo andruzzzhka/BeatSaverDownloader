@@ -32,7 +32,6 @@ namespace BeatSaverDownloader.UI.ViewControllers
 
         private TextMeshProUGUI authorText;
         private TextMeshProUGUI totalSongsText;
-        private TextMeshProUGUI downloadedSongsText;
 
         private StandardLevelDetailView _levelDetails;
 
@@ -56,8 +55,11 @@ namespace BeatSaverDownloader.UI.ViewControllers
                 RectTransform yourStats = GetComponentsInChildren<RectTransform>(true).First(x => x.name == "Stats");
                 yourStats.gameObject.SetActive(true);
 
-                //RectTransform buttonsRect = GetComponentsInChildren<RectTransform>().First(x => x.name == "PlayButtons");
-                //buttonsRect.anchoredPosition = new Vector2(0f, 6f);
+                RectTransform characteristicsRect = GetComponentsInChildren<RectTransform>(true).First(x => x.name == "BeatmapCharacteristicSegmentedControl");
+                RectTransform difficultyRect = GetComponentsInChildren<RectTransform>(true).First(x => x.name == "BeatmapDifficultySegmentedControl");
+                
+                Destroy(characteristicsRect.gameObject);
+                Destroy(difficultyRect.gameObject);
 
                 TextMeshProUGUI[] _textComponents = GetComponentsInChildren<TextMeshProUGUI>();
 
@@ -66,6 +68,7 @@ namespace BeatSaverDownloader.UI.ViewControllers
                     songNameText = _textComponents.First(x => x.name == "SongNameText");
                     _textComponents.First(x => x.name == "Title").text = "Playlist";
                     songNameText.enableWordWrapping = true;
+                    songNameText.rectTransform.sizeDelta = new Vector2(-22f, 20f);
 
                     _textComponents.First(x => x.name == "Title" && x.transform.parent.name == "MaxCombo").text = "Author";
                     authorText = _textComponents.First(x => x.name == "Value" && x.transform.parent.name == "MaxCombo");
@@ -74,8 +77,7 @@ namespace BeatSaverDownloader.UI.ViewControllers
                     _textComponents.First(x => x.name == "Title" && x.transform.parent.name == "Highscore").text = "Total songs";
                     totalSongsText = _textComponents.First(x => x.name == "Value" && x.transform.parent.name == "Highscore");
 
-                    _textComponents.First(x => x.name == "Title" && x.transform.parent.name == "MaxRank").text = "Downloaded";
-                    downloadedSongsText = _textComponents.First(x => x.name == "Value" && x.transform.parent.name == "MaxRank");
+                    Destroy(_textComponents.First(x => x.transform.parent.name == "MaxRank").transform.parent.gameObject);
                 }
                 catch (Exception e)
                 {
@@ -136,13 +138,11 @@ namespace BeatSaverDownloader.UI.ViewControllers
             if (newPlaylist.songs.Count > 0)
             {
                 totalSongsText.text = newPlaylist.songs.Count.ToString();
-                downloadedSongsText.text = newPlaylist.songs.Where(x => x.level != null).Count().ToString();
                 SetDownloadState(newPlaylist.songs.All(x => x.level != null));
             }
             else
             {
                 totalSongsText.text = newPlaylist.playlistSongCount.ToString();
-                downloadedSongsText.text = "??";
             }
         }
 
@@ -152,7 +152,7 @@ namespace BeatSaverDownloader.UI.ViewControllers
             {
                 Transform child = parent.GetChild(i);
 
-                if (child.name.StartsWith("CustomUI"))
+                if (child.name.StartsWith("CustomUI") || child.name == "PlayButton(Clone)")
                 {
                     Destroy(child.gameObject);
                 }

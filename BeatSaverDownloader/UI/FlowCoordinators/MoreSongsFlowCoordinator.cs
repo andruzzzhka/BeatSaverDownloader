@@ -23,6 +23,7 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
         private SongDetailViewController _songDetailViewController;
         private SearchKeyboardViewController _searchViewController;
         private DownloadQueueViewController _downloadQueueViewController;
+        private SongDescriptionViewController _descriptionViewController;
         private SimpleDialogPromptViewController _simpleDialog;
 
         public int currentPage = 0;
@@ -67,6 +68,9 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
 
                 _downloadQueueViewController = BeatSaberUI.CreateViewController<DownloadQueueViewController>();
 
+                _descriptionViewController = BeatSaberUI.CreateViewController<SongDescriptionViewController>();
+                _descriptionViewController.linkClicked += LinkClicked;
+
                 _simpleDialog = CustomUI.Utilities.ReflectionUtil.GetPrivateField<SimpleDialogPromptViewController>(Resources.FindObjectsOfTypeAll<MainFlowCoordinator>().First(), "_simpleDialogPromptViewController");
                 _simpleDialog = Instantiate(_simpleDialog.gameObject, _simpleDialog.transform.parent).GetComponent<SimpleDialogPromptViewController>();
             }
@@ -78,12 +82,28 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
             {
                 _moreSongsListViewController
             });
-            ProvideInitialViewControllers(_moreSongsNavigationController, _downloadQueueViewController, null);
+            ProvideInitialViewControllers(_moreSongsNavigationController, _downloadQueueViewController, _descriptionViewController);
 
             currentPage = 0;
             currentSortMode = "top";
             currentSearchRequest = "";
             StartCoroutine(GetPage(0, "top"));
+        }
+
+        private void LinkClicked(string link)
+        {
+            _simpleDialog.Init("Open link?", $"Are you sure you want to open this link?\n<color=blue>{link}</color>", "Open", "Cancel",
+                   (buttonIndex) =>
+                   {
+                       SetRightScreenViewController(_descriptionViewController);
+                       _descriptionViewController.SetDescription(_lastSelectedSong.description);
+                       if (buttonIndex == 0)
+                       {
+                           Application.OpenURL(link);
+                       }
+                   }
+               );
+            SetRightScreenViewController(_simpleDialog);
         }
 
         protected override void DidDeactivate(DeactivationType deactivationType)
@@ -179,6 +199,7 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
             }
 
             _songDetailViewController.SetContent(this, currentPageSongs[row]);
+            _descriptionViewController.SetDescription(currentPageSongs[row].description);
             _lastSelectedSong = currentPageSongs[row];
         }
 

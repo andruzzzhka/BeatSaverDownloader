@@ -21,6 +21,8 @@ namespace BeatSaverDownloader.Misc
         public List<DifficultyStats> Diffs { get; set; }
         public long Bpm { get; set; }
         public long PlayedCount { get; set; }
+        public long Upvotes { get; set; }
+        public long Downvotes { get; set; }
     }
 
     public class DifficultyStats

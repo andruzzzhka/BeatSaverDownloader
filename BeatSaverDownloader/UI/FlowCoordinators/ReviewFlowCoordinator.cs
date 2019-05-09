@@ -89,7 +89,7 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
                         songkey = songkey.Substring(0, songkey.IndexOf("-"));
                     }
 
-                    Process.Start($"https://bsaber.com/songs/{songkey}/");
+                    Application.OpenURL($"https://bsaber.com/songs/{songkey}/");
                 };
 
                 _reviewViewController.didActivateEvent += (arg0, arg1) =>

@@ -72,7 +72,7 @@ namespace BeatSaverDownloader.UI
         private IEnumerator SetupUI()
         {
             if (initialized) yield break;
-
+            
             RectTransform mainMenu = (Resources.FindObjectsOfTypeAll<MainMenuViewController>().First().rectTransform);
 
             var downloaderSubMenu = SettingsUI.CreateSubMenu("Downloader");

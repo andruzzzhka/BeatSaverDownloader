@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>BeatSaverDownloader</RootNamespace>
     <AssemblyName>BeatSaverDownloader</AssemblyName>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
     <NuGetPackageImportStamp>
@@ -39,19 +39,16 @@
     <Reference Include="BS_Utils">
       <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Beat Saber\Plugins\BS_Utils.dll</HintPath>
     </Reference>
-    <Reference Include="IllusionInjector, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="IllusionInjector">
       <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Beat Saber\Beat Saber_Data\Managed\IllusionInjector.dll</HintPath>
     </Reference>
-    <Reference Include="IllusionPlugin, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="IllusionPlugin">
       <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Beat Saber\Beat Saber_Data\Managed\IllusionPlugin.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json">
       <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Beat Saber\Beat Saber_Data\Managed\Newtonsoft.Json.dll</HintPath>
     </Reference>
-    <Reference Include="SongLoaderPlugin, Version=4.3.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="SongLoaderPlugin">
       <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Beat Saber\Plugins\SongLoaderPlugin.dll</HintPath>
     </Reference>
     <Reference Include="System" />
@@ -143,6 +140,7 @@
     <Compile Include="UI\UIElements\CustomUIKeyboard.cs" />
     <Compile Include="UI\UIElements\DownloadQueueTableCell.cs" />
     <Compile Include="UI\UIElements\StarsUIControl.cs" />
+    <Compile Include="UI\UIElements\TextMeshProHyperlinkHandler.cs" />
     <Compile Include="UI\ViewControllers\DownloadQueueViewController.cs" />
     <Compile Include="UI\ViewControllers\MoreSongsListViewController.cs" />
     <Compile Include="UI\ViewControllers\BackButtonNavigationController.cs" />
@@ -150,6 +148,7 @@
     <Compile Include="UI\ViewControllers\PlaylistListViewController.cs" />
     <Compile Include="UI\ViewControllers\ReviewViewController.cs" />
     <Compile Include="UI\ViewControllers\SearchKeyboardViewController.cs" />
+    <Compile Include="UI\ViewControllers\SongDescriptionViewController.cs" />
     <Compile Include="UI\ViewControllers\SongDetailViewController.cs" />
     <Compile Include="UI\VotingUI.cs" />
   </ItemGroup>

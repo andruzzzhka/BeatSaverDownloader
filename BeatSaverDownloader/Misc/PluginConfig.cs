@@ -8,6 +8,7 @@ using System.Text;
 using System.Xml.Serialization;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using BeatSaverDownloader.UI;
 
 namespace BeatSaverDownloader.Misc
 {
@@ -69,6 +70,7 @@ namespace BeatSaverDownloader.Misc
 
         static public string lastSelectedPack = "";
         static public string lastSelectedSong = "";
+        static public SortMode lastSelectedSortMode = SortMode.Default;
 
         public static bool disableSongListTweaks = false;
         public static bool disableDeleteButton = false;
@@ -177,6 +179,15 @@ namespace BeatSaverDownloader.Misc
                 lastSelectedPack = ModPrefs.GetString("BeatSaverDownloader", "lastSelectedPack");
             }
 
+            if (!ModPrefs.HasKey("BeatSaverDownloader", "lastSelectedSortMode"))
+            {
+                ModPrefs.SetInt("BeatSaverDownloader", "lastSelectedSortMode", 0);
+            }
+            else
+            {
+                lastSelectedSortMode = (SortMode)ModPrefs.GetInt("BeatSaverDownloader", "lastSelectedSortMode");
+            }
+
             if (!ModPrefs.HasKey("BeatSaverDownloader", "maxSimultaneousDownloads"))
             {
                 ModPrefs.SetInt("BeatSaverDownloader", "maxSimultaneousDownloads", 3);
@@ -281,6 +292,7 @@ namespace BeatSaverDownloader.Misc
             ModPrefs.SetInt("BeatSaverDownloader", "fastScrollSpeed", fastScrollSpeed);
             ModPrefs.SetString("BeatSaverDownloader", "lastSelectedPack", lastSelectedPack ?? "");
             ModPrefs.SetString("BeatSaverDownloader", "lastSelectedSong", lastSelectedSong ?? "");
+            ModPrefs.SetInt("BeatSaverDownloader", "lastSelectedSortMode", (int)lastSelectedSortMode);
         }
     }
 }

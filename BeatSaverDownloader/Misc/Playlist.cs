@@ -53,7 +53,6 @@ namespace BeatSaverDownloader.Misc
                             if (Path.GetFileName(path) == "favorites.json" && playlist.playlistTitle == "Your favorite songs")
                                 continue;
                             loadedPlaylists.Add(playlist);
-                            Logger.Log($"Found \"{playlist.playlistTitle}\" by {playlist.playlistAuthor}");
                         }
                         catch (Exception e)
                         {
@@ -67,14 +66,12 @@ namespace BeatSaverDownloader.Misc
                     {
                         if(!loadedPlaylists.Any(x => x.fileLoc == path))
                         {
-                            Logger.Log("Found new playlist! Path: "+path);
                             try
                             {
                                 Playlist playlist = Playlist.LoadPlaylist(path);
                                 if (Path.GetFileName(path) == "favorites.json" && playlist.playlistTitle == "Your favorite songs")
                                     continue;
                                 loadedPlaylists.Add(playlist);
-                                Logger.Log($"Found \"{playlist.playlistTitle}\" by {playlist.playlistAuthor}");
 
                                 if (SongLoader.AreSongsLoaded)
                                 {
@@ -149,11 +146,8 @@ namespace BeatSaverDownloader.Misc
         public static void MatchSongsForPlaylist(Playlist playlist, bool matchAll = false)
         {
             if (!SongLoader.AreSongsLoaded || SongLoader.AreSongsLoading || playlist.playlistTitle == "All songs" || playlist.playlistTitle == "Your favorite songs") return;
-            Logger.Log("Started matching songs for playlist \""+playlist.playlistTitle+"\"...");
             if (!playlist.songs.All(x => x.level != null) || matchAll)
             {
-                Stopwatch execTime = new Stopwatch();
-                execTime.Start();
                 playlist.songs.AsParallel().ForAll(x =>
                 {
                     if (x.level == null || matchAll)
@@ -187,8 +181,6 @@ namespace BeatSaverDownloader.Misc
                         }
                     }
                 });
-                Logger.Log($"Matched all songs for playlist \"{playlist.playlistTitle}\"! Time: {execTime.Elapsed.TotalSeconds.ToString("0.00")}s");
-                execTime.Reset();
             }
         }
 

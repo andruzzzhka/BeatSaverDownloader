@@ -32,7 +32,20 @@ namespace BeatSaverDownloader.UI
 
         public bool initialized = false;
 
-        public static SortMode lastSortMode = SortMode.Default;
+        public static SortMode lastSortMode
+        {
+            get
+            {
+                return _lastSortMode;
+            }
+            set
+            {
+                _lastSortMode = value;
+                PluginConfig.lastSelectedSortMode = _lastSortMode;
+                PluginConfig.SaveConfig();
+            }
+        }
+        private static SortMode _lastSortMode;
 
         public static IBeatmapLevelPack lastPack
         {
@@ -101,6 +114,8 @@ namespace BeatSaverDownloader.UI
         private Button _deleteButton;
 
         private TextMeshProUGUI _starStatText;
+        private TextMeshProUGUI _upvoteStatText;
+        private TextMeshProUGUI _downvoteStatText;
 
         public void OnLoad()
         {
@@ -313,18 +328,28 @@ namespace BeatSaverDownloader.UI
 
             _deleteButton.transform.SetAsLastSibling();
 
-            //based on https://github.com/halsafar/BeatSaberSongBrowser/blob/master/SongBrowserPlugin/UI/Browser/SongBrowserUI.cs#L192
-            var statsPanel = _detailViewController.GetComponentsInChildren<LevelParamsPanel>(true).First(x => x.name == "LevelParamsPanel");
-            var statTransforms = statsPanel.GetComponentsInChildren<RectTransform>(true);
-            var valueTexts = statsPanel.GetComponentsInChildren<TextMeshProUGUI>(true).Where(x => x.name == "ValueText").ToList();
+            //based on https://github.com/halsafar/BeatSaberSongBrowser/blob/master/SongBrowserPlugin/UI/Browser/SongBrowserUI.cs#L416
+            var statsPanel = _detailViewController.GetPrivateField<StandardLevelDetailView>("_standardLevelDetailView").GetPrivateField<LevelParamsPanel>("_levelParamsPanel");
+            var statTransforms = statsPanel.GetComponentsInChildren<RectTransform>();
+            var valueTexts = statsPanel.GetComponentsInChildren<TextMeshProUGUI>().Where(x => x.name == "ValueText").ToList();
 
-            foreach (RectTransform r in statTransforms)
+            RectTransform panelRect = (statsPanel.transform as RectTransform);
+            panelRect.sizeDelta = new Vector2(panelRect.sizeDelta.x * 1.2f, panelRect.sizeDelta.y * 1.2f);
+
+            for (int i = 0; i < statTransforms.Length; i++)
             {
+                var r = statTransforms[i];
                 if (r.name == "Separator")
                 {
                     continue;
                 }
-                r.sizeDelta = new Vector2(r.sizeDelta.x * 0.85f, r.sizeDelta.y * 0.85f);
+                r.sizeDelta = new Vector2(r.sizeDelta.x * 0.75f, r.sizeDelta.y * 0.75f);
+            }
+
+            for (int i = 0; i < valueTexts.Count; i++)
+            {
+                var text = valueTexts[i];
+                text.fontSize = 3.25f;
             }
 
             var _starStatTransform = Instantiate(statTransforms[1], statsPanel.transform, false);
@@ -332,6 +357,16 @@ namespace BeatSaverDownloader.UI
             _starStatTransform.GetComponentInChildren<UnityEngine.UI.Image>(true).sprite = Sprites.StarFull;
             _starStatText.text = "--";
 
+            var _upvoteStatTransform = Instantiate(statTransforms[1], statsPanel.transform, false);
+            _upvoteStatText = _upvoteStatTransform.GetComponentInChildren<TextMeshProUGUI>(true);
+            _upvoteStatTransform.GetComponentInChildren<UnityEngine.UI.Image>(true).sprite = Sprites.ThumbUp;
+            _upvoteStatText.text = "--";
+
+            var _downvoteStatTransform = Instantiate(statTransforms[1], statsPanel.transform, false);
+            _downvoteStatText = _downvoteStatTransform.GetComponentInChildren<TextMeshProUGUI>(true);
+            _downvoteStatTransform.GetComponentInChildren<UnityEngine.UI.Image>(true).sprite = Sprites.ThumbDown;
+            _downvoteStatText.text = "--";
+            
             ResultsViewController _standardLevelResultsViewController = viewControllersContainer.GetComponentsInChildren<ResultsViewController>(true).First(x => x.name == "StandardLevelResultsViewController");
             _standardLevelResultsViewController.continueButtonPressedEvent += _standardLevelResultsViewController_continueButtonPressedEvent;
             
@@ -436,6 +471,8 @@ namespace BeatSaverDownloader.UI
             yield return null;
             yield return null;
 
+            lastSortMode = PluginConfig.lastSelectedSortMode;
+
             if (!string.IsNullOrEmpty(PluginConfig.lastSelectedPack) && SongLoaderPlugin.SongLoader.CustomBeatmapLevelPackCollectionSO.beatmapLevelPacks.Any(x => x.packID == PluginConfig.lastSelectedPack))
             {
                 int packIndex = Array.FindIndex(SongLoaderPlugin.SongLoader.CustomBeatmapLevelPackCollectionSO.beatmapLevelPacks, x => x.packID == PluginConfig.lastSelectedPack);
@@ -448,19 +485,17 @@ namespace BeatSaverDownloader.UI
                 }
 
                 lastPack = SongLoaderPlugin.SongLoader.CustomBeatmapLevelPackCollectionSO.beatmapLevelPacks[packIndex];
-                var packsTableView = _levelPacksViewController.GetPrivateField<LevelPacksTableView>("_levelPacksTableView").GetPrivateField<TableView>("_tableView");
-                packsTableView.SelectCellWithIdx(packIndex, true);
 
-                Logger.Log("Selected pack with index " + packIndex);
-
+                SetLevels(lastSortMode, "");
+                
                 yield return null;
 
-                if (!string.IsNullOrEmpty(PluginConfig.lastSelectedSong) && SongLoaderPlugin.SongLoader.CustomBeatmapLevelPackCollectionSO.beatmapLevelPacks[packIndex].beatmapLevelCollection.beatmapLevels.Any(x => x.levelID == PluginConfig.lastSelectedSong))
+                if (!string.IsNullOrEmpty(PluginConfig.lastSelectedSong) && lastPack.beatmapLevelCollection.beatmapLevels.Any(x => x.levelID == PluginConfig.lastSelectedSong))
                 {
 
                     var levelsTableView = _levelListViewController.GetPrivateField<LevelPackLevelsTableView>("_levelPackLevelsTableView");
 
-                    int songIndex = Array.FindIndex(SongLoaderPlugin.SongLoader.CustomBeatmapLevelPackCollectionSO.beatmapLevelPacks[packIndex].beatmapLevelCollection.beatmapLevels, x => x.levelID == PluginConfig.lastSelectedSong);
+                    int songIndex = Array.FindIndex(_levelListViewController.GetPrivateField<IBeatmapLevelPack>("_levelPack").beatmapLevelCollection.beatmapLevels, x => x.levelID == PluginConfig.lastSelectedSong);
 
                     if (songIndex < 0)
                     {
@@ -476,8 +511,6 @@ namespace BeatSaverDownloader.UI
                     var tableView = levelsTableView.GetPrivateField<TableView>("_tableView");
                     tableView.ScrollToCellWithIdx(songIndex, TableView.ScrollPositionType.Beginning, false);
                     tableView.SelectCellWithIdx(songIndex, true);
-                    
-                    Logger.Log("Selected song with index " + songIndex);
                 }
             }
             else
@@ -534,16 +567,27 @@ namespace BeatSaverDownloader.UI
             if (beatmap.level.levelID.Length >= 32)
             {
                 ScrappedSong song = ScrappedData.Songs.FirstOrDefault(x => x.Hash == beatmap.level.levelID.Substring(0, 32));
-                if (song != null && song.Diffs.Any())
-                    _starStatText.text = song.Diffs.Max(x => x.Stars).ToString();
+                if (song != null)
+                {
+                    _upvoteStatText.text = song.Upvotes.ToString();
+                    _downvoteStatText.text = song.Downvotes.ToString();
+                    if (song.Diffs.Any())
+                        _starStatText.text = song.Diffs.Max(x => x.Stars).ToString();
+                    else
+                        _starStatText.text = "--";
+                }
                 else
                 {
+                    _starStatText.text = "--";
+                    _upvoteStatText.text = "--";
                     _starStatText.text = "--";
                 }
             }
             else
             {
                 _starStatText.text = "--";
+                _upvoteStatText.text = "--";
+                _downvoteStatText.text = "--";
             }
         }
         
@@ -657,18 +701,27 @@ namespace BeatSaverDownloader.UI
             if (beatmap.levelID.Length >= 32)
             {
                 ScrappedSong song = ScrappedData.Songs.FirstOrDefault(x => x.Hash == beatmap.levelID.Substring(0, 32));
-                if (song != null && song.Diffs.Any())
+                if (song != null)
                 {
-                    _starStatText.text = song.Diffs.Max(x => x.Stars).ToString();
+                    _upvoteStatText.text = song.Upvotes.ToString();
+                    _downvoteStatText.text = song.Downvotes.ToString();
+                    if (song.Diffs.Any())
+                        _starStatText.text = song.Diffs.Max(x => x.Stars).ToString();
+                    else
+                        _starStatText.text = "--";
                 }
                 else
                 {
                     _starStatText.text = "--";
+                    _upvoteStatText.text = "--";
+                    _downvoteStatText.text = "--";
                 }
             }
             else
             {
                 _starStatText.text = "--";
+                _upvoteStatText.text = "--";
+                _downvoteStatText.text = "--";
             }
 
             StartCoroutine(HideDownloadQueue());
@@ -738,6 +791,8 @@ namespace BeatSaverDownloader.UI
 
         public void SetLevels(SortMode sortMode, string searchRequest)
         {
+            lastSortMode = sortMode;
+
             BeatmapLevelSO[] levels = null;
             if (lastPack != null)
             {
