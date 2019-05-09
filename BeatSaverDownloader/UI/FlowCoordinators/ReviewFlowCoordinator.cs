@@ -157,7 +157,7 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
 
             if (voteWWW.isNetworkError)
             {
-                Misc.Logger.Error(voteWWW.error);
+                Plugin.log.Error(voteWWW.error);
                 _reviewViewController.SetSubmitButtonState(true, true);
                 _reviewViewController.SetStatusText(false, "");
             }
@@ -172,7 +172,7 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
 
                             if (node["success"])
                             {
-                                Misc.Logger.Log("Success!");
+                                Plugin.log.Info("Success!");
 
                                 if (!PluginConfig.reviewedSongs.ContainsKey(levelId.Substring(0, 32)))
                                 {
@@ -190,14 +190,14 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
                             }
                             else
                             {
-                                Misc.Logger.Error("Something went wrong...\n Response: "+ voteWWW.downloadHandler.text);
+                                Plugin.log.Error("Something went wrong...\n Response: "+ voteWWW.downloadHandler.text);
                                 _reviewViewController.SetSubmitButtonState(true, true);
                                 _reviewViewController.SetStatusText(false, "");
                             }
                         }; break;
                     default:
                         {
-                            Misc.Logger.Error("Error: " + voteWWW.responseCode+"\nResponse: "+ voteWWW.downloadHandler.text);
+                            Plugin.log.Error("Error: " + voteWWW.responseCode+"\nResponse: "+ voteWWW.downloadHandler.text);
                             _reviewViewController.SetSubmitButtonState(true, true);
                             _reviewViewController.SetStatusText(false, "");
                         }; break;

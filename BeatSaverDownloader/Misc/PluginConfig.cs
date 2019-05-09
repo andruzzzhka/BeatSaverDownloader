@@ -86,7 +86,7 @@ namespace BeatSaverDownloader.Misc
         {
             if (IPA.Loader.PluginManager.AllPlugins.Any(x => x.Metadata.Name == "Song Browser"))
             {
-                Logger.Log("Song Browser installed, disabling Song List Tweaks");
+                Plugin.log.Info("Song Browser installed, disabling Song List Tweaks");
                 disableSongListTweaks = true;
             }
 
@@ -98,7 +98,7 @@ namespace BeatSaverDownloader.Misc
             if (!ModPrefs.HasKey("BeatSaverDownloader", "beatsaverURL"))
             {
                 ModPrefs.SetString("BeatSaverDownloader", "beatsaverURL", "https://beatsaver.com");
-                Logger.Log("Created config");
+                Plugin.log.Info("Created config");
             }
             else
             {
@@ -107,7 +107,7 @@ namespace BeatSaverDownloader.Misc
                 {
                     ModPrefs.SetString("BeatSaverDownloader", "beatsaverURL", "https://beatsaver.com");
                     beatsaverURL = "https://beatsaver.com";
-                    Logger.Log("Created config");
+                    Plugin.log.Info("Created config");
                 }
             }
 
@@ -200,7 +200,7 @@ namespace BeatSaverDownloader.Misc
             if (!ModPrefs.HasKey("BeatSaverDownloader", "fastScrollSpeed"))
             {
                 ModPrefs.SetInt("BeatSaverDownloader", "fastScrollSpeed", 5);
-                Logger.Log("Created config");
+                Plugin.log.Info("Created config");
             }
             else
             {
@@ -260,7 +260,7 @@ namespace BeatSaverDownloader.Misc
             }
             catch (Exception e)
             {
-                Logger.Log($"Can't open registry key! Exception: {e}");
+                Plugin.log.Info($"Can't open registry key! Exception: {e}");
                 if (Directory.Exists("%LocalAppData%\\Programs\\BeatDrop\\playlists"))
                 {
                     beatDropInstalled = true;
@@ -268,7 +268,7 @@ namespace BeatSaverDownloader.Misc
                 }
                 else
                 {
-                    Logger.Log("Unable to find BeatDrop installation folder!");
+                    Plugin.log.Info("Unable to find BeatDrop installation folder!");
                 }
             }
 

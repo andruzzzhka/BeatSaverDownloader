@@ -31,7 +31,7 @@ namespace BeatSaverDownloader.Misc
                     string[] beatDropBPLISTPlaylists = Directory.GetFiles(Path.Combine(PluginConfig.beatDropPlaylistsLocation, "playlists"), "*.bplist");
                     playlistFiles.AddRange(beatDropJSONPlaylists);
                     playlistFiles.AddRange(beatDropBPLISTPlaylists);
-                    Logger.Log($"Found {beatDropJSONPlaylists.Length + beatDropBPLISTPlaylists.Length} playlists in BeatDrop folder");
+                    Plugin.log.Info($"Found {beatDropJSONPlaylists.Length + beatDropBPLISTPlaylists.Length} playlists in BeatDrop folder");
                 }
 
                 string[] localJSONPlaylists = Directory.GetFiles(Path.Combine(Environment.CurrentDirectory, "Playlists"), "*.json");
@@ -39,7 +39,7 @@ namespace BeatSaverDownloader.Misc
                 playlistFiles.AddRange(localJSONPlaylists);
                 playlistFiles.AddRange(localBPLISTPlaylists);
 
-                Logger.Log($"Found {localJSONPlaylists.Length + localBPLISTPlaylists.Length} playlists in Playlists folder");
+                Plugin.log.Info($"Found {localJSONPlaylists.Length + localBPLISTPlaylists.Length} playlists in Playlists folder");
 
                 if (fullRefresh)
                 {
@@ -56,7 +56,7 @@ namespace BeatSaverDownloader.Misc
                         }
                         catch (Exception e)
                         {
-                            Logger.Log($"Unable to parse playlist @ {path}! Exception: {e}");
+                            Plugin.log.Info($"Unable to parse playlist @ {path}! Exception: {e}");
                         }
                     }
                 }
@@ -80,7 +80,7 @@ namespace BeatSaverDownloader.Misc
                             }
                             catch (Exception e)
                             {
-                                Logger.Log($"Unable to parse playlist @ {path}! Exception: {e}");
+                                Plugin.log.Info($"Unable to parse playlist @ {path}! Exception: {e}");
                             }
                         }
                     }
@@ -88,7 +88,7 @@ namespace BeatSaverDownloader.Misc
             }
             catch (Exception e)
             {
-                Logger.Exception("Unable to load playlists! Exception: " + e);
+                Plugin.log.Critical("Unable to load playlists! Exception: " + e);
             }
         }
 
@@ -177,7 +177,7 @@ namespace BeatSaverDownloader.Misc
                         }
                         catch (Exception e)
                         {
-                            Logger.Warning($"Unable to match song with {(string.IsNullOrEmpty(x.key) ? " unknown key!" : ("key " + x.key + " !"))} Exception: {e}");
+                            Plugin.log.Warn($"Unable to match song with {(string.IsNullOrEmpty(x.key) ? " unknown key!" : ("key " + x.key + " !"))} Exception: {e}");
                         }
                     }
                 });
@@ -186,7 +186,7 @@ namespace BeatSaverDownloader.Misc
 
         public static void MatchSongsForAllPlaylists(bool matchAll = false)
         {
-            Logger.Log("Matching songs for all playlists!");
+            Plugin.log.Info("Matching songs for all playlists!");
             Task.Run(() =>
             {
                 for (int i = 0; i < loadedPlaylists.Count; i++)
@@ -309,7 +309,7 @@ namespace BeatSaverDownloader.Misc
                 }
                 catch
                 {
-                    Logger.Exception("Unable to convert playlist image to sprite!");
+                    Plugin.log.Critical("Unable to convert playlist image to sprite!");
                     icon = Sprites.BeastSaberLogo;
                 }
             }
@@ -325,11 +325,11 @@ namespace BeatSaverDownloader.Misc
             {
                 if (!customDetailUrl.EndsWith("/"))
                     customDetailUrl += "/";
-                Logger.Log("Found playlist with customDetailUrl! Name: " + playlistTitle + ", CustomDetailUrl: " + customDetailUrl);
+                Plugin.log.Info("Found playlist with customDetailUrl! Name: " + playlistTitle + ", CustomDetailUrl: " + customDetailUrl);
             }
             if (!string.IsNullOrEmpty(customArchiveUrl) && customArchiveUrl.Contains("[KEY]"))
             {
-                Logger.Log("Found playlist with customArchiveUrl! Name: " + playlistTitle + ", CustomArchiveUrl: " + customArchiveUrl);
+                Plugin.log.Info("Found playlist with customArchiveUrl! Name: " + playlistTitle + ", CustomArchiveUrl: " + customArchiveUrl);
             }
 
             songs = new List<PlaylistSong>();
@@ -375,14 +375,14 @@ namespace BeatSaverDownloader.Misc
 
         public IEnumerator SavePlaylistCoroutine(string path = "")
         {
-            Logger.Log($"Saving playlist \"{playlistTitle}\"...");
+            Plugin.log.Info($"Saving playlist \"{playlistTitle}\"...");
             try
             {
                 image = Sprites.SpriteToBase64(icon);
                 playlistSongCount = songs.Count;
             }catch(Exception e)
             {
-                Logger.Exception("Unable to save playlist! Exception: "+e);
+                Plugin.log.Critical("Unable to save playlist! Exception: "+e);
                 yield break;
             }
             foreach (PlaylistSong song in songs)
@@ -399,11 +399,11 @@ namespace BeatSaverDownloader.Misc
 
                 File.WriteAllText(fileLoc, JsonConvert.SerializeObject(this, Formatting.Indented));
 
-                Logger.Log("Playlist saved!");
+                Plugin.log.Info("Playlist saved!");
             }
             catch (Exception e)
             {
-                Logger.Exception("Unable to save playlist! Exception: " + e);
+                Plugin.log.Critical("Unable to save playlist! Exception: " + e);
                 yield break;
             }
         }

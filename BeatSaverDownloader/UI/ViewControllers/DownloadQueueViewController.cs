@@ -7,7 +7,6 @@ using TMPro;
 using VRUI;
 using UnityEngine.UI;
 using UnityEngine;
-using Logger = BeatSaverDownloader.Misc.Logger;
 using BeatSaverDownloader.UI.UIElements;
 using CustomUI.BeatSaber;
 using CustomUI.Utilities;
@@ -100,7 +99,7 @@ namespace BeatSaverDownloader.UI.ViewControllers
         {
             if (queuedSongs.Count > 0)
             {
-                Logger.Log("Cancelling downloads...");
+                Plugin.log.Info("Cancelling downloads...");
                 foreach (Song song in queuedSongs.Where(x => x.songQueueState == SongQueueState.Downloading || x.songQueueState == SongQueueState.Queued))
                 {
                     song.songQueueState = SongQueueState.Error;
@@ -128,7 +127,7 @@ namespace BeatSaverDownloader.UI.ViewControllers
 
         public void DownloadAllSongsFromQueue()
         {
-            Logger.Log("Downloading all songs from queue...");
+            Plugin.log.Info("Downloading all songs from queue...");
             
             for(int i = 0; i < Math.Min(PluginConfig.maxSimultaneousDownloads, queuedSongs.Count); i++)
             {
@@ -156,14 +155,14 @@ namespace BeatSaverDownloader.UI.ViewControllers
         {
             int removed = queuedSongs.RemoveAll(x => x.songQueueState == SongQueueState.Downloaded || x.songQueueState == SongQueueState.Error);
 
-            Logger.Log($"Removed {removed} songs from queue");
+            Plugin.log.Info($"Removed {removed} songs from queue");
 
             _queuedSongsTableView.ReloadData();
             _queuedSongsTableView.ScrollToCellWithIdx(0, TableView.ScrollPositionType.Beginning, true);
 
             if (queuedSongs.Count(x => x.songQueueState == SongQueueState.Downloading || x.songQueueState == SongQueueState.Queued) == 0)
             {
-                Logger.Log("All songs downloaded!");
+                Plugin.log.Info("All songs downloaded!");
             }
 
             if (queuedSongs.Count(x => x.songQueueState == SongQueueState.Downloading) < PluginConfig.maxSimultaneousDownloads && queuedSongs.Any(x => x.songQueueState == SongQueueState.Queued))

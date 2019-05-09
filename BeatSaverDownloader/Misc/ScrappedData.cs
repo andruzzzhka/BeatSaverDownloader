@@ -58,7 +58,7 @@ namespace BeatSaverDownloader.Misc
 
         public IEnumerator DownloadScrappedData(Action<List<ScrappedSong>> callback)
         {
-            Logger.Log("Downloading scrapped data...");
+            Plugin.log.Info("Downloading scrapped data...");
 
             UnityWebRequest www;
             bool timeout = false;
@@ -73,7 +73,7 @@ namespace BeatSaverDownloader.Misc
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                Plugin.log.Error(e);
                 yield break;
             }
 
@@ -85,23 +85,23 @@ namespace BeatSaverDownloader.Misc
                 {
                     www.Abort();
                     timeout = true;
-                    Logger.Error("Connection timed out!");
+                    Plugin.log.Error("Connection timed out!");
                 }
             }
 
 
             if (www.isNetworkError || www.isHttpError || timeout)
             {
-                Logger.Error("Unable to download scrapped data! " + (www.isNetworkError ? $"Network error: {www.error}" : (www.isHttpError ? $"HTTP error: {www.error}" : "Unknown error")));
+                Plugin.log.Error("Unable to download scrapped data! " + (www.isNetworkError ? $"Network error: {www.error}" : (www.isHttpError ? $"HTTP error: {www.error}" : "Unknown error")));
             }
             else
             {
-                Logger.Log("Received response from github.com...");
+                Plugin.log.Info("Received response from github.com...");
 
                 Songs = JsonConvert.DeserializeObject<List<ScrappedSong>>(www.downloadHandler.text).OrderByDescending(x => x.Diffs.Count > 0 ? x.Diffs.Max(y => y.Stars) : 0).ToList();
                 
                 callback?.Invoke(Songs);
-                Logger.Log("Scrapped data downloaded!");
+                Plugin.log.Info("Scrapped data downloaded!");
             }
         }
         

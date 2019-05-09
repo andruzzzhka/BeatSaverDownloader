@@ -44,7 +44,7 @@ namespace BeatSaverDownloader.Misc
 
         public static void ConvertToSprites()
         {
-            Logger.Log("Creating sprites...");
+            Plugin.log.Info("Creating sprites...");
 
             AddToFavorites =        CustomUI.Utilities.UIUtilities.LoadSpriteFromResources("BeatSaverDownloader.Assets.AddToFavorites.png");
             RemoveFromFavorites =   CustomUI.Utilities.UIUtilities.LoadSpriteFromResources("BeatSaverDownloader.Assets.RemoveFromFavorites.png");
@@ -62,7 +62,7 @@ namespace BeatSaverDownloader.Misc
             RandomIcon =            CustomUI.Utilities.UIUtilities.LoadSpriteFromResources("BeatSaverDownloader.Assets.RandomIcon.png");
             DeleteIcon =            CustomUI.Utilities.UIUtilities.LoadSpriteFromResources("BeatSaverDownloader.Assets.DeleteIcon.png");
 
-            Logger.Log("Creating sprites... Done!");
+            Plugin.log.Info("Creating sprites... Done!");
         }
 
         public static string SpriteToBase64(Sprite input)

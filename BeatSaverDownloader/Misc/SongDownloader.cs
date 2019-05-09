@@ -73,7 +73,7 @@ namespace BeatSaverDownloader.Misc
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                Plugin.log.Error(e);
                 songInfo.songQueueState = SongQueueState.Error;
                 songInfo.downloadingProgress = 1f;
 
@@ -90,7 +90,7 @@ namespace BeatSaverDownloader.Misc
                 {
                     www.Abort();
                     timeout = true;
-                    Logger.Error("Connection timed out!");
+                    Plugin.log.Error("Connection timed out!");
                 }
 
                 songInfo.downloadingProgress = asyncRequest.progress;
@@ -102,11 +102,11 @@ namespace BeatSaverDownloader.Misc
             if (www.isNetworkError || www.isHttpError || timeout || songInfo.songQueueState == SongQueueState.Error)
             {
                 songInfo.songQueueState = SongQueueState.Error;
-                Logger.Error("Unable to download song! " + (www.isNetworkError ? $"Network error: {www.error}" : (www.isHttpError ? $"HTTP error: {www.error}" : "Unknown error")));
+                Plugin.log.Error("Unable to download song! " + (www.isNetworkError ? $"Network error: {www.error}" : (www.isHttpError ? $"HTTP error: {www.error}" : "Unknown error")));
             }
             else
             {
-                Logger.Log("Received response from BeatSaver.com...");
+                Plugin.log.Info("Received response from BeatSaver.com...");
 
                 string docPath = "";
                 string customSongsPath = "";
@@ -126,11 +126,11 @@ namespace BeatSaverDownloader.Misc
                         Directory.CreateDirectory(customSongsPath);
                     }
                     zipStream = new MemoryStream(data);
-                    Logger.Log("Downloaded zip!");
+                    Plugin.log.Info("Downloaded zip!");
                 }
                 catch (Exception e)
                 {
-                    Logger.Exception(e);
+                    Plugin.log.Critical(e);
                     songInfo.songQueueState = SongQueueState.Error;
                     yield break;
                 }
@@ -147,7 +147,7 @@ namespace BeatSaverDownloader.Misc
         {
             try
             {
-                Logger.Log("Extracting...");
+                Plugin.log.Info("Extracting...");
                 _extractingZip = true;
                 ZipArchive archive = new ZipArchive(zipStream, ZipArchiveMode.Read);
                 await Task.Run(() => archive.ExtractToDirectory(customSongsPath)).ConfigureAwait(false);
@@ -155,7 +155,7 @@ namespace BeatSaverDownloader.Misc
             }
             catch (Exception e)
             {
-                Logger.Exception($"Unable to extract ZIP! Exception: {e}");
+                Plugin.log.Critical($"Unable to extract ZIP! Exception: {e}");
                 songInfo.songQueueState = SongQueueState.Error;
                 _extractingZip = false;
                 return;
@@ -172,7 +172,7 @@ namespace BeatSaverDownloader.Misc
             _extractingZip = false;
             songInfo.songQueueState = SongQueueState.Downloaded;
             _alreadyDownloadedSongs.Add(songInfo);
-            Logger.Log($"Extracted {songInfo.songName} {songInfo.songSubName}!");
+            Plugin.log.Info($"Extracted {songInfo.songName} {songInfo.songSubName}!");
 
             HMMainThreadDispatcher.instance.Enqueue(() => {
                 try
@@ -197,7 +197,7 @@ namespace BeatSaverDownloader.Misc
                 }
                 catch (Exception e)
                 {
-                    Logger.Exception("Unable to load song! Exception: " + e);
+                    Plugin.log.Critical("Unable to load song! Exception: " + e);
                 }
             });
             
@@ -230,7 +230,7 @@ namespace BeatSaverDownloader.Misc
 
             if (zippedSong)
             {
-                Logger.Log("Deleting \"" + path.Substring(path.LastIndexOf('/')) + "\"...");
+                Plugin.log.Info("Deleting \"" + path.Substring(path.LastIndexOf('/')) + "\"...");
                 if(PluginConfig.deleteToRecycleBin)
                 {
                     FileOperationAPIWrapper.MoveToRecycleBin(path);
@@ -246,13 +246,13 @@ namespace BeatSaverDownloader.Misc
                 {
                     if (Directory.GetFileSystemEntries(path.Substring(0, path.LastIndexOf('/'))).Length == 0)
                     {
-                        Logger.Log("Deleting empty folder \"" + path.Substring(0, path.LastIndexOf('/')) + "\"...");
+                        Plugin.log.Info("Deleting empty folder \"" + path.Substring(0, path.LastIndexOf('/')) + "\"...");
                         Directory.Delete(path.Substring(0, path.LastIndexOf('/')), false);                       
                     }
                 }
                 catch
                 {
-                    Logger.Warning("Can't find or delete empty folder!");
+                    Plugin.log.Warn("Can't find or delete empty folder!");
                 }
 
                 string docPath = Application.dataPath;
@@ -277,7 +277,7 @@ namespace BeatSaverDownloader.Misc
             }
             else
             {
-                Logger.Log("Deleting \"" + path.Substring(path.LastIndexOf('/')) + "\"...");
+                Plugin.log.Info("Deleting \"" + path.Substring(path.LastIndexOf('/')) + "\"...");
 
                 if (PluginConfig.deleteToRecycleBin)
                 {
@@ -292,19 +292,19 @@ namespace BeatSaverDownloader.Misc
                 {
                     if (Directory.GetFileSystemEntries(path.Substring(0, path.LastIndexOf('/'))).Length == 0)
                     {
-                        Logger.Log("Deleting empty folder \"" + path.Substring(0, path.LastIndexOf('/')) + "\"...");
+                        Plugin.log.Info("Deleting empty folder \"" + path.Substring(0, path.LastIndexOf('/')) + "\"...");
                         Directory.Delete(path.Substring(0, path.LastIndexOf('/')), false);
                     }
                 }
                 catch
                 {
-                    Logger.Warning("Unable to delete empty folder!");
+                    Plugin.log.Warn("Unable to delete empty folder!");
                 }
             }
 
             if (level != null)
                 SongLoader.Instance.RemoveSongWithLevelID(level.levelID);
-            Logger.Log($"{_alreadyDownloadedSongs.RemoveAll(x => x.Compare(song))} song removed");
+            Plugin.log.Info($"{_alreadyDownloadedSongs.RemoveAll(x => x.Compare(song))} song removed");
             return true;
         }
 
@@ -366,7 +366,7 @@ namespace BeatSaverDownloader.Misc
 
             if (wwwId.isNetworkError || wwwId.isHttpError)
             {
-                Logger.Error(wwwId.error);
+                Plugin.log.Error(wwwId.error);
             }
             else
             {
@@ -377,7 +377,7 @@ namespace BeatSaverDownloader.Misc
 
                 if (node["songs"].Count == 0)
                 {
-                    Logger.Error($"Song {levelId} doesn't exist on BeatSaver!");
+                    Plugin.log.Error($"Song {levelId} doesn't exist on BeatSaver!");
                     callback?.Invoke(null);
                     yield break;
                 }
@@ -402,7 +402,7 @@ namespace BeatSaverDownloader.Misc
 
             if (wwwId.isNetworkError || wwwId.isHttpError)
             {
-                Logger.Error(wwwId.error);
+                Plugin.log.Error(wwwId.error);
             }
             else
             {

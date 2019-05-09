@@ -60,7 +60,7 @@ namespace BeatSaverDownloader.UI.UIElements
                 if (_starButtons.Length > i)
                     _starButtons[i].SetButtonIcon(Sprites.StarFull);
                 else
-                    Misc.Logger.Log("Index out of bounds! (1) Items: " + _starButtons.Length + ", Index: "+i);
+                    Plugin.log.Info("Index out of bounds! (1) Items: " + _starButtons.Length + ", Index: "+i);
             }
 
             for (int i = _currentValue; i < _starButtons.Length; i++)
@@ -68,7 +68,7 @@ namespace BeatSaverDownloader.UI.UIElements
                 if (_starButtons.Length > i)
                     _starButtons[i].SetButtonIcon(Sprites.StarEmpty);
                 else
-                    Misc.Logger.Log("Index out of bounds! (2) Items: " + _starButtons.Length + ", Index: " + i);
+                    Plugin.log.Info("Index out of bounds! (2) Items: " + _starButtons.Length + ", Index: " + i);
             }
 
             if(callbackAction)
