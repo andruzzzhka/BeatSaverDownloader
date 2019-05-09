@@ -8,7 +8,6 @@ using TMPro;
 using UnityEngine;
 using VRUI;
 using UnityEngine.UI;
-using Logger = BeatSaverDownloader.Misc.Logger;
 using SongLoaderPlugin;
 using BeatSaverDownloader.UI.FlowCoordinators;
 using CustomUI.BeatSaber;
@@ -114,7 +113,7 @@ namespace BeatSaverDownloader.UI.ViewControllers
                 }
                 catch (Exception e)
                 {
-                    Logger.Exception("Unable to convert detail view controller! Exception:  " + e);
+                    Plugin.log.Critical("Unable to convert detail view controller! Exception:  " + e);
                 }
 
                 _downloadButton = _levelDetails.playButton;

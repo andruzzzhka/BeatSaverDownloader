@@ -1,5 +1,4 @@
-﻿using IllusionPlugin;
-using Microsoft.Win32;
+﻿using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -9,6 +8,7 @@ using System.Xml.Serialization;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using BeatSaverDownloader.UI;
+using IPA.Config;
 
 namespace BeatSaverDownloader.Misc
 {
@@ -84,7 +84,7 @@ namespace BeatSaverDownloader.Misc
 
         public static void LoadOrCreateConfig()
         {
-            if (IllusionInjector.PluginManager.Plugins.Any(x => x.Name == "Song Browser"))
+            if (IPA.Loader.PluginManager.AllPlugins.Any(x => x.Metadata.Name == "Song Browser"))
             {
                 Logger.Log("Song Browser installed, disabling Song List Tweaks");
                 disableSongListTweaks = true;

@@ -7,7 +7,6 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using Logger = BeatSaverDownloader.Misc.Logger;
 using UnityEngine.UI;
 using BeatSaverDownloader.UI.ViewControllers;
 using VRUI;
@@ -56,7 +55,7 @@ namespace BeatSaverDownloader.UI
                 _lastPack = value;
                 if (_lastPack != null)
                 {
-                    Logger.Log($"Selected pack: {_lastPack.packName}");
+                    Plugin.log.Info($"Selected pack: {_lastPack.packName}");
                     PluginConfig.lastSelectedPack = _lastPack.packID;
                     PluginConfig.SaveConfig();
                 }
@@ -149,8 +148,8 @@ namespace BeatSaverDownloader.UI
             RectTransform viewControllersContainer = FindObjectsOfType<RectTransform>().First(x => x.name == "ViewControllers");
 
             if (initialized || PluginConfig.disableSongListTweaks) return;
-                
-            Logger.Log("Setting up song list tweaks...");
+
+            Plugin.log.Info("Setting up song list tweaks...");
 
             try
             {
@@ -159,7 +158,7 @@ namespace BeatSaverDownloader.UI
             }
             catch (Exception e)
             {
-                Logger.Log("Unable to patch level list! Exception: " + e);
+                Plugin.log.Info("Unable to patch level list! Exception: " + e);
             }
 
             _simpleDialog = ReflectionUtil.GetPrivateField<SimpleDialogPromptViewController>(_mainFlowCoordinator, "_simpleDialogPromptViewController");
@@ -377,14 +376,14 @@ namespace BeatSaverDownloader.UI
         {
             try
             {
-                Logger.Log("Creating default playlist...");
+                Plugin.log.Info("Creating default playlist...");
 
                 var levels = SongLoaderPlugin.SongLoader.CustomBeatmapLevelPackCollectionSO.beatmapLevelPacks.SelectMany(x => x.beatmapLevelCollection.beatmapLevels).ToList();
 
                 Playlist _favPlaylist = new Playlist() { playlistTitle = "Your favorite songs", playlistAuthor = "", image = Sprites.SpriteToBase64(Sprites.BeastSaberLogo), icon = Sprites.BeastSaberLogo, fileLoc = "" };
                 _favPlaylist.songs = new List<PlaylistSong>();
                 _favPlaylist.songs.AddRange(levels.Where(x =>  PluginConfig.favoriteSongs.Contains(x.levelID)).Select(x =>new PlaylistSong() { songName = $"{x.songName} {x.songSubName}", level = x as BeatmapLevelSO, oneSaber = x.beatmapCharacteristics.Any(y => y.characteristicName == "One Saber"), path = "", key = "", levelId = x.levelID, hash = CustomHelpers.CheckHex(x.levelID.Substring(0, Math.Min(32, x.levelID.Length))) }));
-                Logger.Log($"Created \"{_favPlaylist.playlistTitle}\" playlist with {_favPlaylist.songs.Count} songs!");
+                Plugin.log.Info($"Created \"{_favPlaylist.playlistTitle}\" playlist with {_favPlaylist.songs.Count} songs!");
 
                 if (PlaylistsCollection.loadedPlaylists.Any(x => x.playlistTitle == "Your favorite songs"))
                 {
@@ -396,7 +395,7 @@ namespace BeatSaverDownloader.UI
                 _favPlaylist.SavePlaylist("Playlists\\favorites.json");
             }catch(Exception e)
             {
-                Logger.Exception($"Unable to create default playlist! Exception: {e}");
+                Plugin.log.Critical($"Unable to create default playlist! Exception: {e}");
             }
             UpdateLevelPacks();
         }
@@ -422,7 +421,7 @@ namespace BeatSaverDownloader.UI
                 newCollection.AddLevelPack(levelPack);
             }
 
-            Logger.Log("Updating level packs... New level packs count: "+newCollection.beatmapLevelPacks.Length);
+            Plugin.log.Info("Updating level packs... New level packs count: "+newCollection.beatmapLevelPacks.Length);
         }
 
         private void MainMenuViewController_didFinishEvent(MainMenuViewController sender, MainMenuViewController.MenuButton result)
@@ -479,7 +478,7 @@ namespace BeatSaverDownloader.UI
 
                 if (packIndex < 0)
                 {
-                    Logger.Warning($"Unable to find last selected pack with ID \"{PluginConfig.lastSelectedPack}\"");
+                    Plugin.log.Warn($"Unable to find last selected pack with ID \"{PluginConfig.lastSelectedPack}\"");
                     lastPack = SongLoaderPlugin.SongLoader.CustomBeatmapLevelPackCollectionSO.beatmapLevelPacks[_levelPacksViewController.GetPrivateField<int>("_selectedPackNum")];
                     yield break;
                 }
@@ -499,7 +498,7 @@ namespace BeatSaverDownloader.UI
 
                     if (songIndex < 0)
                     {
-                        Logger.Warning($"Unable to find last selected song with ID \"{PluginConfig.lastSelectedSong}\"");
+                        Plugin.log.Warn($"Unable to find last selected song with ID \"{PluginConfig.lastSelectedSong}\"");
                         yield break;
                     }
 
@@ -608,7 +607,7 @@ namespace BeatSaverDownloader.UI
         private void _levelListViewController_didSelectPackEvent(LevelPackLevelsViewController arg1, IBeatmapLevelPack arg2)
         {
             lastPack = arg2;
-            Logger.Log("Selected pack header! IsPlaylist="+(arg2 is PlaylistLevelPackSO));
+            Plugin.log.Info("Selected pack header! IsPlaylist="+(arg2 is PlaylistLevelPackSO));
 
             if (arg2 is PlaylistLevelPackSO)
             {
@@ -748,7 +747,7 @@ namespace BeatSaverDownloader.UI
                             if (selectedIndex > -1)
                             {
                                 int removedLevels = levels.RemoveAll(x => x.levelID == _detailViewController.selectedDifficultyBeatmap.level.levelID);
-                                Logger.Log("Removed " + removedLevels + " level(s) from song list!");
+                                Plugin.log.Info("Removed " + removedLevels + " level(s) from song list!");
                                 
                                 _levelListViewController.SetData(CustomHelpers.GetLevelPackWithLevels(levels.Cast<BeatmapLevelSO>().ToArray(), lastPack?.packName ?? "Custom Songs", lastPack?.coverImage));
                                 TableView listTableView = levelsTableView.GetPrivateField<TableView>("_tableView");
@@ -759,7 +758,7 @@ namespace BeatSaverDownloader.UI
                         }
                         catch (Exception e)
                         {
-                            Logger.Error("Unable to delete song! Exception: " + e);
+                            Plugin.log.Error("Unable to delete song! Exception: " + e);
                         }
                     }
                 });
@@ -899,7 +898,7 @@ namespace BeatSaverDownloader.UI
                 _levelListTableView.RefreshTable();
             }catch(Exception e)
             {
-                Logger.Warning("Unable to refresh song list! Exception: "+e);
+                Plugin.log.Warn("Unable to refresh song list! Exception: "+e);
             }
         }
 
@@ -937,7 +936,6 @@ namespace BeatSaverDownloader.UI
         
         private void SongDownloader_songDownloaded(Song song)
         {
-            Logger.Log("Song downloaded! LastPack is playlist: "+(lastPack is PlaylistLevelPackSO));
             if(lastPack is PlaylistLevelPackSO)
             {
                 Playlist playlist = (lastPack as PlaylistLevelPackSO).playlist;
@@ -945,12 +943,10 @@ namespace BeatSaverDownloader.UI
                 if (playlist.songs.Any(x => x.Compare(song)))
                 {
                     (lastPack as PlaylistLevelPackSO).UpdateDataFromPlaylist();
-                    Logger.Log("Playlist contains downloaded song");
                     TableView levelsTableView = _levelListViewController.GetPrivateField<LevelPackLevelsTableView>("_levelPackLevelsTableView").GetPrivateField<TableView>("_tableView");
                     levelsTableView.ReloadData();
                     levelsTableView.ScrollToCellWithIdx(0, TableView.ScrollPositionType.Beginning, false);
                     levelsTableView.SelectCellWithIdx(0, false);
-                    Logger.Log("Updated level list");
                 }
             }
         }
@@ -960,7 +956,7 @@ namespace BeatSaverDownloader.UI
             PlaylistsCollection.MatchSongsForPlaylist(playlist, true);
 
             List<PlaylistSong> needToDownload = playlist.songs.Where(x => x.level == null).ToList();
-            Logger.Log($"Need to download {needToDownload.Count} songs for playlist {playlist.playlistTitle} by {playlist.playlistAuthor}");
+            Plugin.log.Info($"Need to download {needToDownload.Count} songs for playlist {playlist.playlistTitle} by {playlist.playlistAuthor}");
 
             _downloadingPlaylist = true;
             foreach (var item in needToDownload)
@@ -972,7 +968,7 @@ namespace BeatSaverDownloader.UI
 
                 if (String.IsNullOrEmpty(playlist.customArchiveUrl))
                 {
-                    Logger.Log("Obtaining hash and url for " + item.key + ": " + item.songName);
+                    Plugin.log.Info("Obtaining hash and url for " + item.key + ": " + item.songName);
                     yield return GetInfoForSong(playlist, item, (Song song) => { beatSaverSong = song; });
                 }
                 else
@@ -1034,7 +1030,7 @@ namespace BeatSaverDownloader.UI
 
             if (www.isNetworkError || www.isHttpError)
             {
-                Logger.Error($"Unable to connect to {PluginConfig.beatsaverURL}! " + (www.isNetworkError ? $"Network error: {www.error}" : (www.isHttpError ? $"HTTP error: {www.error}" : "Unknown error")));
+                Plugin.log.Error($"Unable to connect to {PluginConfig.beatsaverURL}! " + (www.isNetworkError ? $"Network error: {www.error}" : (www.isHttpError ? $"HTTP error: {www.error}" : "Unknown error")));
             }
             else
             {
@@ -1046,7 +1042,7 @@ namespace BeatSaverDownloader.UI
                     {
                         if (node["songs"].Count == 0)
                         {
-                            Logger.Error($"Song {song.songName} doesn't exist on BeatSaver!");
+                            Plugin.log.Error($"Song {song.songName} doesn't exist on BeatSaver!");
                             songCallback?.Invoke(null);
                             yield break;
                         }
@@ -1059,7 +1055,7 @@ namespace BeatSaverDownloader.UI
                 }
                 catch (Exception e)
                 {
-                    Logger.Exception("Unable to parse response! Exception: " + e);
+                    Plugin.log.Critical("Unable to parse response! Exception: " + e);
                 }
             }
         }
@@ -1146,7 +1142,7 @@ namespace BeatSaverDownloader.UI
             }
             catch (Exception e)
             {
-                Logger.Exception("Unable to create extra icon! Exception: " + e);
+                Plugin.log.Critical("Unable to create extra icon! Exception: " + e);
             }
             return __result;
         }
@@ -1176,7 +1172,7 @@ namespace BeatSaverDownloader.UI
             }
             catch (Exception e)
             {
-                Logger.Exception("Exception in LevelPackTableCellSetData patch: " + e);
+                Plugin.log.Critical("Exception in LevelPackTableCellSetData patch: " + e);
                 return true;
             }
         }
@@ -1196,7 +1192,7 @@ namespace BeatSaverDownloader.UI
             }
             catch (Exception e)
             {
-                Logger.Exception("Exception in LevelPackTableCellRefreshAvailability patch: " + e);
+                Plugin.log.Critical("Exception in LevelPackTableCellRefreshAvailability patch: " + e);
                 return true;
             }
         }

@@ -15,7 +15,6 @@ using UnityEngine.Networking;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using Steamworks;
-using Logger = BeatSaverDownloader.Misc.Logger;
 
 namespace BeatSaverDownloader.UI
 {
@@ -133,7 +132,7 @@ namespace BeatSaverDownloader.UI
 
             if (www.isNetworkError || www.isHttpError)
             {
-                Logger.Error($"Unable to connect to {PluginConfig.beatsaverURL}! " + (www.isNetworkError ? $"Network error: {www.error}" : (www.isHttpError ? $"HTTP error: {www.error}" : "Unknown error")));
+                Plugin.log.Error($"Unable to connect to {PluginConfig.beatsaverURL}! " + (www.isNetworkError ? $"Network error: {www.error}" : (www.isHttpError ? $"HTTP error: {www.error}" : "Unknown error")));
             }
             else
             {
@@ -167,12 +166,12 @@ namespace BeatSaverDownloader.UI
                     }
                     else
                     {
-                        Logger.Error("Song doesn't exist on BeatSaver!");
+                        Plugin.log.Error("Song doesn't exist on BeatSaver!");
                     }
                 }
                 catch (Exception e)
                 {
-                    Logger.Exception("Unable to get song rating! Excpetion: " + e);
+                    Plugin.log.Critical("Unable to get song rating! Excpetion: " + e);
                 }
             }
         }
@@ -191,7 +190,7 @@ namespace BeatSaverDownloader.UI
 
         private IEnumerator VoteWithAccessToken(bool upvote)
         {
-            Logger.Log($"Voting...");
+            Plugin.log.Info($"Voting...");
 
             _upvoteButton.interactable = false;
             _downvoteButton.interactable = false;
@@ -202,7 +201,7 @@ namespace BeatSaverDownloader.UI
 
             if (voteWWW.isNetworkError)
             {
-                Logger.Error(voteWWW.error);
+                Plugin.log.Error(voteWWW.error);
                 _ratingText.text = voteWWW.error;
             }
             else
@@ -275,13 +274,13 @@ namespace BeatSaverDownloader.UI
         {
             if (!SteamManager.Initialized)
             {
-                Logger.Error($"SteamManager is not initialized!");
+                Plugin.log.Error($"SteamManager is not initialized!");
             }
             
             _upvoteButton.interactable = false;
             _downvoteButton.interactable = false;
 
-            Logger.Log($"Getting a ticket...");
+            Plugin.log.Info($"Getting a ticket...");
 
             var steamId = SteamUser.GetSteamID();
             string authTicketHexString = "";
@@ -332,14 +331,14 @@ namespace BeatSaverDownloader.UI
                 }
             }
 
-            Logger.Log("Waiting for Steam callback...");
+            Plugin.log.Info("Waiting for Steam callback...");
 
             float startTime = Time.time;
             yield return new WaitWhile(() => { return SteamHelper.lastTicketResult != EResult.k_EResultOK && (Time.time - startTime) < 20f; });
 
             if(SteamHelper.lastTicketResult != EResult.k_EResultOK)
             {
-                Logger.Error($"Auth ticket callback timeout");
+                Plugin.log.Error($"Auth ticket callback timeout");
                 _upvoteButton.interactable = true;
                 _downvoteButton.interactable = true;
                 _ratingText.text = "Callback\ntimeout";
@@ -348,7 +347,7 @@ namespace BeatSaverDownloader.UI
 
             SteamHelper.lastTicketResult = EResult.k_EResultRevoked;
 
-            Logger.Log($"Voting...");
+            Plugin.log.Info($"Voting...");
 
             Dictionary<string, string> formData = new Dictionary<string, string> ();
             formData.Add("id", steamId.m_SteamID.ToString());
@@ -361,7 +360,7 @@ namespace BeatSaverDownloader.UI
 
             if (voteWWW.isNetworkError)
             {
-                Logger.Error(voteWWW.error);
+                Plugin.log.Error(voteWWW.error);
                 _ratingText.text = voteWWW.error;
             }
             else
@@ -407,35 +406,35 @@ namespace BeatSaverDownloader.UI
                             _upvoteButton.interactable = false;
                             _downvoteButton.interactable = false;
                             _ratingText.text = "Steam API\nerror";
-                            Logger.Error("Error: " + voteWWW.downloadHandler.text);
+                            Plugin.log.Error("Error: " + voteWWW.downloadHandler.text);
                         }; break;
                     case 401:
                         {
                             _upvoteButton.interactable = false;
                             _downvoteButton.interactable = false;
                             _ratingText.text = "Invalid\nauth ticket";
-                            Logger.Error("Error: " + voteWWW.downloadHandler.text);
+                            Plugin.log.Error("Error: " + voteWWW.downloadHandler.text);
                         }; break;
                     case 403:
                         {
                             _upvoteButton.interactable = false;
                             _downvoteButton.interactable = false;
                             _ratingText.text = "Steam ID\nmismatch";
-                            Logger.Error("Error: " + voteWWW.downloadHandler.text);
+                            Plugin.log.Error("Error: " + voteWWW.downloadHandler.text);
                         }; break;
                     case 400:
                         {
                             _upvoteButton.interactable = false;
                             _downvoteButton.interactable = false;
                             _ratingText.text = "Bad\nrequest";
-                            Logger.Error("Error: "+voteWWW.downloadHandler.text);
+                            Plugin.log.Error("Error: "+voteWWW.downloadHandler.text);
                         }; break;
                     default:
                         {
                             _upvoteButton.interactable = true;
                             _downvoteButton.interactable = true;
                             _ratingText.text = "Error\n" + voteWWW.responseCode;
-                            Logger.Error("Error: " + voteWWW.downloadHandler.text);
+                            Plugin.log.Error("Error: " + voteWWW.downloadHandler.text);
                         }; break;
                 }
             }

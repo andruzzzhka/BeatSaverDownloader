@@ -5,7 +5,6 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
-using Logger = BeatSaverDownloader.Misc.Logger;
 
 namespace BeatSaverDownloader.UI.UIElements
 {
@@ -30,8 +29,6 @@ namespace BeatSaverDownloader.UI.UIElements
         public void Awake()
         {
             _keyButtonPrefab = Resources.FindObjectsOfTypeAll<TextMeshProButton>().First(x => x.name == "KeyboardButton");
-
-            Logger.Log("Found keyboard button!");
 
             string[] array = new string[]
             {

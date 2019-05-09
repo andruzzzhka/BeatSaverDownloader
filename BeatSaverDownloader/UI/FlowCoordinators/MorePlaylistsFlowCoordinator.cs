@@ -11,7 +11,6 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.Networking;
 using VRUI;
-using Logger = BeatSaverDownloader.Misc.Logger;
 
 namespace BeatSaverDownloader.UI.FlowCoordinators
 {
@@ -124,7 +123,7 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
 
             if (www.isNetworkError || www.isHttpError)
             {
-                Logger.Error($"Unable to connect to BeastSaber playlist API! " + (www.isNetworkError ? $"Network error: {www.error}" : (www.isHttpError ? $"HTTP error: {www.error}" : "Unknown error")));
+                Plugin.log.Error($"Unable to connect to BeastSaber playlist API! " + (www.isNetworkError ? $"Network error: {www.error}" : (www.isHttpError ? $"HTTP error: {www.error}" : "Unknown error")));
                 _loadingIndicator.SetActive(false);
             }
             else
@@ -146,7 +145,7 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
                 }
                 catch (Exception e)
                 {
-                    Logger.Exception("Unable to parse response! Exception: " + e);
+                    Plugin.log.Critical("Unable to parse response! Exception: " + e);
                     _loadingIndicator.SetActive(false);
                 }
             }
@@ -162,7 +161,7 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
 
             if (www.isNetworkError || www.isHttpError)
             {
-                Logger.Error($"Unable to connect to BeastSaber playlist API! " + (www.isNetworkError ? $"Network error: {www.error}" : (www.isHttpError ? $"HTTP error: {www.error}" : "Unknown error")));
+                Plugin.log.Error($"Unable to connect to BeastSaber playlist API! " + (www.isNetworkError ? $"Network error: {www.error}" : (www.isHttpError ? $"HTTP error: {www.error}" : "Unknown error")));
                 playlistDownloaded?.Invoke(null);
             }
             else
@@ -177,7 +176,7 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
                 }
                 catch (Exception e)
                 {
-                    Logger.Exception("Unable to parse response! Exception: " + e);
+                    Plugin.log.Critical("Unable to parse response! Exception: " + e);
                     playlistDownloaded?.Invoke(null);
                 }
             }

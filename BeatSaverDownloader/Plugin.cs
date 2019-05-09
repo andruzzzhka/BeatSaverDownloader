@@ -1,5 +1,4 @@
-﻿using IllusionPlugin;
-using System;
+﻿using System;
 using UnityEngine.SceneManagement;
 using BeatSaverDownloader.Misc;
 using BeatSaverDownloader.UI;
@@ -7,19 +6,21 @@ using System.Collections.Generic;
 using SongLoaderPlugin;
 using SongLoaderPlugin.OverrideClasses;
 using UnityEngine;
-using Logger = BeatSaverDownloader.Misc.Logger;
 using BS_Utils.Gameplay;
+using IPA;
 
 namespace BeatSaverDownloader
 {
-    public class Plugin : IPlugin
+    public class Plugin : IBeatSaberPlugin
     {
-        string IPlugin.Name { get { return "BeatSaver Downloader"; } }
-
-        string IPlugin.Version { get { return "3.3.2"; } }
-
         public static Plugin instance;
-        
+        public static IPA.Logging.Logger log;
+
+        public void Init(object nullObject, IPA.Logging.Logger logger)
+        {
+            log = logger;
+        }
+
         public void OnApplicationQuit()
         {
             PluginConfig.SaveConfig();
@@ -28,8 +29,6 @@ namespace BeatSaverDownloader
         public void OnApplicationStart()
         {
             instance = this;
-            SceneManager.sceneLoaded += SceneManager_sceneLoaded;
-            SceneManager.activeSceneChanged += SceneManager_activeSceneChanged; ;
             PluginConfig.LoadOrCreateConfig();
             Sprites.ConvertToSprites();
             PlaylistsCollection.ReloadPlaylists();
@@ -51,7 +50,7 @@ namespace BeatSaverDownloader
             }
             catch (Exception e)
             {
-                Logger.Exception("Exception on fresh menu scene change: " + e);
+                Plugin.log.Critical("Exception on fresh menu scene change: " + e);
             }
         }
 
@@ -63,30 +62,8 @@ namespace BeatSaverDownloader
             }
             catch(Exception e)
             {
-                Misc.Logger.Exception("Unable to match songs for all playlists! Exception: "+e);
+                Plugin.log.Critical("Unable to match songs for all playlists! Exception: "+e);
             }
-        }
-        
-        private void SceneManager_activeSceneChanged(Scene arg0, Scene arg1)
-        {
-            Logger.Log($"Active scene changed from \"{arg0.name}\" to \"{arg1.name}\"");
-        }
-
-        private void SceneManager_sceneLoaded(Scene to, LoadSceneMode loadMode)
-        {
-            Logger.Log($"Loaded scene \"{to.name}\"");
-        }
-
-        public void OnFixedUpdate()
-        {
-        }
-
-        public void OnLevelWasInitialized(int level)
-        {
-        }
-
-        public void OnLevelWasLoaded(int level)
-        {
         }
 
         public void OnUpdate()
@@ -95,6 +72,22 @@ namespace BeatSaverDownloader
             {
                 PlaylistsCollection.ReloadPlaylists();
             }
+        }
+
+        public void OnSceneLoaded(Scene scene, LoadSceneMode sceneMode)
+        {
+        }
+
+        public void OnSceneUnloaded(Scene scene)
+        {
+        }
+
+        public void OnActiveSceneChanged(Scene prevScene, Scene nextScene)
+        {
+        }
+
+        public void OnFixedUpdate()
+        {
         }
     }
 }
