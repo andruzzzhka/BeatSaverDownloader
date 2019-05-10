@@ -363,6 +363,7 @@ namespace BeatSaverDownloader.Misc
             File.WriteAllText(reviewedSongsPath, JsonConvert.SerializeObject(reviewedSongs, Formatting.Indented), Encoding.UTF8);
             File.WriteAllLines(favSongsPath, favoriteSongs.Distinct().ToArray(), Encoding.UTF8);
 
+            config.SetString("BeatSaverDownloader", "beatsaverURL", beatsaverURL);
             config.SetBool("BeatSaverDownloader", "disableDeleteButton", disableDeleteButton);
             config.SetBool("BeatSaverDownloader", "deleteToRecycleBin", deleteToRecycleBin);
             config.SetBool("BeatSaverDownloader", "enableSongIcons", enableSongIcons);

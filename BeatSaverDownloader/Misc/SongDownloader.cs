@@ -203,12 +203,15 @@ namespace BeatSaverDownloader.Misc
             
         }
 
-        public bool DeleteSong(Song song)
+        public void DeleteSong(Song song)
         {
             bool zippedSong = false;
             string path = "";
 
             CustomLevel level = SongLoader.CustomLevels.FirstOrDefault(x => x.levelID.StartsWith(song.hash));
+
+            if (level != null)
+                SongLoader.Instance.RemoveSongWithLevelID(level.levelID);
 
             if (string.IsNullOrEmpty(song.path))
             {
@@ -221,91 +224,94 @@ namespace BeatSaverDownloader.Misc
             }
 
             if (string.IsNullOrEmpty(path))
-                return false;
+                return;
             if (!Directory.Exists(path))
-                return false;
+                return;
 
             if (path.Contains("/.cache/"))
                 zippedSong = true;
 
-            if (zippedSong)
+            Task.Run(() =>
             {
-                Plugin.log.Info("Deleting \"" + path.Substring(path.LastIndexOf('/')) + "\"...");
-                if(PluginConfig.deleteToRecycleBin)
+                if (zippedSong)
                 {
-                    FileOperationAPIWrapper.MoveToRecycleBin(path);
-                }
-                else
-                {
-                    Directory.Delete(path, true);
-                }
+                    Plugin.log.Info("Deleting \"" + path.Substring(path.LastIndexOf('/')) + "\"...");
 
-                string songHash = Directory.GetParent(path).Name;
-
-                try
-                {
-                    if (Directory.GetFileSystemEntries(path.Substring(0, path.LastIndexOf('/'))).Length == 0)
+                    if (PluginConfig.deleteToRecycleBin)
                     {
-                        Plugin.log.Info("Deleting empty folder \"" + path.Substring(0, path.LastIndexOf('/')) + "\"...");
-                        Directory.Delete(path.Substring(0, path.LastIndexOf('/')), false);                       
+                        FileOperationAPIWrapper.MoveToRecycleBin(path);
                     }
-                }
-                catch
-                {
-                    Plugin.log.Warn("Can't find or delete empty folder!");
-                }
-
-                string docPath = Application.dataPath;
-                docPath = docPath.Substring(0, docPath.Length - 5);
-                docPath = docPath.Substring(0, docPath.LastIndexOf("/"));
-                string customSongsPath = docPath + "/CustomSongs/";
-
-                string hash = "";
-
-                foreach (string file in Directory.GetFiles(customSongsPath, "*.zip"))
-                {
-                    if (CreateMD5FromFile(file, out hash))
+                    else
                     {
-                        if (hash == songHash)
+                        Directory.Delete(path, true);
+                    }
+
+                    string songHash = Directory.GetParent(path).Name;
+
+                    try
+                    {
+                        if (Directory.GetFileSystemEntries(path.Substring(0, path.LastIndexOf('/'))).Length == 0)
                         {
-                            File.Delete(file);
-                            break;
+                            Plugin.log.Info("Deleting empty folder \"" + path.Substring(0, path.LastIndexOf('/')) + "\"...");
+                            Directory.Delete(path.Substring(0, path.LastIndexOf('/')), false);
                         }
                     }
-                }
+                    catch
+                    {
+                        Plugin.log.Warn("Can't find or delete empty folder!");
+                    }
 
-            }
-            else
-            {
-                Plugin.log.Info("Deleting \"" + path.Substring(path.LastIndexOf('/')) + "\"...");
+                    string docPath = Application.dataPath;
+                    docPath = docPath.Substring(0, docPath.Length - 5);
+                    docPath = docPath.Substring(0, docPath.LastIndexOf("/"));
+                    string customSongsPath = docPath + "/CustomSongs/";
 
-                if (PluginConfig.deleteToRecycleBin)
-                {
-                    FileOperationAPIWrapper.MoveToRecycleBin(path);
+                    string hash = "";
+
+                    foreach (string file in Directory.GetFiles(customSongsPath, "*.zip"))
+                    {
+                        if (CreateMD5FromFile(file, out hash))
+                        {
+                            if (hash == songHash)
+                            {
+                                File.Delete(file);
+                                break;
+                            }
+                        }
+                    }
+
                 }
                 else
                 {
-                    Directory.Delete(path, true);
-                }
+                    Plugin.log.Info("Deleting \"" + path.Substring(path.LastIndexOf('/')) + "\"...");
 
-                try
-                {
-                    if (Directory.GetFileSystemEntries(path.Substring(0, path.LastIndexOf('/'))).Length == 0)
+                    if (PluginConfig.deleteToRecycleBin)
                     {
-                        Plugin.log.Info("Deleting empty folder \"" + path.Substring(0, path.LastIndexOf('/')) + "\"...");
-                        Directory.Delete(path.Substring(0, path.LastIndexOf('/')), false);
+                        FileOperationAPIWrapper.MoveToRecycleBin(path);
+                    }
+                    else
+                    {
+                        Directory.Delete(path, true);
+                    }
+
+                    try
+                    {
+                        if (Directory.GetFileSystemEntries(path.Substring(0, path.LastIndexOf('/'))).Length == 0)
+                        {
+                            Plugin.log.Info("Deleting empty folder \"" + path.Substring(0, path.LastIndexOf('/')) + "\"...");
+                            Directory.Delete(path.Substring(0, path.LastIndexOf('/')), false);
+                        }
+                    }
+                    catch
+                    {
+                        Plugin.log.Warn("Unable to delete empty folder!");
                     }
                 }
-                catch
-                {
-                    Plugin.log.Warn("Unable to delete empty folder!");
-                }
-            }
 
-            if (level != null)
-                SongLoader.Instance.RemoveSongWithLevelID(level.levelID);
-            Plugin.log.Info($"{_alreadyDownloadedSongs.RemoveAll(x => x.Compare(song))} song removed");
-            return true;
+                Plugin.log.Info($"{_alreadyDownloadedSongs.RemoveAll(x => x.Compare(song))} song removed");
+            }).ConfigureAwait(false);
+
+            
         }
 
         public bool IsSongDownloaded(Song song)
