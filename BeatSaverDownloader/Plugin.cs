@@ -29,7 +29,7 @@ namespace BeatSaverDownloader
         public void OnApplicationStart()
         {
             instance = this;
-            PluginConfig.LoadOrCreateConfig();
+            PluginConfig.LoadConfig();
             Sprites.ConvertToSprites();
             PlaylistsCollection.ReloadPlaylists();
             SongLoader.SongsLoadedEvent += SongLoader_SongsLoadedEvent;

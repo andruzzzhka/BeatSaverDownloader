@@ -54,10 +54,12 @@ namespace BeatSaverDownloader.Misc
         static public bool beatDropInstalled = false;
         static public string beatDropPlaylistsLocation = "";
 
+        static private BS_Utils.Utilities.Config config = new BS_Utils.Utilities.Config("BeatSaverDownloader");
+
         static private string votedSongsPath = "UserData\\votedSongs.json";
         static private string reviewedSongsPath = "UserData\\reviewedSongs.json";
-        static private string configPath = "UserData\\favoriteSongs.cfg";
-        static private string oldConfigPath = "favoriteSongs.cfg";
+        static private string favSongsPath = "UserData\\favoriteSongs.cfg";
+        static private string oldFavSongsPath = "favoriteSongs.cfg";
 
         public static List<string> favoriteSongs = new List<string>();
         public static Dictionary<string, SongVote> votedSongs = new Dictionary<string, SongVote>();
@@ -80,11 +82,12 @@ namespace BeatSaverDownloader.Misc
 
         public static int maxSimultaneousDownloads = 3;
         public static int fastScrollSpeed = 5;
-
-
-        public static void LoadOrCreateConfig()
+        
+        public static void LoadConfig()
         {
-            if (IPA.Loader.PluginManager.AllPlugins.Any(x => x.Metadata.Name == "Song Browser"))
+            if (IPA.Loader.PluginManager.AllPlugins.Select(x => x.Metadata.Name) //BSIPA Plugins
+                .Concat(IPA.Loader.PluginManager.Plugins.Select(x => x.Name))    //Old IPA Plugins
+                .Any(x => x == "Song Browser" || x == "Song Browser Plugin"))
             {
                 Plugin.log.Info("Song Browser installed, disabling Song List Tweaks");
                 disableSongListTweaks = true;
@@ -95,129 +98,19 @@ namespace BeatSaverDownloader.Misc
                 Directory.CreateDirectory("UserData");
             }
 
-            if (!ModPrefs.HasKey("BeatSaverDownloader", "beatsaverURL"))
+            LoadIni();
+
+            if (File.Exists(oldFavSongsPath) && !File.Exists(favSongsPath))
             {
-                ModPrefs.SetString("BeatSaverDownloader", "beatsaverURL", "https://beatsaver.com");
-                Plugin.log.Info("Created config");
-            }
-            else
-            {
-                beatsaverURL = ModPrefs.GetString("BeatSaverDownloader", "beatsaverURL");
-                if (string.IsNullOrEmpty(beatsaverURL))
-                {
-                    ModPrefs.SetString("BeatSaverDownloader", "beatsaverURL", "https://beatsaver.com");
-                    beatsaverURL = "https://beatsaver.com";
-                    Plugin.log.Info("Created config");
-                }
+                File.Move(oldFavSongsPath, favSongsPath);
             }
 
-            if (!ModPrefs.HasKey("BeatSaverDownloader", "apiAccessToken"))
+            if (!File.Exists(favSongsPath))
             {
-                ModPrefs.SetString("BeatSaverDownloader", "apiAccessToken", apiTokenPlaceholder);
-            }
-            else
-            {
-                apiAccessToken = ModPrefs.GetString("BeatSaverDownloader", "apiAccessToken");
-                if (string.IsNullOrEmpty(apiAccessToken) || apiAccessToken == apiTokenPlaceholder)
-                {
-                    ModPrefs.SetString("BeatSaverDownloader", "apiAccessToken", apiTokenPlaceholder);
-                    apiAccessToken = apiTokenPlaceholder;
-                }
+                File.Create(favSongsPath).Close();
             }
 
-            if (!ModPrefs.HasKey("BeatSaverDownloader", "disableDeleteButton"))
-            {
-                ModPrefs.SetBool("BeatSaverDownloader", "disableDeleteButton", false);
-            }
-            else
-            {
-                disableDeleteButton = ModPrefs.GetBool("BeatSaverDownloader", "disableDeleteButton", false, true);
-            }
-
-            if (!ModPrefs.HasKey("BeatSaverDownloader", "deleteToRecycleBin"))
-            {
-                ModPrefs.SetBool("BeatSaverDownloader", "deleteToRecycleBin", true);
-            }
-            else
-            {
-                deleteToRecycleBin = ModPrefs.GetBool("BeatSaverDownloader", "deleteToRecycleBin", true, true);
-            }
-
-            if (!ModPrefs.HasKey("BeatSaverDownloader", "enableSongIcons"))
-            {
-                ModPrefs.SetBool("BeatSaverDownloader", "enableSongIcons", true);
-            }
-            else
-            {
-                enableSongIcons = ModPrefs.GetBool("BeatSaverDownloader", "enableSongIcons", true, true);
-            }
-
-            if (!ModPrefs.HasKey("BeatSaverDownloader", "rememberLastPackAndSong"))
-            {
-                ModPrefs.SetBool("BeatSaverDownloader", "rememberLastPackAndSong", true);
-            }
-            else
-            {
-                rememberLastPackAndSong = ModPrefs.GetBool("BeatSaverDownloader", "rememberLastPackAndSong", true, true);
-            }
-
-            if (!ModPrefs.HasKey("BeatSaverDownloader", "lastSelectedSong"))
-            {
-                ModPrefs.SetString("BeatSaverDownloader", "lastSelectedSong", "");
-            }
-            else
-            {
-                lastSelectedSong = ModPrefs.GetString("BeatSaverDownloader", "lastSelectedSong");
-            }
-
-            if (!ModPrefs.HasKey("BeatSaverDownloader", "lastSelectedPack"))
-            {
-                ModPrefs.SetString("BeatSaverDownloader", "lastSelectedPack", "");
-            }
-            else
-            {
-                lastSelectedPack = ModPrefs.GetString("BeatSaverDownloader", "lastSelectedPack");
-            }
-
-            if (!ModPrefs.HasKey("BeatSaverDownloader", "lastSelectedSortMode"))
-            {
-                ModPrefs.SetInt("BeatSaverDownloader", "lastSelectedSortMode", 0);
-            }
-            else
-            {
-                lastSelectedSortMode = (SortMode)ModPrefs.GetInt("BeatSaverDownloader", "lastSelectedSortMode");
-            }
-
-            if (!ModPrefs.HasKey("BeatSaverDownloader", "maxSimultaneousDownloads"))
-            {
-                ModPrefs.SetInt("BeatSaverDownloader", "maxSimultaneousDownloads", 3);
-            }
-            else
-            {
-                maxSimultaneousDownloads = ModPrefs.GetInt("BeatSaverDownloader", "maxSimultaneousDownloads", 3, true);
-            }
-
-            if (!ModPrefs.HasKey("BeatSaverDownloader", "fastScrollSpeed"))
-            {
-                ModPrefs.SetInt("BeatSaverDownloader", "fastScrollSpeed", 5);
-                Plugin.log.Info("Created config");
-            }
-            else
-            {
-                fastScrollSpeed = ModPrefs.GetInt("BeatSaverDownloader", "fastScrollSpeed", 5, true);
-            }
-
-            if (File.Exists(oldConfigPath) && !File.Exists(configPath))
-            {
-                File.Move(oldConfigPath, configPath);
-            }
-
-            if (!File.Exists(configPath))
-            {
-                File.Create(configPath).Close();
-            }
-            
-            favoriteSongs.AddRange(File.ReadAllLines(configPath, Encoding.UTF8));
+            favoriteSongs.AddRange(File.ReadAllLines(favSongsPath, Encoding.UTF8));
 
             if (!File.Exists(votedSongsPath))
             {
@@ -278,21 +171,207 @@ namespace BeatSaverDownloader.Misc
             }
         }
 
+        public static void LoadIni()
+        {
+            if(config.HasKey("BeatSaverDownloader", "beatsaverURL"))
+            {
+                beatsaverURL = config.GetString("BeatSaverDownloader", "beatsaverURL", "https://beatsaver.com");
+                if (string.IsNullOrEmpty(beatsaverURL))
+                {
+                    config.SetString("BeatSaverDownloader", "beatsaverURL", "https://beatsaver.com");
+                    beatsaverURL = "https://beatsaver.com";
+                }
+            }
+            else
+            {
+                LoadOldIni();
+                SaveConfig();
+                return;
+            }
+
+            if (config.HasKey("BeatSaverDownloader", "apiAccessToken"))
+            {
+                apiAccessToken = config.GetString("BeatSaverDownloader", "apiAccessToken", apiTokenPlaceholder);
+                if (string.IsNullOrEmpty(apiAccessToken))
+                {
+                    config.SetString("BeatSaverDownloader", "apiAccessToken", apiTokenPlaceholder);
+                    apiAccessToken = apiTokenPlaceholder;
+                }
+            }
+
+            if (config.HasKey("BeatSaverDownloader", "disableDeleteButton"))
+            {
+                disableDeleteButton = config.GetBool("BeatSaverDownloader", "disableDeleteButton", false);
+            }
+
+            if (config.HasKey("BeatSaverDownloader", "deleteToRecycleBin"))
+            {
+                deleteToRecycleBin = config.GetBool("BeatSaverDownloader", "deleteToRecycleBin", true);
+            }
+
+            if (config.HasKey("BeatSaverDownloader", "enableSongIcons"))
+            {
+                enableSongIcons = config.GetBool("BeatSaverDownloader", "enableSongIcons", true);
+            }
+
+            if (config.HasKey("BeatSaverDownloader", "rememberLastPackAndSong"))
+            {
+                rememberLastPackAndSong = config.GetBool("BeatSaverDownloader", "rememberLastPackAndSong", false);
+            }
+
+            if (config.HasKey("BeatSaverDownloader", "lastSelectedSong"))
+            {
+                lastSelectedSong = config.GetString("BeatSaverDownloader", "lastSelectedSong", "");
+            }
+
+            if (config.HasKey("BeatSaverDownloader", "lastSelectedPack"))
+            {
+                lastSelectedPack = config.GetString("BeatSaverDownloader", "lastSelectedPack", "");
+            }
+
+            if (config.HasKey("BeatSaverDownloader", "lastSelectedSortMode"))
+            {
+                lastSelectedSortMode = (SortMode)config.GetInt("BeatSaverDownloader", "lastSelectedSortMode", 0);
+            }
+
+            if (config.HasKey("BeatSaverDownloader", "maxSimultaneousDownloads"))
+            {
+                maxSimultaneousDownloads = config.GetInt("BeatSaverDownloader", "maxSimultaneousDownloads", 3);
+            }
+
+            if (config.HasKey("BeatSaverDownloader", "fastScrollSpeed"))
+            {
+                fastScrollSpeed = config.GetInt("BeatSaverDownloader", "fastScrollSpeed", 5);
+            }
+        }
+
+        public static bool LoadOldIni()
+        {
+            if (!ModPrefs.HasKey("BeatSaverDownloader", "beatsaverURL"))
+            {
+                return false;
+            }
+            else
+            {
+                beatsaverURL = ModPrefs.GetString("BeatSaverDownloader", "beatsaverURL");
+                if (string.IsNullOrEmpty(beatsaverURL))
+                {
+                    beatsaverURL = "https://beatsaver.com";
+                }
+            }
+
+            if (!ModPrefs.HasKey("BeatSaverDownloader", "apiAccessToken"))
+            {
+                return false;
+            }
+            else
+            {
+                apiAccessToken = ModPrefs.GetString("BeatSaverDownloader", "apiAccessToken");
+                if (string.IsNullOrEmpty(apiAccessToken) || apiAccessToken == apiTokenPlaceholder)
+                {
+                    apiAccessToken = apiTokenPlaceholder;
+                }
+            }
+
+            if (!ModPrefs.HasKey("BeatSaverDownloader", "disableDeleteButton"))
+            {
+                return false;
+            }
+            else
+            {
+                disableDeleteButton = ModPrefs.GetBool("BeatSaverDownloader", "disableDeleteButton", false, true);
+            }
+
+            if (!ModPrefs.HasKey("BeatSaverDownloader", "deleteToRecycleBin"))
+            {
+                return false;
+            }
+            else
+            {
+                deleteToRecycleBin = ModPrefs.GetBool("BeatSaverDownloader", "deleteToRecycleBin", true, true);
+            }
+
+            if (!ModPrefs.HasKey("BeatSaverDownloader", "enableSongIcons"))
+            {
+                return false;
+            }
+            else
+            {
+                enableSongIcons = ModPrefs.GetBool("BeatSaverDownloader", "enableSongIcons", true, true);
+            }
+
+            if (!ModPrefs.HasKey("BeatSaverDownloader", "rememberLastPackAndSong"))
+            {
+                return false;
+            }
+            else
+            {
+                rememberLastPackAndSong = ModPrefs.GetBool("BeatSaverDownloader", "rememberLastPackAndSong", true, true);
+            }
+
+            if (!ModPrefs.HasKey("BeatSaverDownloader", "lastSelectedSong"))
+            {
+                return false;
+            }
+            else
+            {
+                lastSelectedSong = ModPrefs.GetString("BeatSaverDownloader", "lastSelectedSong");
+            }
+
+            if (!ModPrefs.HasKey("BeatSaverDownloader", "lastSelectedPack"))
+            {
+                return false;
+            }
+            else
+            {
+                lastSelectedPack = ModPrefs.GetString("BeatSaverDownloader", "lastSelectedPack");
+            }
+
+            if (!ModPrefs.HasKey("BeatSaverDownloader", "lastSelectedSortMode"))
+            {
+                return false;
+            }
+            else
+            {
+                lastSelectedSortMode = (SortMode)ModPrefs.GetInt("BeatSaverDownloader", "lastSelectedSortMode");
+            }
+
+            if (!ModPrefs.HasKey("BeatSaverDownloader", "maxSimultaneousDownloads"))
+            {
+                return false;
+            }
+            else
+            {
+                maxSimultaneousDownloads = ModPrefs.GetInt("BeatSaverDownloader", "maxSimultaneousDownloads", 3, true);
+            }
+
+            if (!ModPrefs.HasKey("BeatSaverDownloader", "fastScrollSpeed"))
+            {
+                return false;
+            }
+            else
+            {
+                fastScrollSpeed = ModPrefs.GetInt("BeatSaverDownloader", "fastScrollSpeed", 5, true);
+            }
+
+            return true;
+        }
+
         public static void SaveConfig()
         {
             File.WriteAllText(votedSongsPath, JsonConvert.SerializeObject(votedSongs, Formatting.Indented), Encoding.UTF8);
             File.WriteAllText(reviewedSongsPath, JsonConvert.SerializeObject(reviewedSongs, Formatting.Indented), Encoding.UTF8);
-            File.WriteAllLines(configPath, favoriteSongs.Distinct().ToArray(), Encoding.UTF8);
+            File.WriteAllLines(favSongsPath, favoriteSongs.Distinct().ToArray(), Encoding.UTF8);
 
-            ModPrefs.SetBool("BeatSaverDownloader", "disableDeleteButton", disableDeleteButton);
-            ModPrefs.SetBool("BeatSaverDownloader", "deleteToRecycleBin", deleteToRecycleBin);
-            ModPrefs.SetBool("BeatSaverDownloader", "enableSongIcons", enableSongIcons);
-            ModPrefs.SetBool("BeatSaverDownloader", "rememberLastPackAndSong", rememberLastPackAndSong);
-            ModPrefs.SetInt("BeatSaverDownloader", "maxSimultaneousDownloads", maxSimultaneousDownloads);
-            ModPrefs.SetInt("BeatSaverDownloader", "fastScrollSpeed", fastScrollSpeed);
-            ModPrefs.SetString("BeatSaverDownloader", "lastSelectedPack", lastSelectedPack ?? "");
-            ModPrefs.SetString("BeatSaverDownloader", "lastSelectedSong", lastSelectedSong ?? "");
-            ModPrefs.SetInt("BeatSaverDownloader", "lastSelectedSortMode", (int)lastSelectedSortMode);
+            config.SetBool("BeatSaverDownloader", "disableDeleteButton", disableDeleteButton);
+            config.SetBool("BeatSaverDownloader", "deleteToRecycleBin", deleteToRecycleBin);
+            config.SetBool("BeatSaverDownloader", "enableSongIcons", enableSongIcons);
+            config.SetBool("BeatSaverDownloader", "rememberLastPackAndSong", rememberLastPackAndSong);
+            config.SetInt("BeatSaverDownloader", "maxSimultaneousDownloads", maxSimultaneousDownloads);
+            config.SetInt("BeatSaverDownloader", "fastScrollSpeed", fastScrollSpeed);
+            config.SetString("BeatSaverDownloader", "lastSelectedPack", lastSelectedPack ?? "");
+            config.SetString("BeatSaverDownloader", "lastSelectedSong", lastSelectedSong ?? "");
+            config.SetInt("BeatSaverDownloader", "lastSelectedSortMode", (int)lastSelectedSortMode);
         }
     }
 }
