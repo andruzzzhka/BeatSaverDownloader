@@ -836,27 +836,19 @@ namespace BeatSaverDownloader.UI
             PopDifficultyAndDetails();
         }
 
-        private static int GetBeatSaverID(string path)
+        private static int GetBeatSaverID(string folderName)
         {
-            if (path == null)
+            bool successful = false;
+            if (folderName == null)
                 return 0;
             int id = 0;
-            try
+            int dashIndex = folderName.IndexOf('-');
+            if (dashIndex > 0)
             {
-                int dashIndex = path.IndexOf('-');
-                if (dashIndex < 0)
-                {
-                    dashIndex = path.Length;
-                    //Console.WriteLine($"DashIndex not found in {path}");
-                }
-
-                int.TryParse(path.Substring(0, dashIndex), out id);
+                successful = int.TryParse(folderName.Substring(0, dashIndex), out id);
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Exception trying to find ID from path {path}");
-                id = 99999;
-            }
+            if (!successful)
+                Plugin.log.Debug($"Unable to sort {folderName} by ID.");
             return id;
         }
 
