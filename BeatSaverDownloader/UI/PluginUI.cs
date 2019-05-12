@@ -72,8 +72,6 @@ namespace BeatSaverDownloader.UI
         private IEnumerator SetupUI()
         {
             if (initialized) yield break;
-            
-            RectTransform mainMenu = (Resources.FindObjectsOfTypeAll<MainMenuViewController>().First().rectTransform);
 
             var downloaderSubMenu = SettingsUI.CreateSubMenu("Downloader");
 
@@ -106,9 +104,6 @@ namespace BeatSaverDownloader.UI
 
             MenuButtonUI.AddButton("More playlists", PlaylistsButtonPressed);
 
-            if (moreSongsFlowCoordinator == null)
-                moreSongsFlowCoordinator = new GameObject("MoreSongsFlowCoordinator").AddComponent<MoreSongsFlowCoordinator>();
-
             yield return null;
 
             initialized = true;
@@ -116,6 +111,9 @@ namespace BeatSaverDownloader.UI
 
         public void BeatSaverButtonPressed()
         {
+            if (moreSongsFlowCoordinator == null)
+                moreSongsFlowCoordinator = new GameObject("MoreSongsFlowCoordinator").AddComponent<MoreSongsFlowCoordinator>();
+
             MainFlowCoordinator mainFlow = Resources.FindObjectsOfTypeAll<MainFlowCoordinator>().First();
 
             mainFlow.InvokeMethod("PresentFlowCoordinator", moreSongsFlowCoordinator, null, false, false);

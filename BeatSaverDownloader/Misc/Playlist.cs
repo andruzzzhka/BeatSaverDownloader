@@ -25,13 +25,19 @@ namespace BeatSaverDownloader.Misc
             {
                 List<string> playlistFiles = new List<string>();
 
-                if (PluginConfig.beatDropInstalled)
+                if (PluginConfig.beatDropInstalled && Directory.Exists(Path.Combine(PluginConfig.beatDropPlaylistsLocation, "playlists")))
                 {
-                    string[] beatDropJSONPlaylists = Directory.GetFiles(Path.Combine(PluginConfig.beatDropPlaylistsLocation, "playlists"), "*.json");
-                    string[] beatDropBPLISTPlaylists = Directory.GetFiles(Path.Combine(PluginConfig.beatDropPlaylistsLocation, "playlists"), "*.bplist");
-                    playlistFiles.AddRange(beatDropJSONPlaylists);
-                    playlistFiles.AddRange(beatDropBPLISTPlaylists);
-                    Plugin.log.Info($"Found {beatDropJSONPlaylists.Length + beatDropBPLISTPlaylists.Length} playlists in BeatDrop folder");
+                    try
+                    {
+                        string[] beatDropJSONPlaylists = Directory.GetFiles(Path.Combine(PluginConfig.beatDropPlaylistsLocation, "playlists"), "*.json");
+                        string[] beatDropBPLISTPlaylists = Directory.GetFiles(Path.Combine(PluginConfig.beatDropPlaylistsLocation, "playlists"), "*.bplist");
+                        playlistFiles.AddRange(beatDropJSONPlaylists);
+                        playlistFiles.AddRange(beatDropBPLISTPlaylists);
+                        Plugin.log.Info($"Found {beatDropJSONPlaylists.Length + beatDropBPLISTPlaylists.Length} playlists in BeatDrop folder");
+                    }catch(Exception e)
+                    {
+                        Plugin.log.Warn("Unable to load playlists from BeatDrop folder! Exception: "+e);
+                    }
                 }
 
                 string[] localJSONPlaylists = Directory.GetFiles(Path.Combine(Environment.CurrentDirectory, "Playlists"), "*.json");
