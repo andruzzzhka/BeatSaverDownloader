@@ -423,7 +423,7 @@ namespace BeatSaverDownloader.UI
             }
 
             Plugin.log.Info("Updating level packs... New level packs count: "+newCollection.beatmapLevelPacks.Length);
-            SongLoaderPlugin.SongLoader.Instance.InvokeMethod("ReloadHashes");
+      //      SongLoaderPlugin.SongLoader.Instance.InvokeMethod("ReloadHashes");
         }
 
         private void MainMenuViewController_didFinishEvent(MainMenuViewController sender, MainMenuViewController.MenuButton result)
