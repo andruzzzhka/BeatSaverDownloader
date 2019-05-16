@@ -402,6 +402,7 @@ namespace BeatSaverDownloader.UI
 
         public void UpdateLevelPacks()
         {
+
             CustomBeatmapLevelPackCollectionSO newCollection = SongLoaderPlugin.SongLoader.CustomBeatmapLevelPackCollectionSO;
 
             List<BeatmapLevelPackSO> _customBeatmapLevelPacks = newCollection.GetPrivateField<List<BeatmapLevelPackSO>>("_customBeatmapLevelPacks");
@@ -422,6 +423,7 @@ namespace BeatSaverDownloader.UI
             }
 
             Plugin.log.Info("Updating level packs... New level packs count: "+newCollection.beatmapLevelPacks.Length);
+            SongLoaderPlugin.SongLoader.Instance.InvokeMethod("ReloadHashes");
         }
 
         private void MainMenuViewController_didFinishEvent(MainMenuViewController sender, MainMenuViewController.MenuButton result)

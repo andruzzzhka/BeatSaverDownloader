@@ -32,7 +32,7 @@ namespace BeatSaverDownloader.UI.ViewControllers
         private TextMeshProUGUI downloadsText;
         private TextMeshProUGUI playsText;
 
-        private Image coverImage;
+        private RawImage coverImage;
 
         private LevelParamsPanel _levelParams;
         private StandardLevelDetailView _levelDetails;
@@ -128,7 +128,7 @@ namespace BeatSaverDownloader.UI.ViewControllers
                 _favoriteButton.onClick.RemoveAllListeners();
                 _favoriteButton.onClick.AddListener(() => { favoriteButtonPressed?.Invoke(_currentSong); });
 
-                coverImage = _levelDetails.GetPrivateField<Image>("_coverImage");
+                coverImage = _levelDetails.GetPrivateField<RawImage>("_coverImage");
             }
         }
 
@@ -159,7 +159,7 @@ namespace BeatSaverDownloader.UI.ViewControllers
             difficulty2Text.text = (_currentSong.difficultyLevels.Where(x => x.difficulty == "Hard").Count() > 0) ? "Yes" : "No";
             difficulty3Text.text = (_currentSong.difficultyLevels.Where(x => (x.difficulty == "Easy" || x.difficulty == "Normal")).Count() > 0) ? "Yes" : "No";
 
-            StartCoroutine(LoadScripts.LoadSpriteCoroutine(_currentSong.coverUrl, (cover) => { coverImage.sprite = cover;}));
+            StartCoroutine(LoadScripts.LoadSpriteCoroutine(_currentSong.coverUrl, (cover) => { coverImage.texture = cover.texture;}));
 
             SetFavoriteState(PluginConfig.favoriteSongs.Any(x => x.Contains(_currentSong.hash)));
             SetDownloadState((SongDownloader.Instance.IsSongDownloaded(_currentSong) ? DownloadState.Downloaded : (sender.IsDownloadingSong(_currentSong) ? DownloadState.Downloading : DownloadState.NotDownloaded)));

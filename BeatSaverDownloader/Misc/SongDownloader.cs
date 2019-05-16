@@ -178,10 +178,6 @@ namespace BeatSaverDownloader.Misc
                 try
                 {
                     string dirName = new DirectoryInfo(customSongsPath).Name;
-#if DEBUG
-                    Logger.Log("Original path: " + customSongsPath);
-                    Logger.Log("Folder name: " + dirName);
-#endif
 
                     SongLoader.SongsLoadedEvent -= Plugin.instance.SongLoader_SongsLoadedEvent;
                     Action<SongLoader, List<CustomLevel>> songsLoadedAction = null;
@@ -376,9 +372,6 @@ namespace BeatSaverDownloader.Misc
             }
             else
             {
-#if DEBUG
-                Logger.Log("Received response from BeatSaver...");
-#endif
                 JSONNode node = JSON.Parse(wwwId.downloadHandler.text);
 
                 if (node["songs"].Count == 0)
@@ -412,9 +405,6 @@ namespace BeatSaverDownloader.Misc
             }
             else
             {
-#if DEBUG
-                Logger.Log("Received response from BeatSaver...");
-#endif
                 JSONNode node = JSON.Parse(wwwId.downloadHandler.text);
 
                 Song _tempSong = new Song(node["song"]);

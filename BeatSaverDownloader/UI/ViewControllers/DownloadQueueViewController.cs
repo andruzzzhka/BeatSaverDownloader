@@ -171,7 +171,7 @@ namespace BeatSaverDownloader.UI.ViewControllers
 
         public float CellSize()
         {
-            return 9f;
+            return 8.5f;
         }
 
         public int NumberOfCells()

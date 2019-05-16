@@ -265,7 +265,7 @@ namespace BeatSaverDownloader.UI.ViewControllers
                 Destroy(icon.gameObject);
             }
 
-            StartCoroutine(LoadScripts.LoadSpriteCoroutine(songsList[row].coverUrl, (cover) => { _tableCell.GetPrivateField<UnityEngine.UI.Image>("_coverImage").sprite = cover; }));
+            StartCoroutine(LoadScripts.LoadSpriteCoroutine(songsList[row].coverUrl, (cover) => { _tableCell.GetPrivateField<UnityEngine.UI.RawImage>("_coverRawImage").texture = cover.texture; }));
             bool alreadyDownloaded = SongDownloader.Instance.IsSongDownloaded(songsList[row]);
             
             if (alreadyDownloaded)

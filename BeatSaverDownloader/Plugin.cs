@@ -15,7 +15,7 @@ namespace BeatSaverDownloader
     {
         public static Plugin instance;
         public static IPA.Logging.Logger log;
-
+        
         public void Init(object nullObject, IPA.Logging.Logger logger)
         {
             log = logger;
