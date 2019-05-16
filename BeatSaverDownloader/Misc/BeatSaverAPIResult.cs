@@ -44,7 +44,7 @@ namespace BeatSaverDownloader.Misc
         public string downloads;
         public string upvotes;
         public string plays;
-        public string beattext;
+        public string description;
         public string uploadtime;
         public string songName;
         public string songSubName;
@@ -77,7 +77,7 @@ namespace BeatSaverDownloader.Misc
             upvotes = jsonNode["upVotes"];
             downvotes = jsonNode["downVotes"];
             plays = jsonNode["playedCount"];
-            beattext = jsonNode["description"];
+            description = jsonNode["description"];
             uploadtime = jsonNode["createdAt"];
             songName = jsonNode["songName"];
             songSubName = jsonNode["songSubName"];
@@ -139,7 +139,7 @@ namespace BeatSaverDownloader.Misc
             upvotes = jsonNode["upVotes"];
             downvotes = jsonNode["downVotes"];
             plays = jsonNode["playedCount"];
-            beattext = jsonNode["description"];
+            description = jsonNode["description"];
             uploadtime = jsonNode["createdAt"];
             songName = jsonNode["songName"];
             songSubName = jsonNode["songSubName"];
@@ -183,7 +183,7 @@ namespace BeatSaverDownloader.Misc
             songName = _data.songName;
             songSubName = _data.songSubName;
             authorName = _data.songAuthorName;
-            difficultyLevels = ConvertDifficultyLevels(_data.difficultyBeatmaps);
+            difficultyLevels = ConvertDifficultyLevels(_data.difficultyBeatmapSets.SelectMany(x => x.difficultyBeatmaps).ToArray());
             path = _data.customSongInfo.path;
             hash = _data.levelID.Substring(0, 32);
         }

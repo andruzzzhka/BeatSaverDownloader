@@ -13,7 +13,6 @@ using BeatSaverDownloader.Misc;
 using System;
 using CustomUI.Settings;
 using System.Collections;
-using CustomUI.Utilities;
 
 namespace BeatSaverDownloader.UI
 {
@@ -41,8 +40,9 @@ namespace BeatSaverDownloader.UI
 
         public MoreSongsFlowCoordinator moreSongsFlowCoordinator;
         public MorePlaylistsFlowCoordinator morePlaylistsFlowCoordinator;
+        public ReviewFlowCoordinator reviewFlowCoordinator;
 
-        private Button _moreSongsButton;
+        private MenuButton _moreSongsButton;
 
         public void OnLoad()
         {
@@ -65,14 +65,13 @@ namespace BeatSaverDownloader.UI
 
         private void SongLoader_SongsLoadedEvent(SongLoader arg1, List<CustomLevel> arg2)
         {
+            SongLoader.SongsLoadedEvent -= SongLoader_SongsLoadedEvent;
             _moreSongsButton.interactable = true;
         }
 
         private IEnumerator SetupUI()
         {
             if (initialized) yield break;
-            
-            RectTransform mainMenu = (Resources.FindObjectsOfTypeAll<MainMenuViewController>().First().rectTransform);
 
             var downloaderSubMenu = SettingsUI.CreateSubMenu("Downloader");
 
@@ -88,19 +87,24 @@ namespace BeatSaverDownloader.UI
             enableSongIcons.GetValue += delegate { return PluginConfig.enableSongIcons; };
             enableSongIcons.SetValue += delegate (bool value) { PluginConfig.enableSongIcons = value; PluginConfig.SaveConfig(); };
 
+            var rememberLastPackAndSong = downloaderSubMenu.AddBool("Remember last pack and song");
+            rememberLastPackAndSong.GetValue += delegate { return PluginConfig.rememberLastPackAndSong; };
+            rememberLastPackAndSong.SetValue += delegate (bool value) { PluginConfig.rememberLastPackAndSong = value; PluginConfig.SaveConfig(); };
+
             var maxSimultaneousDownloads = downloaderSubMenu.AddInt("Max simultaneous downloads", 1, 10, 1);
             maxSimultaneousDownloads.GetValue += delegate { return PluginConfig.maxSimultaneousDownloads; };
             maxSimultaneousDownloads.SetValue += delegate (int value) { PluginConfig.maxSimultaneousDownloads = value; PluginConfig.SaveConfig(); };
-            
-            MenuButtonUI.AddButton("More songs", BeatSaverButtonPressed);
+
+            var fastScrollSpeed = downloaderSubMenu.AddInt("Fast scroll speed", 2, 20, 1);
+            fastScrollSpeed.GetValue += delegate { return PluginConfig.fastScrollSpeed; };
+            fastScrollSpeed.SetValue += delegate (int value) { PluginConfig.fastScrollSpeed = value; PluginConfig.SaveConfig(); };
+
+            _moreSongsButton = MenuButtonUI.AddButton("More songs", "Download more songs from BeatSaver.com!", BeatSaverButtonPressed);
+            _moreSongsButton.interactable = SongLoader.AreSongsLoaded;
+
             MenuButtonUI.AddButton("More playlists", PlaylistsButtonPressed);
 
             yield return null;
-
-            _moreSongsButton = mainMenu.GetComponentsInChildren<Button>().First(x => x.GetComponentInChildren<TextMeshProUGUI>().text == "More songs");
-            _moreSongsButton.interactable = SongLoader.AreSongsLoaded;
-
-            BeatSaberUI.AddHintText((RectTransform)_moreSongsButton.transform, "Download more songs from BeatSaver.com!");
 
             initialized = true;
         }

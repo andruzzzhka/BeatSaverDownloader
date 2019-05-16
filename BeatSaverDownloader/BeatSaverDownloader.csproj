@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>BeatSaverDownloader</RootNamespace>
     <AssemblyName>BeatSaverDownloader</AssemblyName>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
     <NuGetPackageImportStamp>
@@ -36,19 +36,17 @@
     <Reference Include="BeatSaberCustomUI">
       <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Beat Saber\Plugins\BeatSaberCustomUI.dll</HintPath>
     </Reference>
-    <Reference Include="IllusionInjector, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Beat Saber\Beat Saber_Data\Managed\IllusionInjector.dll</HintPath>
+    <Reference Include="BS_Utils">
+      <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Beat Saber\Plugins\BS_Utils.dll</HintPath>
     </Reference>
-    <Reference Include="IllusionPlugin, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="IPA.Loader, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Beat Saber\Beat Saber_Data\Managed\IllusionPlugin.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Beat Saber\Beat Saber_Data\Managed\IPA.Loader.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json">
       <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Beat Saber\Beat Saber_Data\Managed\Newtonsoft.Json.dll</HintPath>
     </Reference>
-    <Reference Include="SongLoaderPlugin, Version=4.3.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="SongLoaderPlugin">
       <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Beat Saber\Plugins\SongLoaderPlugin.dll</HintPath>
     </Reference>
     <Reference Include="System" />
@@ -61,8 +59,8 @@
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-    <Reference Include="TextMeshPro-1.0.55.2017.1.0b12">
-      <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Beat Saber\Beat Saber_Data\Managed\TextMeshPro-1.0.55.2017.1.0b12.dll</HintPath>
+    <Reference Include="Unity.TextMeshPro">
+      <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Beat Saber\Beat Saber_Data\Managed\Unity.TextMeshPro.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine">
       <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Beat Saber\Beat Saber_Data\Managed\UnityEngine.dll</HintPath>
@@ -117,39 +115,63 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Misc\Base64Sprites.cs" />
+    <Compile Include="Misc\PlaylistLevelPackSO.cs" />
+    <Compile Include="Misc\Sprites.cs" />
     <Compile Include="Misc\BeatSaverAPIResult.cs" />
+    <Compile Include="Misc\BSEvents.cs" />
     <Compile Include="Misc\FileOperationAPIWrapper.cs" />
     <Compile Include="Misc\LoadScripts.cs" />
     <Compile Include="Misc\Playlist.cs" />
     <Compile Include="Misc\ScrappedData.cs" />
     <Compile Include="Misc\SongDownloader.cs" />
-    <Compile Include="Misc\Logger.cs" />
-    <Compile Include="Misc\SongBrowserSettings.cs" />
-    <Compile Include="Misc\TableViewHelpers.cs" />
+    <Compile Include="Misc\CustomHelpers.cs" />
+    <Compile Include="Misc\SteamHelper.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Misc\PluginConfig.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="UI\FlowCoordinators\MorePlaylistsFlowCoordinator.cs" />
     <Compile Include="UI\FlowCoordinators\MoreSongsFlowCoordinator.cs" />
+    <Compile Include="UI\FlowCoordinators\ReviewFlowCoordinator.cs" />
     <Compile Include="UI\PluginUI.cs" />
     <Compile Include="UI\SongListTweaks.cs" />
     <Compile Include="UI\UIElements\CustomUIKeyboard.cs" />
     <Compile Include="UI\UIElements\DownloadQueueTableCell.cs" />
+    <Compile Include="UI\UIElements\StarsUIControl.cs" />
+    <Compile Include="UI\UIElements\TextMeshProHyperlinkHandler.cs" />
     <Compile Include="UI\ViewControllers\DownloadQueueViewController.cs" />
     <Compile Include="UI\ViewControllers\MoreSongsListViewController.cs" />
     <Compile Include="UI\ViewControllers\BackButtonNavigationController.cs" />
     <Compile Include="UI\ViewControllers\PlaylistDetailViewController.cs" />
     <Compile Include="UI\ViewControllers\PlaylistListViewController.cs" />
-    <Compile Include="UI\FlowCoordinators\PlaylistsFlowCoordinator.cs" />
+    <Compile Include="UI\ViewControllers\ReviewViewController.cs" />
     <Compile Include="UI\ViewControllers\SearchKeyboardViewController.cs" />
+    <Compile Include="UI\ViewControllers\SongDescriptionViewController.cs" />
     <Compile Include="UI\ViewControllers\SongDetailViewController.cs" />
     <Compile Include="UI\VotingUI.cs" />
   </ItemGroup>
   <ItemGroup>
     <WCFMetadata Include="Connected Services\" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <EmbeddedResource Include="Assets\AddToFavorites.png" />
+    <EmbeddedResource Include="Assets\DeleteIcon.png" />
+    <EmbeddedResource Include="Assets\DoubleArrow.png" />
+    <EmbeddedResource Include="Assets\BeastSaberLogo.png" />
+    <EmbeddedResource Include="Assets\DownloadIcon.png" />
+    <EmbeddedResource Include="Assets\RandomIcon.png" />
+    <EmbeddedResource Include="Assets\PlayIcon.png" />
+    <EmbeddedResource Include="Assets\SongIcon.png" />
+    <EmbeddedResource Include="Assets\PlaylistIcon.png" />
+    <EmbeddedResource Include="Assets\ThumbDown.png" />
+    <EmbeddedResource Include="Assets\ThumbUp.png" />
+    <EmbeddedResource Include="Assets\ReviewIcon.png" />
+    <EmbeddedResource Include="Assets\StarEmpty.png" />
+    <EmbeddedResource Include="Assets\StarFull.png" />
+    <EmbeddedResource Include="Assets\RemoveFromFavorites.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="manifest.json" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>copy "BeatSaverDownloader.dll" "C:\Program Files (x86)\Steam\steamapps\common\Beat Saber\Plugins"</PostBuildEvent>

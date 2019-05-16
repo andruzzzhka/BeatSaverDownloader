@@ -1,7 +1,6 @@
 ﻿using BeatSaverDownloader.Misc;
 using BeatSaverDownloader.UI.ViewControllers;
 using CustomUI.BeatSaber;
-using CustomUI.Utilities;
 using SimpleJSON;
 using SongLoaderPlugin;
 using System;
@@ -11,7 +10,6 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.Networking;
 using VRUI;
-using Logger = BeatSaverDownloader.Misc.Logger;
 
 namespace BeatSaverDownloader.UI.FlowCoordinators
 {
@@ -24,6 +22,7 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
         private SongDetailViewController _songDetailViewController;
         private SearchKeyboardViewController _searchViewController;
         private DownloadQueueViewController _downloadQueueViewController;
+        private SongDescriptionViewController _descriptionViewController;
         private SimpleDialogPromptViewController _simpleDialog;
 
         public int currentPage = 0;
@@ -34,17 +33,29 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
 
         private Song _lastSelectedSong;
 
+        private Song _lastDeletedSong;
+
+        public void Awake()
+        {
+            if (_songDetailViewController == null && _moreSongsNavigationController == null)
+            {
+                _moreSongsNavigationController = BeatSaberUI.CreateViewController<BackButtonNavigationController>();
+                _moreSongsNavigationController.didFinishEvent += _moreSongsNavigationController_didFinishEvent;
+
+                GameObject _songDetailGameObject = Instantiate(Resources.FindObjectsOfTypeAll<StandardLevelDetailViewController>().First(), _moreSongsNavigationController.rectTransform, false).gameObject;
+                Destroy(_songDetailGameObject.GetComponent<StandardLevelDetailViewController>());
+                _songDetailViewController = _songDetailGameObject.AddComponent<SongDetailViewController>();
+                _songDetailViewController.downloadButtonPressed += _songDetailViewController_downloadButtonPressed;
+                _songDetailViewController.favoriteButtonPressed += _songDetailViewController_favoriteButtonPressed;
+            }
+        }
+
         protected override void DidActivate(bool firstActivation, ActivationType activationType)
         {
             if (firstActivation && activationType == ActivationType.AddedToHierarchy)
             {
                 title = "More Songs";
-
-                SongDownloader.Instance.songDownloaded += SongDownloader_songDownloaded;
-
-                _moreSongsNavigationController = BeatSaberUI.CreateViewController<BackButtonNavigationController>();
-                _moreSongsNavigationController.didFinishEvent += _moreSongsNavigationController_didFinishEvent;
-
+                
                 _moreSongsListViewController = BeatSaberUI.CreateViewController<MoreSongsListViewController>();
                 _moreSongsListViewController.pageDownPressed += _moreSongsListViewController_pageDownPressed;
                 _moreSongsListViewController.pageUpPressed += _moreSongsListViewController_pageUpPressed;
@@ -54,25 +65,44 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
                 _moreSongsListViewController.searchButtonPressed += _moreSongsListViewController_searchButtonPressed;
                 _moreSongsListViewController.didSelectRow += _moreSongsListViewController_didSelectRow;
 
-                GameObject _songDetailGameObject = Instantiate(Resources.FindObjectsOfTypeAll<StandardLevelDetailViewController>().First(), _moreSongsNavigationController.rectTransform, false).gameObject;
-                Destroy(_songDetailGameObject.GetComponent<StandardLevelDetailViewController>());
-                _songDetailViewController = _songDetailGameObject.AddComponent<SongDetailViewController>();
-                _songDetailViewController.downloadButtonPressed += _songDetailViewController_downloadButtonPressed;
-                _songDetailViewController.favoriteButtonPressed += _songDetailViewController_favoriteButtonPressed; ;
-
                 _downloadQueueViewController = BeatSaberUI.CreateViewController<DownloadQueueViewController>();
+
+                _descriptionViewController = BeatSaberUI.CreateViewController<SongDescriptionViewController>();
+                _descriptionViewController.linkClicked += LinkClicked;
 
                 _simpleDialog = CustomUI.Utilities.ReflectionUtil.GetPrivateField<SimpleDialogPromptViewController>(Resources.FindObjectsOfTypeAll<MainFlowCoordinator>().First(), "_simpleDialogPromptViewController");
                 _simpleDialog = Instantiate(_simpleDialog.gameObject, _simpleDialog.transform.parent).GetComponent<SimpleDialogPromptViewController>();
             }
 
+            SongDownloader.Instance.songDownloaded -= SongDownloader_songDownloaded;
+            SongDownloader.Instance.songDownloaded += SongDownloader_songDownloaded;
+            
             SetViewControllersToNavigationConctroller(_moreSongsNavigationController, new VRUIViewController[]
             {
                 _moreSongsListViewController
             });
-            ProvideInitialViewControllers(_moreSongsNavigationController, _downloadQueueViewController, null);
-            
+            ProvideInitialViewControllers(_moreSongsNavigationController, _downloadQueueViewController, _descriptionViewController);
+
+            currentPage = 0;
+            currentSortMode = "top";
+            currentSearchRequest = "";
             StartCoroutine(GetPage(0, "top"));
+        }
+
+        private void LinkClicked(string link)
+        {
+            _simpleDialog.Init("Open link?", $"Are you sure you want to open this link?\n<color=blue>{link}</color>", "Open", "Cancel",
+                   (buttonIndex) =>
+                   {
+                       SetRightScreenViewController(_descriptionViewController);
+                       _descriptionViewController.SetDescription(_lastSelectedSong.description);
+                       if (buttonIndex == 0)
+                       {
+                           Application.OpenURL(link);
+                       }
+                   }
+               );
+            SetRightScreenViewController(_simpleDialog);
         }
 
         protected override void DidDeactivate(DeactivationType deactivationType)
@@ -80,6 +110,7 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
             if (deactivationType == DeactivationType.RemovedFromHierarchy)
             {
                 PopViewControllerFromNavigationController(_moreSongsNavigationController);
+                SongDownloader.Instance.songDownloaded -= SongDownloader_songDownloaded;
             }
         }
 
@@ -87,7 +118,6 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
         {
             if (!_downloadQueueViewController.queuedSongs.Any(x => x.songQueueState == SongQueueState.Downloading || x.songQueueState == SongQueueState.Queued))
             {
-                SongLoader.Instance.RefreshSongs(false);
                 MainFlowCoordinator mainFlow = Resources.FindObjectsOfTypeAll<MainFlowCoordinator>().First();
 
                 mainFlow.InvokeMethod("DismissFlowCoordinator", this, null, false);
@@ -123,9 +153,15 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
             }
             else
             {
-                _simpleDialog.Init("Delete song", $"Do you really want to delete \"{ song.songName} {song.songSubName}\"?", "Delete", "Cancel");
-                _simpleDialog.didFinishEvent -= (SimpleDialogPromptViewController sender, bool delete) => { DismissViewController(_simpleDialog, null, false); if (delete) DeleteSong(song); };
-                _simpleDialog.didFinishEvent += (SimpleDialogPromptViewController sender, bool delete) => { DismissViewController(_simpleDialog, null, false); if (delete) DeleteSong(song); };
+                _simpleDialog.Init("Delete song", $"Do you really want to delete \"{song.songName} {song.songSubName}\"?", "Delete", "Cancel",
+                    (selectedButton) => 
+                    {
+                        DismissViewController(_simpleDialog, null, false);
+                        if (selectedButton == 0)
+                            DeleteSong(_lastDeletedSong);
+                        _lastDeletedSong = null;
+                    });
+                _lastDeletedSong = song;
                 PresentViewController(_simpleDialog, null, false);
             }
         }
@@ -162,6 +198,7 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
             }
 
             _songDetailViewController.SetContent(this, currentPageSongs[row]);
+            _descriptionViewController.SetDescription(currentPageSongs[row].description);
             _lastSelectedSong = currentPageSongs[row];
         }
 
@@ -238,7 +275,7 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
 
             if (www.isNetworkError || www.isHttpError)
             {
-                Logger.Error($"Unable to connect to {PluginConfig.beatsaverURL}! " + (www.isNetworkError ? $"Network error: {www.error}" : (www.isHttpError ? $"HTTP error: {www.error}" : "Unknown error")));
+                Plugin.log.Error($"Unable to connect to {PluginConfig.beatsaverURL}! " + (www.isNetworkError ? $"Network error: {www.error}" : (www.isHttpError ? $"HTTP error: {www.error}" : "Unknown error")));
             }
             else
             {
@@ -257,7 +294,7 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
                 }
                 catch (Exception e)
                 {
-                    Logger.Exception("Unable to parse response! Exception: " + e);
+                    Plugin.log.Critical("Unable to parse response! Exception: " + e);
                 }
             }
             _moreSongsListViewController.SetLoadingState(false);
@@ -278,7 +315,7 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
             
             if (www.isNetworkError || www.isHttpError)
             {
-                Logger.Error($"Unable to connect to {PluginConfig.beatsaverURL}! " + (www.isNetworkError ? $"Network error: {www.error}" : (www.isHttpError ? $"HTTP error: {www.error}" : "Unknown error")));
+                Plugin.log.Error($"Unable to connect to {PluginConfig.beatsaverURL}! " + (www.isNetworkError ? $"Network error: {www.error}" : (www.isHttpError ? $"HTTP error: {www.error}" : "Unknown error")));
             }
             else
             {
@@ -297,7 +334,7 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
                 }
                 catch (Exception e)
                 {
-                    Logger.Exception("Unable to parse response! Exception: " + e);
+                    Plugin.log.Critical("Unable to parse response! Exception: " + e);
                 }
             }
             _moreSongsListViewController.SetLoadingState(false);

@@ -1,7 +1,6 @@
 ﻿using BeatSaverDownloader.Misc;
 using BeatSaverDownloader.UI.ViewControllers;
 using CustomUI.BeatSaber;
-using CustomUI.Utilities;
 using SimpleJSON;
 using SongLoaderPlugin;
 using System;
@@ -12,7 +11,6 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.Networking;
 using VRUI;
-using Logger = BeatSaverDownloader.Misc.Logger;
 
 namespace BeatSaverDownloader.UI.FlowCoordinators
 {
@@ -27,18 +25,12 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
 
         private List<Playlist> playlists = new List<Playlist>();
 
-        protected override void DidActivate(bool firstActivation, ActivationType activationType)
+        public void Awake()
         {
-            if (firstActivation && activationType == ActivationType.AddedToHierarchy)
+            if (_playlistDetailViewController == null)
             {
-                title = "More Playlists";
-
                 _playlistsNavigationController = BeatSaberUI.CreateViewController<BackButtonNavigationController>();
                 _playlistsNavigationController.didFinishEvent += _morePlaylistsNavigationController_didFinishEvent;
-
-                _playlistsListViewController = BeatSaberUI.CreateViewController<PlaylistListViewController>();
-                _playlistsListViewController.didSelectRow += _morePlaylistsListViewController_didSelectRow;
-                _playlistsListViewController.highlightDownloadedPlaylists = true;
 
                 GameObject _songDetailGameObject = Instantiate(Resources.FindObjectsOfTypeAll<StandardLevelDetailViewController>().First(), _playlistsNavigationController.rectTransform, false).gameObject;
                 Destroy(_songDetailGameObject.GetComponent<StandardLevelDetailViewController>());
@@ -46,7 +38,19 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
                 _playlistDetailViewController.selectButtonPressed += _playlistDetailViewController_selectButtonPressed;
                 _playlistDetailViewController.SetSelectButtonText("Add");
                 _playlistDetailViewController.addDownloadButton = false;
+            }
+        }
 
+        protected override void DidActivate(bool firstActivation, ActivationType activationType)
+        {
+            if (firstActivation && activationType == ActivationType.AddedToHierarchy)
+            {
+                title = "More Playlists";
+                
+                _playlistsListViewController = BeatSaberUI.CreateViewController<PlaylistListViewController>();
+                _playlistsListViewController.didSelectRow += _morePlaylistsListViewController_didSelectRow;
+                _playlistsListViewController.highlightDownloadedPlaylists = true;
+                
                 _loadingIndicator = BeatSaberUI.CreateLoadingSpinner(_playlistsNavigationController.transform);
             }
 
@@ -67,6 +71,7 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
                 _playlistDetailViewController.SetSelectButtonState(true);
                 PlaylistsCollection.ReloadPlaylists(false);
                 _playlistsListViewController.Refresh();
+                SongListTweaks.Instance.UpdateLevelPacks();
             }));
         }
 
@@ -118,7 +123,7 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
 
             if (www.isNetworkError || www.isHttpError)
             {
-                Logger.Error($"Unable to connect to BeastSaber playlist API! " + (www.isNetworkError ? $"Network error: {www.error}" : (www.isHttpError ? $"HTTP error: {www.error}" : "Unknown error")));
+                Plugin.log.Error($"Unable to connect to BeastSaber playlist API! " + (www.isNetworkError ? $"Network error: {www.error}" : (www.isHttpError ? $"HTTP error: {www.error}" : "Unknown error")));
                 _loadingIndicator.SetActive(false);
             }
             else
@@ -140,7 +145,7 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
                 }
                 catch (Exception e)
                 {
-                    Logger.Exception("Unable to parse response! Exception: " + e);
+                    Plugin.log.Critical("Unable to parse response! Exception: " + e);
                     _loadingIndicator.SetActive(false);
                 }
             }
@@ -156,7 +161,7 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
 
             if (www.isNetworkError || www.isHttpError)
             {
-                Logger.Error($"Unable to connect to BeastSaber playlist API! " + (www.isNetworkError ? $"Network error: {www.error}" : (www.isHttpError ? $"HTTP error: {www.error}" : "Unknown error")));
+                Plugin.log.Error($"Unable to connect to BeastSaber playlist API! " + (www.isNetworkError ? $"Network error: {www.error}" : (www.isHttpError ? $"HTTP error: {www.error}" : "Unknown error")));
                 playlistDownloaded?.Invoke(null);
             }
             else
@@ -171,7 +176,7 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
                 }
                 catch (Exception e)
                 {
-                    Logger.Exception("Unable to parse response! Exception: " + e);
+                    Plugin.log.Critical("Unable to parse response! Exception: " + e);
                     playlistDownloaded?.Invoke(null);
                 }
             }

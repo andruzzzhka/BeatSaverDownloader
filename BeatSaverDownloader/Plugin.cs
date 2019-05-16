@@ -1,5 +1,4 @@
-﻿using IllusionPlugin;
-using System;
+﻿using System;
 using UnityEngine.SceneManagement;
 using BeatSaverDownloader.Misc;
 using BeatSaverDownloader.UI;
@@ -7,16 +6,21 @@ using System.Collections.Generic;
 using SongLoaderPlugin;
 using SongLoaderPlugin.OverrideClasses;
 using UnityEngine;
-using Logger = BeatSaverDownloader.Misc.Logger;
+using BS_Utils.Gameplay;
+using IPA;
 
 namespace BeatSaverDownloader
 {
-    public class Plugin : IPlugin
+    public class Plugin : IBeatSaberPlugin
     {
-        string IPlugin.Name { get { return "BeatSaver Downloader"; } }
+        public static Plugin instance;
+        public static IPA.Logging.Logger log;
 
-        string IPlugin.Version { get { return "3.2.0"; } }
-        
+        public void Init(object nullObject, IPA.Logging.Logger logger)
+        {
+            log = logger;
+        }
+
         public void OnApplicationQuit()
         {
             PluginConfig.SaveConfig();
@@ -24,53 +28,42 @@ namespace BeatSaverDownloader
         
         public void OnApplicationStart()
         {
-            SceneManager.sceneLoaded += SceneManager_sceneLoaded;
-            SceneManager.activeSceneChanged += SceneManager_activeSceneChanged;
-            PluginConfig.LoadOrCreateConfig();
-            Base64Sprites.ConvertToSprites();
+            instance = this;
+            PluginConfig.LoadConfig();
+            Sprites.ConvertToSprites();
             PlaylistsCollection.ReloadPlaylists();
             SongLoader.SongsLoadedEvent += SongLoader_SongsLoadedEvent;
+            
+            BSEvents.OnLoad();
+            BSEvents.menuSceneLoadedFresh += OnMenuSceneLoadedFresh;
         }
 
-        private void SceneManager_activeSceneChanged(Scene from, Scene to)
+        private void OnMenuSceneLoadedFresh()
         {
-            Logger.Log($"Active scene changed from \"{from.name}\" to \"{to.name}\"");
-
-            if (from.name == "EmptyTransition" && to.name.Contains("Menu"))
+            try
             {
-                try
-                {
-                    PluginUI.Instance.OnLoad();
-                    VotingUI.Instance.OnLoad();
-                    if (!PluginConfig.disableSongListTweaks)
-                        SongListTweaks.Instance.OnLoad();
-                }catch(Exception e)
-                {
-                    Logger.Exception("Exception on scene change: "+e);
-                }
+                PluginUI.Instance.OnLoad();
+                VotingUI.Instance.OnLoad();
+                SongListTweaks.Instance.OnLoad();
+
+                GetUserInfo.GetUserName();
+            }
+            catch (Exception e)
+            {
+                Plugin.log.Critical("Exception on fresh menu scene change: " + e);
             }
         }
 
-        private void SongLoader_SongsLoadedEvent(SongLoader sender, List<CustomLevel> levels)
+        public void SongLoader_SongsLoadedEvent(SongLoader sender, List<CustomLevel> levels)
         {
-            PlaylistsCollection.MatchSongsForAllPlaylists(true);
-        }
-
-        private void SceneManager_sceneLoaded(Scene to, LoadSceneMode loadMode)
-        {
-            Logger.Log($"Loaded scene \"{to.name}\"");
-        }
-
-        public void OnFixedUpdate()
-        {
-        }
-
-        public void OnLevelWasInitialized(int level)
-        {
-        }
-
-        public void OnLevelWasLoaded(int level)
-        {
+            try
+            {
+                PlaylistsCollection.MatchSongsForAllPlaylists(true);
+            }
+            catch(Exception e)
+            {
+                Plugin.log.Critical("Unable to match songs for all playlists! Exception: "+e);
+            }
         }
 
         public void OnUpdate()
@@ -79,6 +72,22 @@ namespace BeatSaverDownloader
             {
                 PlaylistsCollection.ReloadPlaylists();
             }
+        }
+
+        public void OnSceneLoaded(Scene scene, LoadSceneMode sceneMode)
+        {
+        }
+
+        public void OnSceneUnloaded(Scene scene)
+        {
+        }
+
+        public void OnActiveSceneChanged(Scene prevScene, Scene nextScene)
+        {
+        }
+
+        public void OnFixedUpdate()
+        {
         }
     }
 }

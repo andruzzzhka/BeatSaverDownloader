@@ -13,7 +13,7 @@ using CustomUI.Utilities;
 
 namespace BeatSaverDownloader.UI.ViewControllers
 {
-    enum TopButtonsState { Select, SortBy, Search, Playlists };
+    public enum TopButtonsState { Select, SortBy, Search, Playlists };
 
     class MoreSongsListViewController : VRUIViewController, TableView.IDataSource
     {
@@ -53,13 +53,15 @@ namespace BeatSaverDownloader.UI.ViewControllers
 
             if (firstActivation && type == ActivationType.AddedToHierarchy)
             {
-                rectTransform.anchorMin = new Vector2(0.3f, 0f);
-                rectTransform.anchorMax = new Vector2(0.7f, 1f);
+                rectTransform.anchorMin = new Vector2(0.5f, 0f);
+                rectTransform.anchorMax = new Vector2(0.5f, 1f);
+                rectTransform.sizeDelta = new Vector2(74f, 0f);
+                rectTransform.pivot = new Vector2(0.4f, 0.5f);
 
-                _pageUpButton = Instantiate(Resources.FindObjectsOfTypeAll<Button>().First(x => (x.name == "PageUpButton")), rectTransform, false);
+                _pageUpButton = Instantiate(Resources.FindObjectsOfTypeAll<Button>().Last(x => (x.name == "PageUpButton")), rectTransform, false);
                 (_pageUpButton.transform as RectTransform).anchorMin = new Vector2(0.5f, 1f);
                 (_pageUpButton.transform as RectTransform).anchorMax = new Vector2(0.5f, 1f);
-                (_pageUpButton.transform as RectTransform).anchoredPosition = new Vector2(0f, -14f);
+                (_pageUpButton.transform as RectTransform).anchoredPosition = new Vector2(0f, -14.75f);
                 (_pageUpButton.transform as RectTransform).sizeDelta = new Vector2(40f, 10f);
                 _pageUpButton.interactable = true;
                 _pageUpButton.onClick.AddListener(delegate ()
@@ -71,7 +73,7 @@ namespace BeatSaverDownloader.UI.ViewControllers
                 _pageDownButton = Instantiate(Resources.FindObjectsOfTypeAll<Button>().First(x => (x.name == "PageDownButton")), rectTransform, false);
                 (_pageDownButton.transform as RectTransform).anchorMin = new Vector2(0.5f, 0f);
                 (_pageDownButton.transform as RectTransform).anchorMax = new Vector2(0.5f, 0f);
-                (_pageDownButton.transform as RectTransform).anchoredPosition = new Vector2(0f, 8f);
+                (_pageDownButton.transform as RectTransform).anchoredPosition = new Vector2(0f, 9f);
                 (_pageDownButton.transform as RectTransform).sizeDelta = new Vector2(40f, 10f);
                 _pageDownButton.interactable = true;
                 _pageDownButton.onClick.AddListener(delegate ()
@@ -79,10 +81,10 @@ namespace BeatSaverDownloader.UI.ViewControllers
                     pageDownPressed?.Invoke();
                 });
 
-                _sortByButton = BeatSaberUI.CreateUIButton(rectTransform, "CreditsButton", new Vector2(15f, 36.25f), new Vector2(30f, 6f), () => { SelectTopButtons(TopButtonsState.SortBy); }, "Sort by");
+                _sortByButton = BeatSaberUI.CreateUIButton(rectTransform, "CreditsButton", new Vector2(15f, 36.5f), new Vector2(30f, 6f), () => { SelectTopButtons(TopButtonsState.SortBy); }, "Sort by");
                 _sortByButton.SetButtonTextSize(3f);
 
-                _topButton = BeatSaberUI.CreateUIButton(rectTransform, "CreditsButton", new Vector2(-20f, 36.25f), new Vector2(20f, 6f), () =>
+                _topButton = BeatSaberUI.CreateUIButton(rectTransform, "CreditsButton", new Vector2(-20f, 36.5f), new Vector2(20f, 6f), () =>
                 {
                     sortByTop?.Invoke();
                     SelectTopButtons(TopButtonsState.Select);
@@ -93,7 +95,7 @@ namespace BeatSaverDownloader.UI.ViewControllers
                 _topButton.ToggleWordWrapping(false);
                 _topButton.gameObject.SetActive(false);
 
-                _newButton = BeatSaberUI.CreateUIButton(rectTransform, "CreditsButton", new Vector2(0f, 36.25f), new Vector2(20f, 6f), () =>
+                _newButton = BeatSaberUI.CreateUIButton(rectTransform, "CreditsButton", new Vector2(0f, 36.5f), new Vector2(20f, 6f), () =>
                 {
                     sortByNew?.Invoke();
                     SelectTopButtons(TopButtonsState.Select);
@@ -104,7 +106,7 @@ namespace BeatSaverDownloader.UI.ViewControllers
                 _newButton.gameObject.SetActive(false);
 
 
-                _starButton = BeatSaberUI.CreateUIButton(rectTransform, "CreditsButton", new Vector2(20f, 36.25f), new Vector2(20f, 6f), () =>
+                _starButton = BeatSaberUI.CreateUIButton(rectTransform, "CreditsButton", new Vector2(20f, 36.5f), new Vector2(20f, 6f), () =>
                 {
                     sortByPlays?.Invoke();
                     SelectTopButtons(TopButtonsState.Select);
@@ -114,7 +116,7 @@ namespace BeatSaverDownloader.UI.ViewControllers
                 _starButton.ToggleWordWrapping(false);
                 _starButton.gameObject.SetActive(false);
 
-                _searchButton = BeatSaberUI.CreateUIButton(rectTransform, "CreditsButton", new Vector2(-15, 36.25f), new Vector2(30f, 6f), () =>
+                _searchButton = BeatSaberUI.CreateUIButton(rectTransform, "CreditsButton", new Vector2(-15, 36.5f), new Vector2(30f, 6f), () =>
                 {
                     searchButtonPressed?.Invoke();
                     SelectTopButtons(TopButtonsState.Search);
@@ -128,24 +130,26 @@ namespace BeatSaverDownloader.UI.ViewControllers
                 _loadingIndicator.SetActive(true);
                 
                 _songListTableCellInstance = Resources.FindObjectsOfTypeAll<LevelListTableCell>().First(x => (x.name == "LevelListTableCell"));
-                _songsTableView = new GameObject().AddComponent<TableView>();
-                _songsTableView.transform.SetParent(rectTransform, false);
+
+                RectTransform container = new GameObject("CustomListContainer", typeof(RectTransform)).transform as RectTransform;
+                container.SetParent(rectTransform, false);
+                container.sizeDelta = new Vector2(60f, 0f);
+
+                _songsTableView = new GameObject("CustomTableView", typeof(RectTransform)).AddComponent<TableView>();
+                _songsTableView.gameObject.AddComponent<RectMask2D>();
+                _songsTableView.transform.SetParent(container, false);
 
                 _songsTableView.SetPrivateField("_isInitialized", false);
                 _songsTableView.SetPrivateField("_preallocatedCells", new TableView.CellsGroup[0]);
                 _songsTableView.Init();
 
-                RectMask2D viewportMask = Instantiate(Resources.FindObjectsOfTypeAll<RectMask2D>().First(), _songsTableView.transform, false);
-                viewportMask.transform.DetachChildren();
-                _songsTableView.GetComponentsInChildren<RectTransform>().First(x => x.name == "Content").transform.SetParent(viewportMask.rectTransform, false);
-
-                (_songsTableView.transform as RectTransform).anchorMin = new Vector2(0f, 0.5f);
-                (_songsTableView.transform as RectTransform).anchorMax = new Vector2(1f, 0.5f);
+                (_songsTableView.transform as RectTransform).anchorMin = new Vector2(0f, 0f);
+                (_songsTableView.transform as RectTransform).anchorMax = new Vector2(1f, 1f);
                 (_songsTableView.transform as RectTransform).sizeDelta = new Vector2(0f, 60f);
-                (_songsTableView.transform as RectTransform).anchoredPosition = new Vector3(0f, -3f);
+                (_songsTableView.transform as RectTransform).anchoredPosition = new Vector2(0f, -3f);
                 
                 _songsTableView.dataSource = this;
-                _songsTableView.didSelectRowEvent += _songsTableView_DidSelectRowEvent;
+                _songsTableView.didSelectCellWithIdxEvent += _songsTableView_DidSelectRowEvent;
             }
             else
             {
@@ -157,7 +161,7 @@ namespace BeatSaverDownloader.UI.ViewControllers
         {
             _songsTableView.ReloadData();
             if(_lastSelectedRow > -1)
-                _songsTableView.SelectRow(_lastSelectedRow);
+                _songsTableView.SelectCellWithIdx(_lastSelectedRow);
         }
 
         protected override void DidDeactivate(DeactivationType type)
@@ -210,7 +214,7 @@ namespace BeatSaverDownloader.UI.ViewControllers
             if (_songsTableView != null)
             {
                 _songsTableView.ReloadData();
-                _songsTableView.ScrollToRow(0, false);
+                _songsTableView.ScrollToCellWithIdx(0, TableView.ScrollPositionType.Beginning, false);
                 _lastSelectedRow = -1;
             }
         }
@@ -235,24 +239,33 @@ namespace BeatSaverDownloader.UI.ViewControllers
             didSelectRow?.Invoke(row);
         }
 
-        public float RowHeight()
+        public float CellSize()
         {
             return 10f;
         }
 
-        public int NumberOfRows()
+        public int NumberOfCells()
         {
             return Math.Min(songsList.Count, MoreSongsFlowCoordinator.songsPerPage);
         }
 
-        public TableCell CellForRow(int row)
+        public TableCell CellForIdx(int row)
         {
             LevelListTableCell _tableCell = Instantiate(_songListTableCellInstance);
             
             _tableCell.reuseIdentifier = "MoreSongsTableCell";
-            _tableCell.songName = string.Format("{0}\n<size=80%>{1}</size>", songsList[row].songName, songsList[row].songSubName);
-            _tableCell.author = songsList[row].authorName;
-            StartCoroutine(LoadScripts.LoadSprite(songsList[row].coverUrl, _tableCell));
+            _tableCell.GetPrivateField<TextMeshProUGUI>("_songNameText").text = string.Format("{0} <size=80%>{1}</size>", songsList[row].songName, songsList[row].songSubName);
+            _tableCell.GetPrivateField<TextMeshProUGUI>("_authorText").text = songsList[row].authorName;
+            _tableCell.SetPrivateField("_beatmapCharacteristicAlphas", new float[0]);
+            _tableCell.SetPrivateField("_beatmapCharacteristicImages", new UnityEngine.UI.Image[0]);
+            _tableCell.SetPrivateField("_bought", true);
+
+            foreach (var icon in _tableCell.GetComponentsInChildren<UnityEngine.UI.Image>().Where(x => x.name.StartsWith("LevelTypeIcon")))
+            {
+                Destroy(icon.gameObject);
+            }
+
+            StartCoroutine(LoadScripts.LoadSpriteCoroutine(songsList[row].coverUrl, (cover) => { _tableCell.GetPrivateField<UnityEngine.UI.Image>("_coverImage").sprite = cover; }));
             bool alreadyDownloaded = SongDownloader.Instance.IsSongDownloaded(songsList[row]);
             
             if (alreadyDownloaded)

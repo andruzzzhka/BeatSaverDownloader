@@ -55,7 +55,7 @@ namespace BeatSaverDownloader.UI.ViewControllers
         {
             if (_inputText != null)
             {
-                _inputText.text = _inputString.ToUpper();
+                _inputText.text = _inputString?.ToUpper() ?? "";
                 if (string.IsNullOrEmpty(_inputString))
                 {
                     _searchKeyboard.OkButtonInteractivity = false;

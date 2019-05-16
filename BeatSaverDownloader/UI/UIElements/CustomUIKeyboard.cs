@@ -5,7 +5,6 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
-using Logger = BeatSaverDownloader.Misc.Logger;
 
 namespace BeatSaverDownloader.UI.UIElements
 {
@@ -30,8 +29,6 @@ namespace BeatSaverDownloader.UI.UIElements
         public void Awake()
         {
             _keyButtonPrefab = Resources.FindObjectsOfTypeAll<TextMeshProButton>().First(x => x.name == "KeyboardButton");
-
-            Logger.Log("Found keyboard button!");
 
             string[] array = new string[]
             {
@@ -135,9 +132,9 @@ namespace BeatSaverDownloader.UI.UIElements
             for (int i = 1; i <= 10; i++)
             {
                 TextMeshProButton textButton = Instantiate(_keyButtonPrefab);
-                textButton.text.text = i.ToString().Last().ToString();
+                textButton.text.text = (i % 10).ToString();
 
-                string key = i.ToString().Last().ToString();
+                string key = (i % 10).ToString();
                 textButton.button.onClick.AddListener(delegate ()
                 {
                     textKeyWasPressedEvent?.Invoke(key[0]);

@@ -31,17 +31,17 @@ namespace BeatSaverDownloader.UI.ViewControllers
 
         protected override void DidActivate(bool firstActivation, ActivationType type)
         {
-
-
             if (firstActivation && type == ActivationType.AddedToHierarchy)
             {
-                rectTransform.anchorMin = new Vector2(0.3f, 0f);
-                rectTransform.anchorMax = new Vector2(0.7f, 1f);
+                rectTransform.anchorMin = new Vector2(0.5f, 0f);
+                rectTransform.anchorMax = new Vector2(0.5f, 1f);
+                rectTransform.sizeDelta = new Vector2(75f, 0f);
+                rectTransform.pivot = new Vector2(0.5f, 0.5f);
 
-                _pageUpButton = Instantiate(Resources.FindObjectsOfTypeAll<Button>().First(x => (x.name == "PageUpButton")), rectTransform, false);
+                _pageUpButton = Instantiate(Resources.FindObjectsOfTypeAll<Button>().Last(x => (x.name == "PageUpButton")), rectTransform, false);
                 (_pageUpButton.transform as RectTransform).anchorMin = new Vector2(0.5f, 1f);
                 (_pageUpButton.transform as RectTransform).anchorMax = new Vector2(0.5f, 1f);
-                (_pageUpButton.transform as RectTransform).anchoredPosition = new Vector2(0f, -14f);
+                (_pageUpButton.transform as RectTransform).anchoredPosition = new Vector2(0f, -9f);
                 (_pageUpButton.transform as RectTransform).sizeDelta = new Vector2(40f, 10f);
                 _pageUpButton.interactable = true;
                 _pageUpButton.onClick.AddListener(delegate ()
@@ -52,7 +52,7 @@ namespace BeatSaverDownloader.UI.ViewControllers
                 _pageDownButton = Instantiate(Resources.FindObjectsOfTypeAll<Button>().First(x => (x.name == "PageDownButton")), rectTransform, false);
                 (_pageDownButton.transform as RectTransform).anchorMin = new Vector2(0.5f, 0f);
                 (_pageDownButton.transform as RectTransform).anchorMax = new Vector2(0.5f, 0f);
-                (_pageDownButton.transform as RectTransform).anchoredPosition = new Vector2(0f, 8f);
+                (_pageDownButton.transform as RectTransform).anchoredPosition = new Vector2(0f, 9f);
                 (_pageDownButton.transform as RectTransform).sizeDelta = new Vector2(40f, 10f);
                 _pageDownButton.interactable = true;
                 _pageDownButton.onClick.AddListener(delegate ()
@@ -61,34 +61,36 @@ namespace BeatSaverDownloader.UI.ViewControllers
                 });
 
                 _songListTableCellInstance = Resources.FindObjectsOfTypeAll<LevelListTableCell>().First(x => (x.name == "LevelListTableCell"));
-                _songsTableView = new GameObject().AddComponent<TableView>();
-                _songsTableView.transform.SetParent(rectTransform, false);
 
+                RectTransform container = new GameObject("CustomListContainer", typeof(RectTransform)).transform as RectTransform;
+                container.SetParent(rectTransform, false);
+                container.anchorMin = new Vector2(0f, 0.5f);
+                container.anchorMax = new Vector2(1f, 0.5f);
+                container.sizeDelta = new Vector2(0f, 0f);
+                container.anchoredPosition = new Vector2(0f, 0f);
+
+                _songsTableView = new GameObject("CustomTableView", typeof(RectTransform)).AddComponent<TableView>();
+                _songsTableView.gameObject.AddComponent<RectMask2D>();
+                _songsTableView.transform.SetParent(container, false);
+                    
                 _songsTableView.SetPrivateField("_isInitialized", false);
                 _songsTableView.SetPrivateField("_preallocatedCells", new TableView.CellsGroup[0]);
                 _songsTableView.Init();
 
-                RectMask2D viewportMask = Instantiate(Resources.FindObjectsOfTypeAll<RectMask2D>().First(), _songsTableView.transform, false);
-                viewportMask.transform.DetachChildren();
-                _songsTableView.GetComponentsInChildren<RectTransform>().First(x => x.name == "Content").transform.SetParent(viewportMask.rectTransform, false);
-
-                (_songsTableView.transform as RectTransform).anchorMin = new Vector2(0f, 0.5f);
-                (_songsTableView.transform as RectTransform).anchorMax = new Vector2(1f, 0.5f);
+                (_songsTableView.transform as RectTransform).anchorMin = new Vector2(0f, 0f);
+                (_songsTableView.transform as RectTransform).anchorMax = new Vector2(1f, 1f);
                 (_songsTableView.transform as RectTransform).sizeDelta = new Vector2(0f, 60f);
-                (_songsTableView.transform as RectTransform).anchoredPosition = new Vector3(0f, -3f);
-
-                _songsTableView.SetPrivateField("_pageUpButton", _pageUpButton);
-                _songsTableView.SetPrivateField("_pageDownButton", _pageDownButton);
-
+                (_songsTableView.transform as RectTransform).anchoredPosition = new Vector2(0f, 0f);
+                                
                 _songsTableView.dataSource = this;
-                _songsTableView.ScrollToRow(0, false);
+                _songsTableView.ScrollToCellWithIdx(0, TableView.ScrollPositionType.Beginning, false);
                 _lastSelectedRow = -1;
-                _songsTableView.didSelectRowEvent += _songsTableView_DidSelectRowEvent;
+                _songsTableView.didSelectCellWithIdxEvent += _songsTableView_DidSelectRowEvent;
             }
             else
             {
                 _songsTableView.ReloadData();
-                _songsTableView.ScrollToRow(0, false);
+                _songsTableView.ScrollToCellWithIdx(0, TableView.ScrollPositionType.Beginning, false);
                 _lastSelectedRow = -1;
             }
         }
@@ -113,7 +115,7 @@ namespace BeatSaverDownloader.UI.ViewControllers
             if (_songsTableView != null)
             {
                 _songsTableView.ReloadData();
-                _songsTableView.ScrollToRow(0, false);
+                _songsTableView.ScrollToCellWithIdx(0, TableView.ScrollPositionType.Beginning, false);
             }
         }
 
@@ -123,24 +125,35 @@ namespace BeatSaverDownloader.UI.ViewControllers
             didSelectRow?.Invoke(playlistList[row]);
         }
 
-        public float RowHeight()
+        public float CellSize()
         {
             return 10f;
         }
 
-        public int NumberOfRows()
+        public int NumberOfCells()
         {
             return playlistList.Count;
         }
 
-        public TableCell CellForRow(int row)
+        public TableCell CellForIdx(int row)
         {
             LevelListTableCell _tableCell = Instantiate(_songListTableCellInstance);
 
             _tableCell.reuseIdentifier = "PlaylistTableCell";
-            _tableCell.songName = playlistList[row].playlistTitle;
-            _tableCell.author = playlistList[row].playlistAuthor;
-            _tableCell.coverImage = playlistList[row].icon;
+            var songNameText = _tableCell.GetPrivateField<TextMeshProUGUI>("_songNameText");
+            songNameText.text = playlistList[row].playlistTitle;
+            songNameText.overflowMode = TextOverflowModes.Overflow;
+            _tableCell.GetPrivateField<TextMeshProUGUI>("_authorText").text = playlistList[row].playlistAuthor;
+            _tableCell.GetPrivateField<UnityEngine.UI.Image>("_coverImage").sprite = playlistList[row].icon;
+
+            _tableCell.SetPrivateField("_beatmapCharacteristicAlphas", new float[0]);
+            _tableCell.SetPrivateField("_beatmapCharacteristicImages", new UnityEngine.UI.Image[0]);
+            _tableCell.SetPrivateField("_bought", true);
+
+            foreach (var icon in _tableCell.GetComponentsInChildren<UnityEngine.UI.Image>().Where(x => x.name.StartsWith("LevelTypeIcon")))
+            {
+                Destroy(icon.gameObject);
+            }
 
             if (highlightDownloadedPlaylists)
             {

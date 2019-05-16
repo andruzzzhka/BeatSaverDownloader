@@ -8,9 +8,9 @@ using TMPro;
 using UnityEngine;
 using VRUI;
 using UnityEngine.UI;
-using Logger = BeatSaverDownloader.Misc.Logger;
 using SongLoaderPlugin;
 using BeatSaverDownloader.UI.FlowCoordinators;
+using CustomUI.BeatSaber;
 
 namespace BeatSaverDownloader.UI.ViewControllers
 {
@@ -31,7 +31,11 @@ namespace BeatSaverDownloader.UI.ViewControllers
 
         private TextMeshProUGUI downloadsText;
         private TextMeshProUGUI playsText;
-        private LevelParamsPanel _levelDetails;
+
+        private Image coverImage;
+
+        private LevelParamsPanel _levelParams;
+        private StandardLevelDetailView _levelDetails;
 
         private Button _downloadButton;
         private Button _favoriteButton;
@@ -44,22 +48,27 @@ namespace BeatSaverDownloader.UI.ViewControllers
 
         protected override void DidActivate(bool firstActivation, ActivationType type)
         {
-            if (firstActivation && type == ActivationType.AddedToHierarchy)
+            if (firstActivation)
             {
+                gameObject.SetActive(true);
+                _levelDetails = GetComponentsInChildren<StandardLevelDetailView>(true).First(x => x.name == "LevelDetail");
+                _levelDetails.gameObject.SetActive(true);
+
                 RemoveCustomUIElements(rectTransform);
 
-                _levelDetails = GetComponentsInChildren<LevelParamsPanel>().First(x => x.name == "LevelParamsPanel");
-                foreach (HoverHint hint in _levelDetails.transform.GetComponentsInChildren<HoverHint>())
+                _levelParams = GetComponentsInChildren<LevelParamsPanel>().First(x => x.name == "LevelParamsPanel");
+
+                foreach (HoverHint hint in _levelParams.transform.GetComponentsInChildren<HoverHint>())
                 {
                     switch (hint.name)
                     {
                         case "Time":
                             {
-                                hint.GetComponentInChildren<Image>().sprite = Base64Sprites.DownloadIcon;
+                                hint.GetComponentInChildren<Image>().sprite = Sprites.DownloadIcon;
                             }; break;
                         case "BPM":
                             {
-                                hint.GetComponentInChildren<Image>().sprite = Base64Sprites.PlayIcon;
+                                hint.GetComponentInChildren<Image>().sprite = Sprites.PlayIcon;
                             }; break;
                         case "NotesCount":
                             {
@@ -67,25 +76,22 @@ namespace BeatSaverDownloader.UI.ViewControllers
                             }; break;
                         case "ObstaclesCount":
                             {
-                                hint.GetComponentInChildren<Image>().sprite = Base64Sprites.ThumbUp;
+                                hint.GetComponentInChildren<Image>().sprite = Sprites.ThumbUp;
                             }; break;
                         case "BombsCount":
                             {
-                                hint.GetComponentInChildren<Image>().sprite = Base64Sprites.ThumbDown;
+                                hint.GetComponentInChildren<Image>().sprite = Sprites.ThumbDown;
                             }; break;
                     }
 
                     Destroy(hint);
                 }
-
-                RectTransform yourStats = GetComponentsInChildren<RectTransform>(true).First(x => x.name == "YourStats");
+                
+                RectTransform yourStats = GetComponentsInChildren<RectTransform>().First(x => x.name == "Stats");
                 yourStats.gameObject.SetActive(true);
-
-                RectTransform buttonsRect = GetComponentsInChildren<RectTransform>().First(x => x.name == "Buttons");
-                buttonsRect.anchoredPosition = new Vector2(0f, 6f);
-
+                
                 TextMeshProUGUI[] _textComponents = GetComponentsInChildren<TextMeshProUGUI>();
-
+                
                 try
                 {
                     songNameText = _textComponents.First(x => x.name == "SongNameText");
@@ -95,45 +101,45 @@ namespace BeatSaverDownloader.UI.ViewControllers
 
                     playsText = _textComponents.First(x => x.name == "ValueText" && x.transform.parent.name == "BPM");
                     playsText.fontSize = 3f;
+                    
+                    _textComponents.First(x => x.name == "Title" && x.transform.parent.name == "MaxRank").text = "Expert/+";
+                    difficulty1Text = _textComponents.First(x => x.name == "Value" && x.transform.parent.name == "MaxRank");
 
-                    _textComponents.First(x => x.name == "YourStatsTitle").text = "Difficulties";
+                    _textComponents.First(x => x.name == "Title" && x.transform.parent.name == "Highscore").text = "Hard";
+                    difficulty2Text = _textComponents.First(x => x.name == "Value" && x.transform.parent.name == "Highscore");
 
-                    _textComponents.First(x => x.name == "HighScoreText").text = "Expert/+";
-                    difficulty1Text = _textComponents.First(x => x.name == "HighScoreValueText");
-
-                    _textComponents.First(x => x.name == "MaxComboText").text = "Hard";
-                    difficulty2Text = _textComponents.First(x => x.name == "MaxComboValueText");
-
-                    _textComponents.First(x => x.name == "MaxRankText").text = "Easy/Normal";
-                    _textComponents.First(x => x.name == "MaxRankText").rectTransform.sizeDelta = new Vector2(18f, 3f);
-                    difficulty3Text = _textComponents.First(x => x.name == "MaxRankValueText");
+                    _textComponents.First(x => x.name == "Title" && x.transform.parent.name == "MaxCombo").text = "Easy/Normal";
+                    difficulty3Text = _textComponents.First(x => x.name == "Value" && x.transform.parent.name == "MaxCombo");
                 }
                 catch (Exception e)
                 {
-                    Logger.Exception("Unable to convert detail view controller! Exception:  " + e);
+                    Plugin.log.Critical("Unable to convert detail view controller! Exception:  " + e);
                 }
 
-                _downloadButton = GetComponentsInChildren<Button>().First(x => x.name == "PlayButton");
-                _downloadButton.GetComponentsInChildren<TextMeshProUGUI>().First().text = "DOWNLOAD";
+                _downloadButton = _levelDetails.playButton;
+                _downloadButton.SetButtonText("DOWNLOAD");
+                _downloadButton.ToggleWordWrapping(false);
                 _downloadButton.onClick.RemoveAllListeners();
                 _downloadButton.onClick.AddListener(() => { downloadButtonPressed?.Invoke(_currentSong); });
+                (_downloadButton.transform as RectTransform).sizeDelta = new Vector2(26f, 8.8f);
 
-                _favoriteButton = GetComponentsInChildren<Button>().First(x => x.name == "PracticeButton");
-                _favoriteButton.GetComponentsInChildren<Image>().First(x => x.name == "Icon").sprite = Base64Sprites.AddToFavorites;
+                _favoriteButton = _levelDetails.practiceButton;
+                _favoriteButton.SetButtonIcon(Sprites.AddToFavorites);
                 _favoriteButton.onClick.RemoveAllListeners();
                 _favoriteButton.onClick.AddListener(() => { favoriteButtonPressed?.Invoke(_currentSong); });
 
+                coverImage = _levelDetails.GetPrivateField<Image>("_coverImage");
             }
         }
 
         public void SetFavoriteState(bool favorited)
         {
-            _favoriteButton.GetComponentsInChildren<Image>().First(x => x.name == "Icon").sprite = (favorited ? Base64Sprites.RemoveFromFavorites : Base64Sprites.AddToFavorites);
+            _favoriteButton.SetButtonIcon(favorited ? Sprites.RemoveFromFavorites : Sprites.AddToFavorites);
         }
 
         public void SetDownloadState(DownloadState state)
         {
-            _downloadButton.GetComponentsInChildren<TextMeshProUGUI>().First().text = (state == DownloadState.Downloading ? "QUEUED..." : (state == DownloadState.Downloaded ? "DELETE" : "DOWNLOAD"));
+            _downloadButton.SetButtonText(state == DownloadState.Downloading ? "QUEUED..." : (state == DownloadState.Downloaded ? "DELETE" : "DOWNLOAD"));
             _downloadButton.interactable = state != DownloadState.Downloading;
         }
 
@@ -141,20 +147,22 @@ namespace BeatSaverDownloader.UI.ViewControllers
         {
             _currentSong = newSongInfo;
 
-            songNameText.text = newSongInfo.songName;
+            songNameText.text = _currentSong.songName;
 
-            downloadsText.text = newSongInfo.downloads;
-            _levelDetails.bpm = float.Parse(newSongInfo.plays);
-            _levelDetails.notesCount = int.Parse(newSongInfo.beatsPerMinute);
-            _levelDetails.obstaclesCount = int.Parse(newSongInfo.upvotes);
-            _levelDetails.bombsCount = int.Parse(newSongInfo.downvotes);
+            downloadsText.text = _currentSong.downloads;
+            _levelParams.bpm = float.Parse(_currentSong.plays);
+            _levelParams.notesCount = int.Parse(_currentSong.beatsPerMinute);
+            _levelParams.obstaclesCount = int.Parse(_currentSong.upvotes);
+            _levelParams.bombsCount = int.Parse(_currentSong.downvotes);
 
-            difficulty1Text.text = (newSongInfo.difficultyLevels.Where(x => (x.difficulty == "Expert" || x.difficulty == "ExpertPlus")).Count() > 0) ? "Yes" : "No";
-            difficulty2Text.text = (newSongInfo.difficultyLevels.Where(x => x.difficulty == "Hard").Count() > 0) ? "Yes" : "No";
-            difficulty3Text.text = (newSongInfo.difficultyLevels.Where(x => (x.difficulty == "Easy" || x.difficulty == "Normal")).Count() > 0) ? "Yes" : "No";
+            difficulty1Text.text = (_currentSong.difficultyLevels.Where(x => (x.difficulty == "Expert" || x.difficulty == "ExpertPlus")).Count() > 0) ? "Yes" : "No";
+            difficulty2Text.text = (_currentSong.difficultyLevels.Where(x => x.difficulty == "Hard").Count() > 0) ? "Yes" : "No";
+            difficulty3Text.text = (_currentSong.difficultyLevels.Where(x => (x.difficulty == "Easy" || x.difficulty == "Normal")).Count() > 0) ? "Yes" : "No";
 
-            SetFavoriteState(PluginConfig.favoriteSongs.Any(x => x.Contains(newSongInfo.hash)));
-            SetDownloadState((SongDownloader.Instance.IsSongDownloaded(newSongInfo) ? DownloadState.Downloaded : (sender.IsDownloadingSong(newSongInfo) ? DownloadState.Downloading : DownloadState.NotDownloaded)));
+            StartCoroutine(LoadScripts.LoadSpriteCoroutine(_currentSong.coverUrl, (cover) => { coverImage.sprite = cover;}));
+
+            SetFavoriteState(PluginConfig.favoriteSongs.Any(x => x.Contains(_currentSong.hash)));
+            SetDownloadState((SongDownloader.Instance.IsSongDownloaded(_currentSong) ? DownloadState.Downloaded : (sender.IsDownloadingSong(_currentSong) ? DownloadState.Downloading : DownloadState.NotDownloaded)));
         }
 
         void RemoveCustomUIElements(Transform parent)
