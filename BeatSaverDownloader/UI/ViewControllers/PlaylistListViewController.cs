@@ -127,7 +127,7 @@ namespace BeatSaverDownloader.UI.ViewControllers
 
         public float CellSize()
         {
-            return 10f;
+            return 8.5f;
         }
 
         public int NumberOfCells()
@@ -144,7 +144,7 @@ namespace BeatSaverDownloader.UI.ViewControllers
             songNameText.text = playlistList[row].playlistTitle;
             songNameText.overflowMode = TextOverflowModes.Overflow;
             _tableCell.GetPrivateField<TextMeshProUGUI>("_authorText").text = playlistList[row].playlistAuthor;
-            _tableCell.GetPrivateField<UnityEngine.UI.Image>("_coverImage").sprite = playlistList[row].icon;
+            _tableCell.GetPrivateField<UnityEngine.UI.RawImage>("_coverRawImage").texture = playlistList[row].icon.texture;
 
             _tableCell.SetPrivateField("_beatmapCharacteristicAlphas", new float[0]);
             _tableCell.SetPrivateField("_beatmapCharacteristicImages", new UnityEngine.UI.Image[0]);
