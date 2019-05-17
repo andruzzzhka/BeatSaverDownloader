@@ -442,7 +442,7 @@ namespace BeatSaverDownloader.UI
                 }
                 else
                 {
-                    lastPack = SongLoaderPlugin.SongLoader.CustomBeatmapLevelPackCollectionSO.beatmapLevelPacks[_levelPacksViewController.GetPrivateField<int>("_selectedPackNum")];
+                    lastPack = SongLoaderPlugin.SongLoader.CustomBeatmapLevelPackCollectionSO?.beatmapLevelPacks[_levelPacksViewController.GetPrivateField<int>("_selectedPackNum")];
                 }
             }
             else if (result == MainMenuViewController.MenuButton.Party)
@@ -458,7 +458,7 @@ namespace BeatSaverDownloader.UI
                 }
                 else
                 {
-                    lastPack = SongLoaderPlugin.SongLoader.CustomBeatmapLevelPackCollectionSO.beatmapLevelPacks[_levelPacksViewController.GetPrivateField<int>("_selectedPackNum")];
+                    lastPack = SongLoaderPlugin.SongLoader.CustomBeatmapLevelPackCollectionSO?.beatmapLevelPacks[_levelPacksViewController.GetPrivateField<int>("_selectedPackNum")];
                 }
             }
             else
