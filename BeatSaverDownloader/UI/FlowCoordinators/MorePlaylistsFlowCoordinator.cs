@@ -2,7 +2,6 @@
 using BeatSaverDownloader.UI.ViewControllers;
 using CustomUI.BeatSaber;
 using SimpleJSON;
-using SongLoaderPlugin;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -71,7 +70,8 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
                 _playlistDetailViewController.SetSelectButtonState(true);
                 PlaylistsCollection.ReloadPlaylists(false);
                 _playlistsListViewController.Refresh();
-                SongListTweaks.Instance.UpdateLevelPacks();
+                //bananbread playlists levelpacks
+                //      SongListTweaks.Instance.UpdateLevelPacks();
             }));
         }
 

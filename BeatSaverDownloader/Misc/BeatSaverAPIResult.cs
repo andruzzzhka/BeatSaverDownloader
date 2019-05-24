@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using SimpleJSON;
-using SongLoaderPlugin;
-using SongLoaderPlugin.OverrideClasses;
 
 namespace BeatSaverDownloader.Misc
 {
@@ -18,12 +16,13 @@ namespace BeatSaverDownloader.Misc
         public string jsonPath;
         public int? offset;
 
-        public DifficultyLevel(CustomSongInfo.DifficultyLevel difficultyLevel)
-        {
-            difficulty = difficultyLevel.difficulty;
-            difficultyRank = difficultyLevel.difficultyRank;
-            jsonPath = difficultyLevel.jsonPath;
-        }
+        //bananbread api
+  //      public DifficultyLevel(CustomSongInfo.DifficultyLevel difficultyLevel)
+  //      {
+  //          difficulty = difficultyLevel.difficulty;
+  //          difficultyRank = difficultyLevel.difficultyRank;
+  //          jsonPath = difficultyLevel.jsonPath;
+  //      }
 
         public DifficultyLevel(string Difficulty, int DifficultyRank, string JsonPath, int Offset = 0)
         {
@@ -177,7 +176,8 @@ namespace BeatSaverDownloader.Misc
         }
 
 
-        
+        //bananbread api
+        /*
         public Song(CustomLevel _data)
         {
             songName = _data.songName;
@@ -187,7 +187,7 @@ namespace BeatSaverDownloader.Misc
             path = _data.customSongInfo.path;
             hash = _data.levelID.Substring(0, 32);
         }
-
+        //bananbread api
         public Song(CustomSongInfo _song)
         {
 
@@ -198,7 +198,9 @@ namespace BeatSaverDownloader.Misc
             path = _song.path;
             hash = _song.levelId.Substring(0, 32);
         }
-
+        */
+        //bananbread api
+        /*
         public DifficultyLevel[] ConvertDifficultyLevels(CustomSongInfo.DifficultyLevel[] _difficultyLevels)
         {
             if (_difficultyLevels != null && _difficultyLevels.Length > 0)
@@ -218,7 +220,7 @@ namespace BeatSaverDownloader.Misc
                 return null;
             }
         }
-
+        */
         
         public DifficultyLevel[] ConvertDifficultyLevels(IDifficultyBeatmap[] _difficultyLevels)
         {

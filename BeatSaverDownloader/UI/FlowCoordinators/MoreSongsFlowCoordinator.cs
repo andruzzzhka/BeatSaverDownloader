@@ -2,7 +2,6 @@
 using BeatSaverDownloader.UI.ViewControllers;
 using CustomUI.BeatSaber;
 using SimpleJSON;
-using SongLoaderPlugin;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -168,7 +167,8 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
 
         private void DeleteSong(Song song)
         {
-            SongDownloader.Instance.DeleteSong(song);
+            //bananbread delete
+            //     SongDownloader.Instance.DeleteSong(song);
             _songDetailViewController.SetDownloadState(DownloadState.NotDownloaded);
             _moreSongsListViewController.Refresh();
         }

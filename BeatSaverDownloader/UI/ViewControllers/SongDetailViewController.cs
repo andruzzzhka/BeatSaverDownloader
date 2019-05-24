@@ -8,7 +8,6 @@ using TMPro;
 using UnityEngine;
 using VRUI;
 using UnityEngine.UI;
-using SongLoaderPlugin;
 using BeatSaverDownloader.UI.FlowCoordinators;
 using CustomUI.BeatSaber;
 

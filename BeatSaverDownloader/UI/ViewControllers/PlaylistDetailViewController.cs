@@ -1,7 +1,6 @@
 ﻿using BeatSaverDownloader.Misc;
 using BeatSaverDownloader.UI.FlowCoordinators;
 using CustomUI.BeatSaber;
-using SongLoaderPlugin;
 using System;
 using System.Collections.Generic;
 using System.Linq;

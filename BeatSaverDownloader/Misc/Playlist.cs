@@ -1,8 +1,6 @@
 ﻿using BeatSaverDownloader.UI;
 using Newtonsoft.Json;
 using SimpleJSON;
-using SongLoaderPlugin;
-using SongLoaderPlugin.OverrideClasses;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -78,11 +76,11 @@ namespace BeatSaverDownloader.Misc
                                 if (Path.GetFileName(path) == "favorites.json" && playlist.playlistTitle == "Your favorite songs")
                                     continue;
                                 loadedPlaylists.Add(playlist);
-
-                                if (SongLoader.AreSongsLoaded)
-                                {
-                                    MatchSongsForPlaylist(playlist);
-                                }
+                                //bananbread songloader loaded
+                         //       if (SongLoader.AreSongsLoaded)
+                          //      {
+                          //          MatchSongsForPlaylist(playlist);
+                          //      }
                             }
                             catch (Exception e)
                             {
@@ -105,7 +103,8 @@ namespace BeatSaverDownloader.Misc
             {
                 playlist.SavePlaylist();
             }
-            (SongLoader.CustomBeatmapLevelPackCollectionSO.beatmapLevelPacks.FirstOrDefault(x => x is PlaylistLevelPackSO && (x as PlaylistLevelPackSO).playlist == playlist) as PlaylistLevelPackSO)?.UpdateDataFromPlaylist();
+            //bananbread playlist levelpacks 
+            //  (SongLoader.CustomBeatmapLevelPackCollectionSO.beatmapLevelPacks.FirstOrDefault(x => x is PlaylistLevelPackSO && (x as PlaylistLevelPackSO).playlist == playlist) as PlaylistLevelPackSO)?.UpdateDataFromPlaylist();
         }
 
         public static void RemoveLevelFromPlaylists(string levelId)
@@ -123,14 +122,16 @@ namespace BeatSaverDownloader.Misc
                     playlist.SavePlaylist();
                 }
             }
-
-            foreach(var pack in SongLoader.CustomBeatmapLevelPackCollectionSO.beatmapLevelPacks)
+            //bananbread playlist levelpacks 
+            /*
+            foreach (var pack in SongLoader.CustomBeatmapLevelPackCollectionSO.beatmapLevelPacks)
             {
                 if(pack is PlaylistLevelPackSO)
                 {
                     (pack as PlaylistLevelPackSO).UpdateDataFromPlaylist();
                 }
             }
+            */
         }
 
         public static void RemoveLevelFromPlaylist(Playlist playlist, string levelId)
@@ -145,13 +146,15 @@ namespace BeatSaverDownloader.Misc
             {
                 playlist.SavePlaylist();
             }
-
-            (SongLoader.CustomBeatmapLevelPackCollectionSO.beatmapLevelPacks.FirstOrDefault(x => x is PlaylistLevelPackSO && (x as PlaylistLevelPackSO).playlist == playlist) as PlaylistLevelPackSO)?.UpdateDataFromPlaylist();
+            //bananbread playlist levelpacks 
+        //    (SongLoader.CustomBeatmapLevelPackCollectionSO.beatmapLevelPacks.FirstOrDefault(x => x is PlaylistLevelPackSO && (x as PlaylistLevelPackSO).playlist == playlist) as PlaylistLevelPackSO)?.UpdateDataFromPlaylist();
         }
 
         public static void MatchSongsForPlaylist(Playlist playlist, bool matchAll = false)
         {
-            if (!SongLoader.AreSongsLoaded || SongLoader.AreSongsLoading || playlist.playlistTitle == "All songs" || playlist.playlistTitle == "Your favorite songs") return;
+            //bananbread playlist songloader loaded 
+            //   if (!SongLoader.AreSongsLoaded || SongLoader.AreSongsLoading || playlist.playlistTitle == "All songs" || playlist.playlistTitle == "Your favorite songs") return;
+            /*
             if (!playlist.songs.All(x => x.level != null) || matchAll)
             {
                 playlist.songs.AsParallel().ForAll(x =>
@@ -188,6 +191,7 @@ namespace BeatSaverDownloader.Misc
                     }
                 });
             }
+            */
         }
 
         public static void MatchSongsForAllPlaylists(bool matchAll = false)
@@ -199,7 +203,8 @@ namespace BeatSaverDownloader.Misc
                 {
                     MatchSongsForPlaylist(loadedPlaylists[i], matchAll);
                 }
-                HMMainThreadDispatcher.instance.Enqueue(() => { SongListTweaks.Instance.UpdateLevelPacks(); });
+                //bananbread playlist levelpacks 
+              //  HMMainThreadDispatcher.instance.Enqueue(() => { SongListTweaks.Instance.UpdateLevelPacks(); });
             });
         }
     }
@@ -229,8 +234,9 @@ namespace BeatSaverDownloader.Misc
 
         public IEnumerator MatchKey()
         {
-            if (!string.IsNullOrEmpty(key) || level == null || !(level is CustomLevel))
-                yield break;
+            //bananabread customsong
+         //   if (!string.IsNullOrEmpty(key) || level == null || !(level is CustomLevel))
+         //       yield break;
 
             if (!string.IsNullOrEmpty(hash))
             {
@@ -263,7 +269,8 @@ namespace BeatSaverDownloader.Misc
             {
                 songName = level.songName + " " + level.songSubName;
                 levelId = level.levelID;
-                hash = (level is CustomLevel) ? level.levelID.Substring(0, 32) : "";
+                //bananbread id customlevel 
+            //    hash = (level is CustomLevel) ? level.levelID.Substring(0, 32) : "";
             }
         }
 

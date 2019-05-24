@@ -3,8 +3,6 @@ using UnityEngine.SceneManagement;
 using BeatSaverDownloader.Misc;
 using BeatSaverDownloader.UI;
 using System.Collections.Generic;
-using SongLoaderPlugin;
-using SongLoaderPlugin.OverrideClasses;
 using UnityEngine;
 using BS_Utils.Gameplay;
 using IPA;
@@ -32,7 +30,7 @@ namespace BeatSaverDownloader
             PluginConfig.LoadConfig();
             Sprites.ConvertToSprites();
             PlaylistsCollection.ReloadPlaylists();
-            SongLoader.SongsLoadedEvent += SongLoader_SongsLoadedEvent;
+       //     SongLoader.SongsLoadedEvent += SongLoader_SongsLoadedEvent;
             
             BSEvents.OnLoad();
             BSEvents.menuSceneLoadedFresh += OnMenuSceneLoadedFresh;
@@ -54,6 +52,8 @@ namespace BeatSaverDownloader
             }
         }
 
+        //bananabread songloader loading
+        /*
         public void SongLoader_SongsLoadedEvent(SongLoader sender, List<CustomLevel> levels)
         {
             try
@@ -65,6 +65,7 @@ namespace BeatSaverDownloader
                 Plugin.log.Critical("Unable to match songs for all playlists! Exception: "+e);
             }
         }
+        */
 
         public void OnUpdate()
         {

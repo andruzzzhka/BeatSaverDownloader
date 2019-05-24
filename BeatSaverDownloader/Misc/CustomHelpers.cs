@@ -1,6 +1,5 @@
 ﻿using BS_Utils.Utilities;
 using HMUI;
-using SongLoaderPlugin.OverrideClasses;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,9 +25,11 @@ namespace BeatSaverDownloader.Misc
             if (rows.Count > 0)
                 tableView.SelectCellWithIdx(rows.First(), callbackTable);
         }
-
+        //bananbread levelpacks
+        /*
         public static BeatmapLevelPackSO GetLevelPackWithLevels(BeatmapLevelSO[] levels, string packName = null, Sprite packCover = null, string packID = null)
         {
+            
             CustomLevelCollectionSO levelCollection = ScriptableObject.CreateInstance<CustomLevelCollectionSO>();
             levelCollection.SetPrivateField("_levelList", levels.ToList());
             levelCollection.SetPrivateField("_beatmapLevels", levels);
@@ -40,7 +41,9 @@ namespace BeatSaverDownloader.Misc
             pack.SetPrivateField("_isPackAlwaysOwned", true);
 
             return pack;
+            
         }
+    */
 
         static char[] hexChars = new char[]{ '0' , '1' , '2' , '3' , '4' , '5' , '6' , '7' , '8' , '9' , 'A' , 'B' , 'C' , 'D' , 'E' , 'F' };
 
