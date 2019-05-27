@@ -575,7 +575,7 @@ namespace BeatSaverDownloader.UI
             //Banana id
             if (beatmap.level is CustomPreviewBeatmapLevel)
             {
-                var levelhash = SongCore.Utilities.Utils.GetCustomLevelHash(beatmap.level as CustomPreviewBeatmapLevel);
+                var levelhash = SongCore.Collections.hashForLevelID((beatmap.level as CustomPreviewBeatmapLevel).levelID);
                 ScrappedSong song = ScrappedData.Songs.FirstOrDefault(x => x.Hash == levelhash);
                 if (song != null)
                 {
@@ -1001,10 +1001,10 @@ namespace BeatSaverDownloader.UI
                 if (!_downloadingPlaylist)
                     yield break;
                 //bananabread playlists id
-              //  if (beatSaverSong != null && !SongCore.Loader.CustomLevels.Any(x => beatSaverSong.hash == SongCore.Utilities.Utils.GetCustomLevelHash(x)))
-              //  {
-              //      _downloadQueueViewController.EnqueueSong(beatSaverSong, true);
-              //  }
+                if (beatSaverSong != null && !SongCore.Loader.CustomLevels.Any(x => beatSaverSong.hash == SongCore.Collections.hashForLevelID(x.levelID)))
+                {
+                    _downloadQueueViewController.EnqueueSong(beatSaverSong, true);
+                }
             }
             _downloadingPlaylist = false;
         }

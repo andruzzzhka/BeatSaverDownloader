@@ -200,6 +200,7 @@ namespace BeatSaverDownloader.Misc
         {
             bool zippedSong = false;
             string path = "";
+      //      Console.WriteLine("Deleting: " + song.path);
             SongCore.Loader.Instance.DeleteSong(song.path, false);
             /*
             CustomLevel level = SongLoader.CustomLevels.FirstOrDefault(x => x.levelID.StartsWith(song.hash));
@@ -217,11 +218,13 @@ namespace BeatSaverDownloader.Misc
                 path = song.path;
             }
             */
-            path = song.path;
+            path = song.path.Replace('\\', '/');
             if (string.IsNullOrEmpty(path))
                 return;
             if (!Directory.Exists(path))
+            {
                 return;
+            }
 
             if (path.Contains("/.cache/"))
                 zippedSong = true;
@@ -278,29 +281,38 @@ namespace BeatSaverDownloader.Misc
                 }
                 else
                 {
-                    Plugin.log.Info("Deleting \"" + path.Substring(path.LastIndexOf('/')) + "\"...");
-
-                    if (PluginConfig.deleteToRecycleBin)
-                    {
-                        FileOperationAPIWrapper.MoveToRecycleBin(path);
-                    }
-                    else
-                    {
-                        Directory.Delete(path, true);
-                    }
-
                     try
                     {
-                        if (Directory.GetFileSystemEntries(path.Substring(0, path.LastIndexOf('/'))).Length == 0)
+                        Plugin.log.Info("Deleting \"" + path.Substring(0,path.LastIndexOf('/')) + "\"...");
+
+                        if (PluginConfig.deleteToRecycleBin)
                         {
-                            Plugin.log.Info("Deleting empty folder \"" + path.Substring(0, path.LastIndexOf('/')) + "\"...");
-                            Directory.Delete(path.Substring(0, path.LastIndexOf('/')), false);
+                            FileOperationAPIWrapper.MoveToRecycleBin(path);
+                        }
+                        else
+                        {
+                            Directory.Delete(path, true);
+                        }
+
+                        try
+                        {
+                            if (Directory.GetFileSystemEntries(path.Substring(0, path.LastIndexOf('/'))).Length == 0)
+                            {
+                                Plugin.log.Info("Deleting empty folder \"" + path.Substring(0, path.LastIndexOf('/')) + "\"...");
+                                Directory.Delete(path.Substring(0, path.LastIndexOf('/')), false);
+                            }
+                        }
+                        catch
+                        {
+                            Plugin.log.Warn("Unable to delete empty folder!");
                         }
                     }
-                    catch
+                    catch(Exception ex)
                     {
-                        Plugin.log.Warn("Unable to delete empty folder!");
+                        Plugin.log.Error("Error Deleting Song:" + song.path);
+                        Plugin.log.Error(ex.ToString());
                     }
+                   
                 }
 
                 Plugin.log.Info($"{_alreadyDownloadedSongs.RemoveAll(x => x.Compare(song))} song removed");
@@ -323,6 +335,7 @@ namespace BeatSaverDownloader.Misc
 
         public static string GetLevelID(Song song)
         {
+            Console.WriteLine("LevelID for: " + song.path);
             string[] values = new string[] { song.hash, song.songName, song.songSubName, song.authorName, song.beatsPerMinute };
             return string.Join("∎", values) + "∎";
         }

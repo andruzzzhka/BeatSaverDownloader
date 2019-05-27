@@ -266,7 +266,7 @@ namespace BeatSaverDownloader.Misc
                 songName = level.songName + " " + level.songSubName;
                 levelId = level.levelID;
                 //bananbread id customlevel 
-                hash = (level is CustomPreviewBeatmapLevel) ? SongCore.Utilities.Utils.GetCustomLevelHash(level) : "";
+                hash = (level is CustomPreviewBeatmapLevel) ? SongCore.Collections.hashForLevelID(level.levelID) : "";
             }
         }
 

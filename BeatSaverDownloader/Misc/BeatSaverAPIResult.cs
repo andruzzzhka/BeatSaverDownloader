@@ -185,9 +185,10 @@ namespace BeatSaverDownloader.Misc
             difficultyLevels = ConvertDifficultyLevels(_data.standardLevelInfoSaveData.difficultyBeatmapSets.SelectMany(x => x.difficultyBeatmaps).ToArray());
             path = _data.customLevelPath;
             //bananabread id hash
-            hash = "";
+            hash = SongCore.Collections.hashForLevelID(_data.levelID);
             //  hash = SongCore.Utilities.Utils.GetCustomLevelHash(_data);
         }
+        /*
         public Song(StandardLevelInfoSaveData _data, string songPath)
         {
             songName = _data.songName;
@@ -196,9 +197,10 @@ namespace BeatSaverDownloader.Misc
             difficultyLevels = ConvertDifficultyLevels(_data.difficultyBeatmapSets.SelectMany(x => x.difficultyBeatmaps).ToArray());
             path = songPath;
             //bananabread id hash
-            hash = "";
+            hash = ;
             //  hash = SongCore.Utilities.Utils.GetCustomLevelHash(_data, songPath);
         }
+        */
         /*
         public Song(CustomLevel _data)
         {
