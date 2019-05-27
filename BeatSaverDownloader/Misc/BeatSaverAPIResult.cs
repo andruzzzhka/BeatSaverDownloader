@@ -177,6 +177,28 @@ namespace BeatSaverDownloader.Misc
 
 
         //bananbread api
+        public Song(CustomPreviewBeatmapLevel _data)
+        {
+            songName = _data.songName;
+            songSubName = _data.songSubName;
+            authorName = _data.songAuthorName;
+            difficultyLevels = ConvertDifficultyLevels(_data.standardLevelInfoSaveData.difficultyBeatmapSets.SelectMany(x => x.difficultyBeatmaps).ToArray());
+            path = _data.customLevelPath;
+            //bananabread id hash
+            hash = "";
+            //  hash = SongCore.Utilities.Utils.GetCustomLevelHash(_data);
+        }
+        public Song(StandardLevelInfoSaveData _data, string songPath)
+        {
+            songName = _data.songName;
+            songSubName = _data.songSubName;
+            authorName = _data.songAuthorName;
+            difficultyLevels = ConvertDifficultyLevels(_data.difficultyBeatmapSets.SelectMany(x => x.difficultyBeatmaps).ToArray());
+            path = songPath;
+            //bananabread id hash
+            hash = "";
+            //  hash = SongCore.Utilities.Utils.GetCustomLevelHash(_data, songPath);
+        }
         /*
         public Song(CustomLevel _data)
         {
@@ -221,8 +243,27 @@ namespace BeatSaverDownloader.Misc
             }
         }
         */
-        
+
         public DifficultyLevel[] ConvertDifficultyLevels(IDifficultyBeatmap[] _difficultyLevels)
+        {
+            if (_difficultyLevels != null && _difficultyLevels.Length > 0)
+            {
+                DifficultyLevel[] buffer = new DifficultyLevel[_difficultyLevels.Length];
+
+                for (int i = 0; i < _difficultyLevels.Length; i++)
+                {
+                    buffer[i] = new DifficultyLevel(_difficultyLevels[i].difficulty.ToString(), _difficultyLevels[i].difficultyRank, string.Empty);
+                }
+
+
+                return buffer;
+            }
+            else
+            {
+                return null;
+            }
+        }
+        public DifficultyLevel[] ConvertDifficultyLevels(StandardLevelInfoSaveData.DifficultyBeatmap[] _difficultyLevels)
         {
             if (_difficultyLevels != null && _difficultyLevels.Length > 0)
             {

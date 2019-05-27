@@ -6,15 +6,21 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
-
+using SongCore.OverrideClasses;
 namespace BeatSaverDownloader.Misc
 {
-    class PlaylistLevelPackSO : CustomBeatmapLevelPack
+    class PlaylistLevelPackSO : SongCoreCustomBeatmapLevelPack
     {
         public Playlist playlist { get { return _playlist; } set { _playlist = value;  UpdateDataFromPlaylist(); } }
 
         private Playlist _playlist;
 
+        public static PlaylistLevelPackSO CreatePackFromPlaylist(Playlist playlist)
+        {
+            return new PlaylistLevelPackSO($"Playlist_{playlist.playlistTitle}_{playlist.playlistAuthor}", playlist.playlistTitle, playlist.icon, new SongCoreCustomLevelCollection(playlist.songs.Where(x => x.level != null).Select(x => x.level).ToArray()));
+
+
+        }
         public PlaylistLevelPackSO(string packID, string packName, Sprite coverImage, CustomBeatmapLevelCollection customBeatmapLevelCollection) : base(packID, packName, coverImage, customBeatmapLevelCollection)
         {
         }
@@ -28,11 +34,11 @@ namespace BeatSaverDownloader.Misc
 
             PlaylistsCollection.MatchSongsForPlaylist(playlist);
             //bananabread playlist
-         //   CustomPreviewBeatmapLevel[] levels = playlist.songs.Where(x => x.level != null).Select(x => x.level).ToArray();
+            CustomPreviewBeatmapLevel[] levels = playlist.songs.Where(x => x.level != null).Select(x => x.level).ToArray();
 
-        //    CustomBeatmapLevelCollection levelCollection = new CustomBeatmapLevelCollection(levels);
+            SongCoreCustomLevelCollection levelCollection = new SongCoreCustomLevelCollection(levels);
 
-        //    _customBeatmapLevelCollection = levelCollection;
+            _customBeatmapLevelCollection = levelCollection;
         }
 
     }

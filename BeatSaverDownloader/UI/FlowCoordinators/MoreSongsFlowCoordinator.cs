@@ -167,8 +167,7 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
 
         private void DeleteSong(Song song)
         {
-            //bananbread delete
-            //     SongDownloader.Instance.DeleteSong(song);
+                 SongDownloader.Instance.DeleteSong(song);
             _songDetailViewController.SetDownloadState(DownloadState.NotDownloaded);
             _moreSongsListViewController.Refresh();
         }

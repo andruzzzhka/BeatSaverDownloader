@@ -39,24 +39,24 @@ namespace BeatSaverDownloader.Misc
         public void Awake()
         {
             DontDestroyOnLoad(gameObject);
-            /*
-            if (!SongLoader.AreSongsLoaded)
+            
+            if (!SongCore.Loader.AreSongsLoaded)
             {
-                SongLoader.SongsLoadedEvent += SongLoader_SongsLoadedEvent;
+                SongCore.Loader.SongsLoadedEvent += SongLoader_SongsLoadedEvent;
             }
             else
             {
-                SongLoader_SongsLoadedEvent(null, SongLoader.CustomLevels);
+                SongLoader_SongsLoadedEvent(null, SongCore.Loader.CustomLevels);
             }
-            */
+            
         }
-        //bananbread songloadersonglist
-        /*
-        private void SongLoader_SongsLoadedEvent(SongLoader sender, List<CustomLevel> levels)
+        //bananbread song id
+        
+        private void SongLoader_SongsLoadedEvent(SongCore.Loader sender, List<CustomPreviewBeatmapLevel> levels)
         {
             _alreadyDownloadedSongs = levels.Select(x => new Song(x)).ToList();
         }
-        */
+        
         public IEnumerator DownloadSongCoroutine(Song songInfo)
         {
             songInfo.songQueueState = SongQueueState.Downloading;
@@ -108,8 +108,6 @@ namespace BeatSaverDownloader.Misc
             else
             {
                 Plugin.log.Info("Received response from BeatSaver.com...");
-
-                string docPath = "";
                 string customSongsPath = "";
 
                 byte[] data = www.downloadHandler.data;
@@ -118,10 +116,7 @@ namespace BeatSaverDownloader.Misc
 
                 try
                 {
-                    docPath = Application.dataPath;
-                    docPath = docPath.Substring(0, docPath.Length - 5);
-                    docPath = docPath.Substring(0, docPath.LastIndexOf("/"));
-                    customSongsPath = docPath + "/CustomSongs/" + songInfo.id + "/";
+                    customSongsPath = CustomLevelPathHelper.customLevelsDirectoryPath;
                     if (!Directory.Exists(customSongsPath))
                     {
                         Directory.CreateDirectory(customSongsPath);
@@ -178,21 +173,20 @@ namespace BeatSaverDownloader.Misc
             HMMainThreadDispatcher.instance.Enqueue(() => {
                 try
                 {
-                    //bananbread songloader levels
-                    /*
+                    
                     string dirName = new DirectoryInfo(customSongsPath).Name;
 
-                    SongLoader.SongsLoadedEvent -= Plugin.instance.SongLoader_SongsLoadedEvent;
-                    Action<SongLoader, List<CustomLevel>> songsLoadedAction = null;
+                    SongCore.Loader.SongsLoadedEvent -= Plugin.instance.SongCore_SongsLoadedEvent;
+                    Action<SongCore.Loader, List<CustomPreviewBeatmapLevel>> songsLoadedAction = null;
                     songsLoadedAction = (arg1, arg2) =>
                     {
-                        SongLoader.SongsLoadedEvent -= songsLoadedAction;
-                        SongLoader.SongsLoadedEvent += Plugin.instance.SongLoader_SongsLoadedEvent;
+                        SongCore.Loader.SongsLoadedEvent -= songsLoadedAction;
+                        SongCore.Loader.SongsLoadedEvent += Plugin.instance.SongCore_SongsLoadedEvent;
                     };
-                    SongLoader.SongsLoadedEvent += songsLoadedAction;
+                    SongCore.Loader.SongsLoadedEvent += songsLoadedAction;
 
-                    SongLoader.Instance.RetrieveNewSong(dirName);
-                    */
+                    SongCore.Loader.Instance.RetrieveNewSong(dirName);
+                    
                 }
                 catch (Exception e)
                 {
@@ -201,13 +195,13 @@ namespace BeatSaverDownloader.Misc
             });
             
         }
-        //bananbread delete
-        /*
+        
         public void DeleteSong(Song song)
         {
             bool zippedSong = false;
             string path = "";
-
+            SongCore.Loader.Instance.DeleteSong(song.path, false);
+            /*
             CustomLevel level = SongLoader.CustomLevels.FirstOrDefault(x => x.levelID.StartsWith(song.hash));
 
             if (level != null)
@@ -222,7 +216,8 @@ namespace BeatSaverDownloader.Misc
             {
                 path = song.path;
             }
-
+            */
+            path = song.path;
             if (string.IsNullOrEmpty(path))
                 return;
             if (!Directory.Exists(path))
@@ -313,17 +308,16 @@ namespace BeatSaverDownloader.Misc
 
             
         }
-        */
-        //bananabread download
+        
 
         public bool IsSongDownloaded(Song song)
         {
-            //       if (SongLoader.AreSongsLoaded)
-            //       {
-            //           return _alreadyDownloadedSongs.Any(x => x.Compare(song));
-            //       }
-            //       else
-            //           return false;
+                   if (SongCore.Loader.AreSongsLoaded)
+                   {
+                       return _alreadyDownloadedSongs.Any(x => x.Compare(song));
+                   }
+                   else
+                       return false;
             return false;
         }
 
@@ -334,10 +328,9 @@ namespace BeatSaverDownloader.Misc
         }
 
         //bananabread songloader id
-        public static BeatmapLevelSO GetLevel(string levelId)
+        public static CustomPreviewBeatmapLevel GetLevel(string levelId)
         {
-            return null;
-        //    return SongLoader.CustomBeatmapLevelPackCollectionSO.beatmapLevelPacks.SelectMany(x => x.beatmapLevelCollection.beatmapLevels).FirstOrDefault(x => x.levelID == levelId) as BeatmapLevelSO;
+            return SongCore.Loader.CustomBeatmapLevelPackCollectionSO.beatmapLevelPacks.SelectMany(x => x.beatmapLevelCollection.beatmapLevels).FirstOrDefault(x => x.levelID == levelId) as CustomPreviewBeatmapLevel;
         }
 
         public static bool CreateMD5FromFile(string path, out string hash)

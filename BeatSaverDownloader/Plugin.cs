@@ -30,7 +30,7 @@ namespace BeatSaverDownloader
             PluginConfig.LoadConfig();
             Sprites.ConvertToSprites();
             PlaylistsCollection.ReloadPlaylists();
-       //     SongLoader.SongsLoadedEvent += SongLoader_SongsLoadedEvent;
+            SongCore.Loader.SongsLoadedEvent += SongCore_SongsLoadedEvent;
             
             BSEvents.OnLoad();
             BSEvents.menuSceneLoadedFresh += OnMenuSceneLoadedFresh;
@@ -52,9 +52,8 @@ namespace BeatSaverDownloader
             }
         }
 
-        //bananabread songloader loading
-        /*
-        public void SongLoader_SongsLoadedEvent(SongLoader sender, List<CustomLevel> levels)
+        
+        public void SongCore_SongsLoadedEvent(SongCore.Loader sender, List<CustomPreviewBeatmapLevel> levels)
         {
             try
             {
@@ -65,7 +64,7 @@ namespace BeatSaverDownloader
                 Plugin.log.Critical("Unable to match songs for all playlists! Exception: "+e);
             }
         }
-        */
+        
 
         public void OnUpdate()
         {

@@ -71,7 +71,7 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
                 PlaylistsCollection.ReloadPlaylists(false);
                 _playlistsListViewController.Refresh();
                 //bananbread playlists levelpacks
-                //      SongListTweaks.Instance.UpdateLevelPacks();
+                      SongListTweaks.Instance.UpdateLevelPacks();
             }));
         }
 

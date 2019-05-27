@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
-
+using SongCore.OverrideClasses;
 namespace BeatSaverDownloader.Misc
 {
     public static class CustomHelpers
@@ -26,24 +26,24 @@ namespace BeatSaverDownloader.Misc
                 tableView.SelectCellWithIdx(rows.First(), callbackTable);
         }
         //bananbread levelpacks
-        /*
-        public static BeatmapLevelPackSO GetLevelPackWithLevels(BeatmapLevelSO[] levels, string packName = null, Sprite packCover = null, string packID = null)
+        
+        public static SongCoreCustomBeatmapLevelPack GetLevelPackWithLevels(CustomPreviewBeatmapLevel[] levels, string packName = null, Sprite packCover = null, string packID = null)
         {
-            
-            CustomLevelCollectionSO levelCollection = ScriptableObject.CreateInstance<CustomLevelCollectionSO>();
-            levelCollection.SetPrivateField("_levelList", levels.ToList());
-            levelCollection.SetPrivateField("_beatmapLevels", levels);
 
-            CustomBeatmapLevelPackSO pack = CustomBeatmapLevelPackSO.GetPack(levelCollection);
-            pack.SetPrivateField("_packName", string.IsNullOrEmpty(packName) ? "Custom Songs" : packName);
-            pack.SetPrivateField("_coverImage", packCover ?? Sprites.BeastSaberLogo);
-            pack.SetPrivateField("_packID", string.IsNullOrEmpty(packID) ? "" : packID);
-            pack.SetPrivateField("_isPackAlwaysOwned", true);
+            SongCoreCustomLevelCollection levelCollection = new SongCoreCustomLevelCollection(levels.ToArray());
+
+
+            SongCoreCustomBeatmapLevelPack pack = new SongCoreCustomBeatmapLevelPack(string.IsNullOrEmpty(packID) ? "" : packID,
+                string.IsNullOrEmpty(packName) ? "Custom Songs" : packName, packCover ?? Sprites.BeastSaberLogo, levelCollection);
+     //       pack.SetPrivateField("_packName", string.IsNullOrEmpty(packName) ? "Custom Songs" : packName);
+     //       pack.SetPrivateField("_coverImage", packCover ?? Sprites.BeastSaberLogo);
+     //       pack.SetPrivateField("_packID", string.IsNullOrEmpty(packID) ? "" : packID);
+     //       pack.SetPrivateField("_isPackAlwaysOwned", true);
 
             return pack;
             
         }
-    */
+    
 
         static char[] hexChars = new char[]{ '0' , '1' , '2' , '3' , '4' , '5' , '6' , '7' , '8' , '9' , 'A' , 'B' , 'C' , 'D' , 'E' , 'F' };
 

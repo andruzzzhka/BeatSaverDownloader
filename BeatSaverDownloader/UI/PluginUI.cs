@@ -47,13 +47,12 @@ namespace BeatSaverDownloader.UI
             initialized = false;
 
             StartCoroutine(SetupUI());
-            //bananbread songloader loaded
-            /*
-            if (!SongLoader.AreSongsLoaded)
-                SongLoader.SongsLoadedEvent += SongLoader_SongsLoadedEvent;
+            
+            if (!SongCore.Loader.AreSongsLoaded)
+                SongCore.Loader.SongsLoadedEvent += SongLoader_SongsLoadedEvent;
             else
-                SongLoader_SongsLoadedEvent(null, SongLoader.CustomLevels);
-                */
+                SongLoader_SongsLoadedEvent(null, SongCore.Loader.CustomLevels);
+                
             StartCoroutine(ScrappedData.Instance.DownloadScrappedData((List<ScrappedSong> songs) => {
                 if (PlaylistsCollection.loadedPlaylists.Any(x => x.playlistTitle == "Your favorite songs"))
                 {
@@ -61,14 +60,13 @@ namespace BeatSaverDownloader.UI
                 }
             }));
         }
-        //bananbread songloader loaded
-        /*
-        private void SongLoader_SongsLoadedEvent(SongLoader arg1, List<CustomLevel> arg2)
+        
+        private void SongLoader_SongsLoadedEvent(SongCore.Loader arg1, List<CustomPreviewBeatmapLevel> arg2)
         {
-            SongLoader.SongsLoadedEvent -= SongLoader_SongsLoadedEvent;
+            SongCore.Loader.SongsLoadedEvent -= SongLoader_SongsLoadedEvent;
             _moreSongsButton.interactable = true;
         }
-        */
+        
         private IEnumerator SetupUI()
         {
             if (initialized) yield break;
@@ -101,7 +99,7 @@ namespace BeatSaverDownloader.UI
 
             _moreSongsButton = MenuButtonUI.AddButton("More songs", "Download more songs from BeatSaver.com!", BeatSaverButtonPressed);
             //bananbread songloader loaded menubutton
-          //  _moreSongsButton.interactable = SongLoader.AreSongsLoaded;
+            _moreSongsButton.interactable = SongCore.Loader.AreSongsLoaded;
 
             MenuButtonUI.AddButton("More playlists", PlaylistsButtonPressed);
 
