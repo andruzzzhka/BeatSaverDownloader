@@ -178,7 +178,7 @@ namespace BeatSaverDownloader.UI
 
         private void VoteForSong(bool upvote)
         {
-            if(PluginConfig.apiAccessToken != PluginConfig.apiTokenPlaceholder)
+            if(PluginConfig.apiAccessToken != PluginConfig.apiTokenPlaceholder || string.IsNullOrWhiteSpace(PluginConfig.apiAccessToken))
             {
                 StartCoroutine(VoteWithAccessToken(upvote));
             }
