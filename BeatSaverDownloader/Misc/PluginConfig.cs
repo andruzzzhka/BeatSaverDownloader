@@ -66,7 +66,7 @@ namespace BeatSaverDownloader.Misc
         public static Dictionary<string, SongReview> reviewedSongs = new Dictionary<string, SongReview>();
 
         public static string beatsaverURL = "https://beatsaver.com";
-        public static string apiAccessToken { get; private set; }
+        public static string apiAccessToken { get; private set; } = "replace-this-with-your-api-token";
 
         static public string apiTokenPlaceholder = "replace-this-with-your-api-token";
 
@@ -189,60 +189,30 @@ namespace BeatSaverDownloader.Misc
                 return;
             }
 
-            if (config.HasKey("BeatSaverDownloader", "apiAccessToken"))
-            {
-                apiAccessToken = config.GetString("BeatSaverDownloader", "apiAccessToken", apiTokenPlaceholder);
-                if (string.IsNullOrEmpty(apiAccessToken))
-                {
-                    config.SetString("BeatSaverDownloader", "apiAccessToken", apiTokenPlaceholder);
-                    apiAccessToken = apiTokenPlaceholder;
-                }
-            }
 
-            if (config.HasKey("BeatSaverDownloader", "disableDeleteButton"))
-            {
-                disableDeleteButton = config.GetBool("BeatSaverDownloader", "disableDeleteButton", false);
-            }
+                apiAccessToken = config.GetString("BeatSaverDownloader", "apiAccessToken", apiTokenPlaceholder, true);
 
-            if (config.HasKey("BeatSaverDownloader", "deleteToRecycleBin"))
-            {
-                deleteToRecycleBin = config.GetBool("BeatSaverDownloader", "deleteToRecycleBin", true);
-            }
+                disableDeleteButton = config.GetBool("BeatSaverDownloader", "disableDeleteButton", false, true);
 
-            if (config.HasKey("BeatSaverDownloader", "enableSongIcons"))
-            {
-                enableSongIcons = config.GetBool("BeatSaverDownloader", "enableSongIcons", true);
-            }
+                deleteToRecycleBin = config.GetBool("BeatSaverDownloader", "deleteToRecycleBin", true, true);
 
-            if (config.HasKey("BeatSaverDownloader", "rememberLastPackAndSong"))
-            {
-                rememberLastPackAndSong = config.GetBool("BeatSaverDownloader", "rememberLastPackAndSong", false);
-            }
+                enableSongIcons = config.GetBool("BeatSaverDownloader", "enableSongIcons", true, true);
 
-            if (config.HasKey("BeatSaverDownloader", "lastSelectedSong"))
-            {
-                lastSelectedSong = config.GetString("BeatSaverDownloader", "lastSelectedSong", "");
-            }
+                rememberLastPackAndSong = config.GetBool("BeatSaverDownloader", "rememberLastPackAndSong", false, true);
+            
+                lastSelectedSong = config.GetString("BeatSaverDownloader", "lastSelectedSong", "", true);
 
-            if (config.HasKey("BeatSaverDownloader", "lastSelectedPack"))
-            {
-                lastSelectedPack = config.GetString("BeatSaverDownloader", "lastSelectedPack", "");
-            }
 
-            if (config.HasKey("BeatSaverDownloader", "lastSelectedSortMode"))
-            {
-                lastSelectedSortMode = (SortMode)config.GetInt("BeatSaverDownloader", "lastSelectedSortMode", 0);
-            }
+                lastSelectedPack = config.GetString("BeatSaverDownloader", "lastSelectedPack", "", true);
 
-            if (config.HasKey("BeatSaverDownloader", "maxSimultaneousDownloads"))
-            {
-                maxSimultaneousDownloads = config.GetInt("BeatSaverDownloader", "maxSimultaneousDownloads", 3);
-            }
 
-            if (config.HasKey("BeatSaverDownloader", "fastScrollSpeed"))
-            {
-                fastScrollSpeed = config.GetInt("BeatSaverDownloader", "fastScrollSpeed", 5);
-            }
+                lastSelectedSortMode = (SortMode)config.GetInt("BeatSaverDownloader", "lastSelectedSortMode", 0, true);
+
+
+                maxSimultaneousDownloads = config.GetInt("BeatSaverDownloader", "maxSimultaneousDownloads", 3, true);
+
+                fastScrollSpeed = config.GetInt("BeatSaverDownloader", "fastScrollSpeed", 5, true);
+            
         }
 
         public static bool LoadOldIni()
@@ -363,6 +333,7 @@ namespace BeatSaverDownloader.Misc
             File.WriteAllText(reviewedSongsPath, JsonConvert.SerializeObject(reviewedSongs, Formatting.Indented), Encoding.UTF8);
             File.WriteAllLines(favSongsPath, favoriteSongs.Distinct().ToArray(), Encoding.UTF8);
 
+            config.SetString("BeatSaverDownloader", "apiAccessToken", apiAccessToken);
             config.SetString("BeatSaverDownloader", "beatsaverURL", beatsaverURL);
             config.SetBool("BeatSaverDownloader", "disableDeleteButton", disableDeleteButton);
             config.SetBool("BeatSaverDownloader", "deleteToRecycleBin", deleteToRecycleBin);
