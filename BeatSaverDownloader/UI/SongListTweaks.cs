@@ -134,7 +134,7 @@ namespace BeatSaverDownloader.UI
             
         }
 
-        private void SongLoader_SongsLoadedEvent(SongCore.Loader arg1, List<CustomPreviewBeatmapLevel> arg2)
+        private void SongLoader_SongsLoadedEvent(SongCore.Loader arg1, Dictionary<string, CustomPreviewBeatmapLevel> arg2)
         {
             SongCore.Loader.SongsLoadedEvent -= SongLoader_SongsLoadedEvent;
             AddDefaultPlaylists();
@@ -382,7 +382,7 @@ namespace BeatSaverDownloader.UI
 
                 Playlist _favPlaylist = new Playlist() { playlistTitle = "Your favorite songs", playlistAuthor = "", image = Sprites.SpriteToBase64(Sprites.BeastSaberLogo), icon = Sprites.BeastSaberLogo, fileLoc = "" };
                 _favPlaylist.songs = new List<PlaylistSong>();
-                _favPlaylist.songs.AddRange(levels.Where(x =>  PluginConfig.favoriteSongs.Contains(x.levelID)).Select(x =>new PlaylistSong() { songName = $"{x.songName} {x.songSubName}", level = x as CustomPreviewBeatmapLevel, oneSaber = x.beatmapCharacteristics.Any(y => y.serializedName == "OneSaber"), path = "", key = "", levelId = x.levelID, hash = SongCore.Utilities.Utils.GetCustomLevelHash(x as CustomPreviewBeatmapLevel) }));
+                _favPlaylist.songs.AddRange(levels.Where(x =>  PluginConfig.favoriteSongs.Contains(x.levelID)).Select(x =>new PlaylistSong() { songName = $"{x.songName} {x.songSubName}", level = x as CustomPreviewBeatmapLevel, oneSaber = x.beatmapCharacteristics.Any(y => y.serializedName == "OneSaber"), path = "", key = "", levelId = x.levelID, hash = SongCore.Utilities.Hashing.GetCustomLevelHash(x as CustomPreviewBeatmapLevel) }));
                 Plugin.log.Info($"Created \"{_favPlaylist.playlistTitle}\" playlist with {_favPlaylist.songs.Count} songs!");
 
                 if (PlaylistsCollection.loadedPlaylists.Any(x => x.playlistTitle == "Your favorite songs"))
@@ -710,7 +710,7 @@ namespace BeatSaverDownloader.UI
 
             if (beatmap is CustomPreviewBeatmapLevel)
             {
-                var levelhash = SongCore.Utilities.Utils.GetCustomLevelHash(beatmap as CustomPreviewBeatmapLevel);
+                var levelhash = SongCore.Utilities.Hashing.GetCustomLevelHash(beatmap as CustomPreviewBeatmapLevel);
                 ScrappedSong song = ScrappedData.Songs.FirstOrDefault(x => x.Hash == levelhash);
                 if (song != null)
                 {
@@ -755,7 +755,7 @@ namespace BeatSaverDownloader.UI
                             List<IPreviewBeatmapLevel> levels = levelsTableView.GetPrivateField<IBeatmapLevelPack>("_pack").beatmapLevelCollection.beatmapLevels.ToList();
                             int selectedIndex = levels.FindIndex(x => x.levelID == _detailViewController.selectedDifficultyBeatmap.level.levelID);
 
-                            SongDownloader.Instance.DeleteSong(new Song(SongCore.Loader.CustomLevels.First(x => x.levelID == _detailViewController.selectedDifficultyBeatmap.level.levelID)));
+                            SongDownloader.Instance.DeleteSong(new Song(SongCore.Loader.CustomLevels.Values.First(x => x.levelID == _detailViewController.selectedDifficultyBeatmap.level.levelID)));
                             
                             if (selectedIndex > -1)
                             {
@@ -804,11 +804,15 @@ namespace BeatSaverDownloader.UI
         public void SetLevels(SortMode sortMode, string searchRequest)
         {
             lastSortMode = sortMode;
-
+            IPreviewBeatmapLevel[] packlevels;
             CustomPreviewBeatmapLevel[] levels = null;
             if (lastPack != null)
             {
-                levels = lastPack.beatmapLevelCollection.beatmapLevels.Cast<CustomPreviewBeatmapLevel>().ToArray();
+                packlevels = lastPack.beatmapLevelCollection.beatmapLevels;
+                if (lastPack.beatmapLevelCollection.beatmapLevels.First() is CustomPreviewBeatmapLevel)
+                    levels = packlevels.Cast<CustomPreviewBeatmapLevel>().ToArray();
+                else
+                    return;
             }
             else
             {
@@ -844,7 +848,7 @@ namespace BeatSaverDownloader.UI
 
             foreach (string path in sortedFolders)
             {
-                CustomPreviewBeatmapLevel song = SongCore.Loader.CustomLevels.FirstOrDefault(x => x.customLevelPath.StartsWith(path));
+                CustomPreviewBeatmapLevel song = SongCore.Loader.CustomLevels.Values.FirstOrDefault(x => x.customLevelPath.StartsWith(path));
                if (song != null)
                 {
                     sortedLevelPaths.Add(song.customLevelPath);
@@ -1001,7 +1005,7 @@ namespace BeatSaverDownloader.UI
                 if (!_downloadingPlaylist)
                     yield break;
                 //bananabread playlists id
-                if (beatSaverSong != null && !SongCore.Loader.CustomLevels.Any(x => beatSaverSong.hash == SongCore.Collections.hashForLevelID(x.levelID)))
+                if (beatSaverSong != null && !SongCore.Loader.CustomLevels.Values.Any(x => beatSaverSong.hash == SongCore.Collections.hashForLevelID(x.levelID)))
                 {
                     _downloadQueueViewController.EnqueueSong(beatSaverSong, true);
                 }

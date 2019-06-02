@@ -52,9 +52,9 @@ namespace BeatSaverDownloader.Misc
         }
         //bananbread song id
         
-        private void SongLoader_SongsLoadedEvent(SongCore.Loader sender, List<CustomPreviewBeatmapLevel> levels)
+        private void SongLoader_SongsLoadedEvent(SongCore.Loader sender, Dictionary<string, CustomPreviewBeatmapLevel> levels)
         {
-            _alreadyDownloadedSongs = levels.Select(x => new Song(x)).ToList();
+            _alreadyDownloadedSongs = levels.Values.Select(x => new Song(x)).ToList();
         }
         
         public IEnumerator DownloadSongCoroutine(Song songInfo)
@@ -177,7 +177,7 @@ namespace BeatSaverDownloader.Misc
                     string dirName = new DirectoryInfo(customSongsPath).Name;
 
                     SongCore.Loader.SongsLoadedEvent -= Plugin.instance.SongCore_SongsLoadedEvent;
-                    Action<SongCore.Loader, List<CustomPreviewBeatmapLevel>> songsLoadedAction = null;
+                    Action<SongCore.Loader, Dictionary<string, CustomPreviewBeatmapLevel>> songsLoadedAction = null;
                     songsLoadedAction = (arg1, arg2) =>
                     {
                         SongCore.Loader.SongsLoadedEvent -= songsLoadedAction;

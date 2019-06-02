@@ -61,7 +61,7 @@ namespace BeatSaverDownloader.UI
             }));
         }
         
-        private void SongLoader_SongsLoadedEvent(SongCore.Loader arg1, List<CustomPreviewBeatmapLevel> arg2)
+        private void SongLoader_SongsLoadedEvent(SongCore.Loader arg1, Dictionary<string, CustomPreviewBeatmapLevel> arg2)
         {
             SongCore.Loader.SongsLoadedEvent -= SongLoader_SongsLoadedEvent;
             _moreSongsButton.interactable = true;
