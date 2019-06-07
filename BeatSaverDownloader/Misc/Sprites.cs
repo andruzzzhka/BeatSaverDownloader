@@ -84,12 +84,16 @@ namespace BeatSaverDownloader.Misc
         public static Texture2D Base64ToTexture2D(string encodedData)
         {
             byte[] imageData = Convert.FromBase64String(encodedData);
-
-            Texture2D texture = new Texture2D(0, 0, TextureFormat.ARGB32, false, true);
-            texture.hideFlags = HideFlags.HideAndDontSave;
-            texture.filterMode = FilterMode.Trilinear;
-            texture.LoadImage(imageData);
-            return texture;
+            Texture2D Tex2D = new Texture2D(2, 2);
+            if (Tex2D.LoadImage(imageData))
+                return Tex2D;
+            else
+                return null;
+        //    Texture2D texture = new Texture2D(0, 0, TextureFormat.ARGB32, false, true);
+        //    texture.hideFlags = HideFlags.HideAndDontSave;
+        //    texture.filterMode = FilterMode.Trilinear;
+        //    texture.LoadImage(imageData);
+        //    return texture;
         }
     }
 }
