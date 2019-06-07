@@ -66,6 +66,7 @@ namespace BeatSaverDownloader.Misc
         public static Dictionary<string, SongReview> reviewedSongs = new Dictionary<string, SongReview>();
 
         public static string beatsaverURL = "https://beatsaver.com";
+        public static string scoresaberURL = "https://scoresaber.com";
         public static string apiAccessToken { get; private set; } = "replace-this-with-your-api-token";
 
         static public string apiTokenPlaceholder = "replace-this-with-your-api-token";

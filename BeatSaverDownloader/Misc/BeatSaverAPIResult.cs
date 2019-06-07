@@ -33,7 +33,6 @@ namespace BeatSaverDownloader.Misc
             offset = Offset;
 
         }
-
     }
     [Serializable]
     public class Song
@@ -58,6 +57,7 @@ namespace BeatSaverDownloader.Misc
         public string hash;
 
         public string path;
+        public bool scoreSaber;
 
         public SongQueueState songQueueState = SongQueueState.Queued;
 
@@ -68,8 +68,14 @@ namespace BeatSaverDownloader.Misc
 
         }
 
-        public Song(JSONNode jsonNode)
+        public Song(JSONNode jsonNode, bool scoreSaber)
         {
+            if (scoreSaber) 
+            {
+                this.scoreSaber = scoreSaber;
+                ConstructFromScoreSaber(jsonNode);
+                return;
+            }
             id = jsonNode["key"];
             beatname = jsonNode["name"];
             ownerid = jsonNode["uploaderId"];
@@ -98,6 +104,29 @@ namespace BeatSaverDownloader.Misc
             }
         }
 
+        public void ConstructFromScoreSaber(JSONNode jsonNode)
+        {
+           
+            id = "";
+            ownerid = "";
+            downloads = "";
+            upvotes = "";
+            downvotes = "";
+            plays = "";
+            description = "";
+            uploadtime = "";
+
+            songName = jsonNode["name"];
+            songSubName = jsonNode["songSubName"];
+            beatname = songName + "-" + songSubName;
+            authorName = jsonNode["author"];
+            beatsPerMinute = jsonNode["bpm"];
+            coverUrl = @"https://scoresaber.com" + jsonNode["image"];
+            hash = jsonNode["id"];
+            difficultyLevels = new DifficultyLevel[1];
+            difficultyLevels[0] = new DifficultyLevel("Easy", 4, "", 0);
+        }
+
         public static Song FromSearchNode(JSONNode mainNode)
         {
             Song buffer = new Song();
@@ -116,7 +145,8 @@ namespace BeatSaverDownloader.Misc
             buffer.coverUrl = mainNode["coverUrl"];
             buffer.downloadUrl = mainNode["downloadUrl"];
             buffer.hash = mainNode["hashMd5"];
-            
+            buffer.hash = buffer.hash.ToUpper();
+
             var difficultyNode = mainNode["difficulties"];
 
             buffer.difficultyLevels = new DifficultyLevel[difficultyNode.Count];
@@ -148,6 +178,7 @@ namespace BeatSaverDownloader.Misc
             coverUrl = jsonNode["coverUrl"];
             downloadUrl = jsonNode["downloadUrl"];
             hash = jsonNode["hashMd5"];
+            hash = hash.ToUpper();
 
             difficultyLevels = new DifficultyLevel[difficultyNode.Count];
 
@@ -159,6 +190,7 @@ namespace BeatSaverDownloader.Misc
 
         public bool Compare(Song compareTo)
         {
+            return compareTo.hash == hash;
             if (compareTo != null && songName == compareTo.songName)
             {
                 if (difficultyLevels != null && compareTo.difficultyLevels != null)

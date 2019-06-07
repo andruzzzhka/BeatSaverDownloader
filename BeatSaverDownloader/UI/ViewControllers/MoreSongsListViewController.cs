@@ -20,10 +20,13 @@ namespace BeatSaverDownloader.UI.ViewControllers
         public event Action<int> didSelectRow;
 
         public event Action searchButtonPressed;
-
+        
         public event Action sortByTop;
         public event Action sortByNew;
-        public event Action sortByPlays;
+
+        public event Action sortByTrending;
+        public event Action sortByNewlyRanked;
+        public event Action sortByDifficulty;
 
         public event Action pageUpPressed;
         public event Action pageDownPressed;
@@ -37,7 +40,10 @@ namespace BeatSaverDownloader.UI.ViewControllers
 
         private Button _topButton;
         private Button _newButton;
-        private Button _starButton;
+
+        private Button _trendingButton;
+        private Button _newlyRankedButton;
+        private Button _difficultyButton;
 
         private Button _searchButton;
 
@@ -47,6 +53,11 @@ namespace BeatSaverDownloader.UI.ViewControllers
         private LevelListTableCell _songListTableCellInstance;
 
         private int _lastSelectedRow;
+
+        private const string _mainButton = "CreditsButton";
+
+        private float _offset = 25f;
+        private bool _fixedOffset;
 
         protected override void DidActivate(bool firstActivation, ActivationType type)
         {
@@ -81,10 +92,10 @@ namespace BeatSaverDownloader.UI.ViewControllers
                     pageDownPressed?.Invoke();
                 });
 
-                _sortByButton = BeatSaberUI.CreateUIButton(rectTransform, "CreditsButton", new Vector2(15f, 36.5f), new Vector2(30f, 6f), () => { SelectTopButtons(TopButtonsState.SortBy); }, "Sort by");
+                _sortByButton = BeatSaberUI.CreateUIButton(rectTransform, _mainButton, new Vector2(15f, 36.5f), new Vector2(30f, 6f), () => { SelectTopButtons(TopButtonsState.SortBy); }, "Sort by");
                 _sortByButton.SetButtonTextSize(3f);
-
-                _topButton = BeatSaberUI.CreateUIButton(rectTransform, "CreditsButton", new Vector2(-20f, 36.5f), new Vector2(20f, 6f), () =>
+                
+                _topButton = BeatSaberUI.CreateUIButton(rectTransform, _mainButton, new Vector2(-20f - _offset, 36.5f), new Vector2(20f, 6f), () =>
                 {
                     sortByTop?.Invoke();
                     SelectTopButtons(TopButtonsState.Select);
@@ -95,7 +106,7 @@ namespace BeatSaverDownloader.UI.ViewControllers
                 _topButton.ToggleWordWrapping(false);
                 _topButton.gameObject.SetActive(false);
 
-                _newButton = BeatSaberUI.CreateUIButton(rectTransform, "CreditsButton", new Vector2(0f, 36.5f), new Vector2(20f, 6f), () =>
+                _newButton = BeatSaberUI.CreateUIButton(rectTransform, _mainButton, new Vector2(0f - _offset, 36.5f), new Vector2(20f, 6f), () =>
                 {
                     sortByNew?.Invoke();
                     SelectTopButtons(TopButtonsState.Select);
@@ -104,19 +115,36 @@ namespace BeatSaverDownloader.UI.ViewControllers
                 _newButton.SetButtonTextSize(3f);
                 _newButton.ToggleWordWrapping(false);
                 _newButton.gameObject.SetActive(false);
-
-
-                _starButton = BeatSaberUI.CreateUIButton(rectTransform, "CreditsButton", new Vector2(20f, 36.5f), new Vector2(20f, 6f), () =>
+                
+                _trendingButton = BeatSaberUI.CreateUIButton(rectTransform, _mainButton, new Vector2(20f - _offset, 36.5f), new Vector2(20f, 6f), () =>
                 {
-                    sortByPlays?.Invoke();
+                    sortByTrending?.Invoke();
                     SelectTopButtons(TopButtonsState.Select);
-                }, "Plays");
+                }, "Trending");
+                
+                _trendingButton.SetButtonTextSize(3f);
+                _trendingButton.ToggleWordWrapping(false);
+                _trendingButton.gameObject.SetActive(false);
 
-                _starButton.SetButtonTextSize(3f);
-                _starButton.ToggleWordWrapping(false);
-                _starButton.gameObject.SetActive(false);
+                _newlyRankedButton = BeatSaberUI.CreateUIButton(rectTransform, _mainButton, new Vector2(42f - _offset, 36.5f), new Vector2(25f, 6f), () => {
+                    sortByNewlyRanked?.Invoke();
+                    SelectTopButtons(TopButtonsState.Select);
+                },
+               "Newly Ranked");
+                _newlyRankedButton.SetButtonTextSize(3f);
+                _newlyRankedButton.ToggleWordWrapping(false);
+                _newlyRankedButton.gameObject.SetActive(false);
 
-                _searchButton = BeatSaberUI.CreateUIButton(rectTransform, "CreditsButton", new Vector2(-15, 36.5f), new Vector2(30f, 6f), () =>
+                _difficultyButton = BeatSaberUI.CreateUIButton(rectTransform, _mainButton, new Vector2(64f - _offset, 36.5f), new Vector2(20f, 6f), () => {
+                    sortByDifficulty?.Invoke();
+                    SelectTopButtons(TopButtonsState.Select);
+                },
+               "Difficulty");
+                _difficultyButton.SetButtonTextSize(3f);
+                _difficultyButton.ToggleWordWrapping(false);
+                _difficultyButton.gameObject.SetActive(false);
+
+                _searchButton = BeatSaberUI.CreateUIButton(rectTransform, _mainButton, new Vector2(-15, 36.5f), new Vector2(30f, 6f), () =>
                 {
                     searchButtonPressed?.Invoke();
                     SelectTopButtons(TopButtonsState.Search);
@@ -166,6 +194,15 @@ namespace BeatSaverDownloader.UI.ViewControllers
 
         protected override void DidDeactivate(DeactivationType type)
         {
+            if (_fixedOffset)
+            {
+                ApplyButtonOffset(_topButton);
+                ApplyButtonOffset(_newButton);
+                ApplyButtonOffset(_trendingButton);
+                ApplyButtonOffset(_newlyRankedButton);
+                ApplyButtonOffset(_difficultyButton);
+                _fixedOffset = false;
+            }
             _lastSelectedRow = -1;
         }
 
@@ -177,28 +214,36 @@ namespace BeatSaverDownloader.UI.ViewControllers
                     {
                         _sortByButton.gameObject.SetActive(true);
                         _searchButton.gameObject.SetActive(true);
-
                         _topButton.gameObject.SetActive(false);
                         _newButton.gameObject.SetActive(false);
-                        _starButton.gameObject.SetActive(false);
+
+                        _trendingButton.gameObject.SetActive(false);
+                        _newlyRankedButton.gameObject.SetActive(false);
+                        _difficultyButton.gameObject.SetActive(false);
                     }; break;
                 case TopButtonsState.SortBy:
                     {
                         _sortByButton.gameObject.SetActive(false);
                         _searchButton.gameObject.SetActive(false);
-
+                        
                         _topButton.gameObject.SetActive(true);
                         _newButton.gameObject.SetActive(true);
-                        _starButton.gameObject.SetActive(true);
+
+                        _trendingButton.gameObject.SetActive(true);
+                        _newlyRankedButton.gameObject.SetActive(true);
+                        _difficultyButton.gameObject.SetActive(true);
                     }; break;
                 case TopButtonsState.Search:
                     {
                         _sortByButton.gameObject.SetActive(false);
                         _searchButton.gameObject.SetActive(false);
-
+                        
                         _topButton.gameObject.SetActive(false);
                         _newButton.gameObject.SetActive(false);
-                        _starButton.gameObject.SetActive(false);
+
+                        _trendingButton.gameObject.SetActive(false);
+                        _newlyRankedButton.gameObject.SetActive(false);
+                        _difficultyButton.gameObject.SetActive(false);
 
                     }; break;
             }
@@ -235,8 +280,35 @@ namespace BeatSaverDownloader.UI.ViewControllers
 
         private void _songsTableView_DidSelectRowEvent(TableView sender, int row)
         {
+
+            if (!_fixedOffset)
+            {
+                RevertButtonOffset(_topButton);
+                RevertButtonOffset(_newButton);
+                RevertButtonOffset(_trendingButton);
+                RevertButtonOffset(_newlyRankedButton);
+                RevertButtonOffset(_difficultyButton);
+                _fixedOffset = true;
+            }
+          
             _lastSelectedRow = row;
             didSelectRow?.Invoke(row);
+        }
+
+        private void RevertButtonOffset(Button button) 
+        {
+            Plugin.log.Info("RevertButtonOffset");
+            RectTransform rectTransform = (button.transform as RectTransform);
+            Vector3 currentPosition = rectTransform.anchoredPosition;
+            rectTransform.anchoredPosition = new Vector2(currentPosition.x + _offset, currentPosition.y);
+        }
+
+        private void ApplyButtonOffset(Button button) 
+        {
+            Plugin.log.Info("RevertButtonOffset");
+            RectTransform rectTransform = (button.transform as RectTransform);
+            Vector3 currentPosition = rectTransform.anchoredPosition;
+            rectTransform.anchoredPosition = new Vector2(currentPosition.x - _offset, currentPosition.y);
         }
 
         public float CellSize()
