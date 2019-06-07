@@ -176,13 +176,16 @@ namespace BeatSaverDownloader.Misc
                     case LevelCompletionResults.LevelEndStateType.Failed:
                         InvokeAll(levelFailed, data, results);
                         break;
-                    case LevelCompletionResults.LevelEndStateType.Quit:
+                };
+                switch(results.levelEndAction)
+                {
+                    case LevelCompletionResults.LevelEndAction.Quit:
                         InvokeAll(levelQuit, data, results);
                         break;
-                    case LevelCompletionResults.LevelEndStateType.Restart:
+                    case LevelCompletionResults.LevelEndAction.Restart:
                         InvokeAll(levelRestarted, data, results);
                         break;
-                };
+                }
             };
 
             InvokeAll(gameSceneLoaded);
