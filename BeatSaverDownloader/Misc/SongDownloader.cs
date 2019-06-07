@@ -422,7 +422,7 @@ namespace BeatSaverDownloader.Misc
             {
                 JSONNode node = JSON.Parse(wwwId.downloadHandler.text);
 
-                Song _tempSong = new Song(node["song"]);
+                Song _tempSong = new Song(node["song"], false);
                 callback?.Invoke(_tempSong);
             }
         }

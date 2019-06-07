@@ -2,14 +2,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using VRUI;
 using UnityEngine.UI;
 using BeatSaverDownloader.UI.FlowCoordinators;
 using CustomUI.BeatSaber;
+using HMUI;
 
 namespace BeatSaverDownloader.UI.ViewControllers
 {
@@ -39,6 +38,8 @@ namespace BeatSaverDownloader.UI.ViewControllers
         private Button _downloadButton;
         private Button _favoriteButton;
 
+        private GameObject _loadingIndicator;
+
         //Time      - Downloads
         //BPM       - Plays
         //Notes     - BPM
@@ -53,6 +54,9 @@ namespace BeatSaverDownloader.UI.ViewControllers
                 _levelDetails = GetComponentsInChildren<StandardLevelDetailView>(true).First(x => x.name == "LevelDetail");
                 _levelDetails.gameObject.SetActive(true);
 
+                BeatmapDifficultySegmentedControlController beatmapDifficultySegmentedControl = GetComponentsInChildren<BeatmapDifficultySegmentedControlController>(true).First(x => x.name == "BeatmapDifficultySegmentedControl");
+                beatmapDifficultySegmentedControl.gameObject.SetActive(false);
+
                 RemoveCustomUIElements(rectTransform);
 
                 _levelParams = GetComponentsInChildren<LevelParamsPanel>().First(x => x.name == "LevelParamsPanel");
@@ -63,23 +67,23 @@ namespace BeatSaverDownloader.UI.ViewControllers
                     {
                         case "Time":
                             {
-                                hint.GetComponentInChildren<Image>().sprite = Sprites.DownloadIcon;
+                                hint.GetComponentInChildren<UnityEngine.UI.Image>().sprite = Sprites.DownloadIcon;
                             }; break;
                         case "BPM":
                             {
-                                hint.GetComponentInChildren<Image>().sprite = Sprites.PlayIcon;
+                                hint.GetComponentInChildren<UnityEngine.UI.Image>().sprite = Sprites.PlayIcon;
                             }; break;
                         case "NotesCount":
                             {
-                                hint.GetComponentInChildren<Image>().sprite = Resources.FindObjectsOfTypeAll<Sprite>().First(x => x.name == "MetronomeIcon");
+                                hint.GetComponentInChildren<UnityEngine.UI.Image>().sprite = Resources.FindObjectsOfTypeAll<Sprite>().First(x => x.name == "MetronomeIcon");
                             }; break;
                         case "ObstaclesCount":
                             {
-                                hint.GetComponentInChildren<Image>().sprite = Sprites.ThumbUp;
+                                hint.GetComponentInChildren<UnityEngine.UI.Image>().sprite = Sprites.ThumbUp;
                             }; break;
                         case "BombsCount":
                             {
-                                hint.GetComponentInChildren<Image>().sprite = Sprites.ThumbDown;
+                                hint.GetComponentInChildren<UnityEngine.UI.Image>().sprite = Sprites.ThumbDown;
                             }; break;
                     }
 
@@ -128,6 +132,11 @@ namespace BeatSaverDownloader.UI.ViewControllers
                 _favoriteButton.onClick.AddListener(() => { favoriteButtonPressed?.Invoke(_currentSong); });
 
                 coverImage = _levelDetails.GetPrivateField<RawImage>("_coverImage");
+
+                _loadingIndicator = BeatSaberUI.CreateLoadingSpinner(rectTransform);
+                (_loadingIndicator.transform as RectTransform).anchorMin = new Vector2(0.5f, 0.5f);
+                (_loadingIndicator.transform as RectTransform).anchorMax = new Vector2(0.5f, 0.5f);
+                (_loadingIndicator.transform as RectTransform).anchoredPosition = new Vector2(0f, 0f);
             }
         }
 
@@ -162,6 +171,28 @@ namespace BeatSaverDownloader.UI.ViewControllers
 
             SetFavoriteState(PluginConfig.favoriteSongs.Any(x => x.Contains(_currentSong.hash)));
             SetDownloadState((SongDownloader.Instance.IsSongDownloaded(_currentSong) ? DownloadState.Downloaded : (sender.IsDownloadingSong(_currentSong) ? DownloadState.Downloading : DownloadState.NotDownloaded)));
+        }
+
+
+        public void SetLoadingState(bool isLoading) 
+        {
+            if (isLoading)
+            {
+                _downloadButton.SetButtonText("LOADING...");
+                songNameText.text = "Loading...";
+                downloadsText.text = "0";
+                _levelParams.bpm = 0f;
+                _levelParams.notesCount = 0;
+                _levelParams.obstaclesCount = 0;
+                _levelParams.bombsCount = 0;
+            }
+
+            if (_loadingIndicator != null)
+            {
+                _downloadButton.interactable = !isLoading;
+                _levelDetails.gameObject.SetActive(!isLoading);
+                _loadingIndicator.SetActive(isLoading);
+            }
         }
 
         void RemoveCustomUIElements(Transform parent)

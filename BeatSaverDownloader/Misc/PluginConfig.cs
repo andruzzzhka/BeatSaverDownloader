@@ -66,6 +66,9 @@ namespace BeatSaverDownloader.Misc
         public static Dictionary<string, SongReview> reviewedSongs = new Dictionary<string, SongReview>();
 
         public static string beatsaverURL = "https://beatsaver.com";
+
+        public static string scoresaberURL = "https://scoresaber.com";
+
         public static string apiAccessToken { get; private set; } = "replace-this-with-your-api-token";
 
         static public string apiTokenPlaceholder = "replace-this-with-your-api-token";
@@ -190,28 +193,29 @@ namespace BeatSaverDownloader.Misc
             }
 
 
-            apiAccessToken = config.GetString("BeatSaverDownloader", "apiAccessToken", apiTokenPlaceholder, true);
+                apiAccessToken = config.GetString("BeatSaverDownloader", "apiAccessToken", apiTokenPlaceholder, true);
 
-            disableDeleteButton = config.GetBool("BeatSaverDownloader", "disableDeleteButton", false, true);
+                disableDeleteButton = config.GetBool("BeatSaverDownloader", "disableDeleteButton", false, true);
 
-            deleteToRecycleBin = config.GetBool("BeatSaverDownloader", "deleteToRecycleBin", true, true);
+                deleteToRecycleBin = config.GetBool("BeatSaverDownloader", "deleteToRecycleBin", true, true);
 
-            enableSongIcons = config.GetBool("BeatSaverDownloader", "enableSongIcons", true, true);
+                enableSongIcons = config.GetBool("BeatSaverDownloader", "enableSongIcons", true, true);
 
-            rememberLastPackAndSong = config.GetBool("BeatSaverDownloader", "rememberLastPackAndSong", false, true);
-
-            lastSelectedSong = config.GetString("BeatSaverDownloader", "lastSelectedSong", "", true);
-
-
-            lastSelectedPack = config.GetString("BeatSaverDownloader", "lastSelectedPack", "", true);
+                rememberLastPackAndSong = config.GetBool("BeatSaverDownloader", "rememberLastPackAndSong", false, true);
+            
+                lastSelectedSong = config.GetString("BeatSaverDownloader", "lastSelectedSong", "", true);
 
 
-            lastSelectedSortMode = (SortMode)config.GetInt("BeatSaverDownloader", "lastSelectedSortMode", 0, true);
+                lastSelectedPack = config.GetString("BeatSaverDownloader", "lastSelectedPack", "", true);
 
 
-            maxSimultaneousDownloads = config.GetInt("BeatSaverDownloader", "maxSimultaneousDownloads", 3, true);
+                lastSelectedSortMode = (SortMode)config.GetInt("BeatSaverDownloader", "lastSelectedSortMode", 0, true);
 
-            fastScrollSpeed = config.GetInt("BeatSaverDownloader", "fastScrollSpeed", 5, true);
+
+                maxSimultaneousDownloads = config.GetInt("BeatSaverDownloader", "maxSimultaneousDownloads", 3, true);
+
+                fastScrollSpeed = config.GetInt("BeatSaverDownloader", "fastScrollSpeed", 5, true);
+            
 
         }
 

@@ -5,7 +5,7 @@
   "gameVersion": "1.0.0",
   "id": "BeatSaverDownloader",
   "name": "BeatSaver Downloader",
-  "version": "3.3.5",
+  "version": "3.3.6",
   "dependsOn": {
     "CustomUI": "^1.5.4",
     "BS Utils": "^1.2.3",

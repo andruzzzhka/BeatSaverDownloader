@@ -1067,7 +1067,7 @@ namespace BeatSaverDownloader.UI
                     }
                     else
                     {
-                        songCallback?.Invoke(new Song(node["song"]));
+                        songCallback?.Invoke(new Song(node["song"], false));
                     }
                 }
                 catch (Exception e)
