@@ -297,7 +297,7 @@ namespace BeatSaverDownloader.UI.ViewControllers
 
         private void RevertButtonOffset(Button button) 
         {
-            Plugin.log.Info("RevertButtonOffset");
+     //       Plugin.log.Info("RevertButtonOffset");
             RectTransform rectTransform = (button.transform as RectTransform);
             Vector3 currentPosition = rectTransform.anchoredPosition;
             rectTransform.anchoredPosition = new Vector2(currentPosition.x + _offset, currentPosition.y);
@@ -305,7 +305,7 @@ namespace BeatSaverDownloader.UI.ViewControllers
 
         private void ApplyButtonOffset(Button button) 
         {
-            Plugin.log.Info("RevertButtonOffset");
+     //       Plugin.log.Info("RevertButtonOffset");
             RectTransform rectTransform = (button.transform as RectTransform);
             Vector3 currentPosition = rectTransform.anchoredPosition;
             rectTransform.anchoredPosition = new Vector2(currentPosition.x - _offset, currentPosition.y);
