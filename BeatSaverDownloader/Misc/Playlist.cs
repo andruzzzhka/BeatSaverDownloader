@@ -240,7 +240,7 @@ namespace BeatSaverDownloader.Misc
                 if (song != null)
                     key = song.Key;
                 else
-                    yield return SongDownloader.Instance.RequestSongByLevelIDCoroutine(hash, (Song bsSong) => { if (bsSong != null) key = bsSong.id; });
+                    yield return SongDownloader.Instance.RequestSongByLevelIDCoroutine(hash, (Song bsSong) => { if (bsSong != null) key = bsSong.key; });
             }
             else if (!string.IsNullOrEmpty(levelId))
             {
@@ -248,14 +248,14 @@ namespace BeatSaverDownloader.Misc
                 if (song != null)
                     key = song.Key;
                 else
-                    yield return SongDownloader.Instance.RequestSongByLevelIDCoroutine(levelId.Substring(0, Math.Min(32, levelId.Length)), (Song bsSong) => { if (bsSong != null) key = bsSong.id; });
+                    yield return SongDownloader.Instance.RequestSongByLevelIDCoroutine(levelId.Substring(0, Math.Min(32, levelId.Length)), (Song bsSong) => { if (bsSong != null) key = bsSong.key; });
             }else if (level != null)
             {
                 ScrappedSong song = ScrappedData.Songs.FirstOrDefault(x => level.levelID.StartsWith(x.Hash));
                 if (song != null)
                     key = song.Key;
                 else
-                    yield return SongDownloader.Instance.RequestSongByLevelIDCoroutine(level.levelID.Substring(0, Math.Min(32, level.levelID.Length)), (Song bsSong) => { if (bsSong != null) key = bsSong.id; });
+                    yield return SongDownloader.Instance.RequestSongByLevelIDCoroutine(level.levelID.Substring(0, Math.Min(32, level.levelID.Length)), (Song bsSong) => { if (bsSong != null) key = bsSong.key; });
             }
         }
 
@@ -280,9 +280,9 @@ namespace BeatSaverDownloader.Misc
             {
                 return levelId.ToUpper().StartsWith(song.hash.ToUpper());
             }
-            if (!string.IsNullOrEmpty(key) && !string.IsNullOrEmpty(song.id))
+            if (!string.IsNullOrEmpty(key) && !string.IsNullOrEmpty(song.key))
             {
-                return key.ToUpper() == song.id.ToUpper();
+                return key.ToUpper() == song.key.ToUpper();
             }
             return false;
         }

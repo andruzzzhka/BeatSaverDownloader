@@ -164,11 +164,11 @@ namespace BeatSaverDownloader.UI.ViewControllers
 
             songNameText.text = _currentSong.songName;
 
-            downloadsText.text = _currentSong.downloads;
-            _levelParams.bpm = float.Parse(_currentSong.plays);
-            _levelParams.notesCount = int.Parse(_currentSong.beatsPerMinute);
-            _levelParams.obstaclesCount = int.Parse(_currentSong.upvotes);
-            _levelParams.bombsCount = int.Parse(_currentSong.downvotes);
+            downloadsText.text = _currentSong.downloads.ToString();
+            _levelParams.bpm = (float)(_currentSong.plays);
+            _levelParams.notesCount = (int)_currentSong.bpm;
+            _levelParams.obstaclesCount = _currentSong.upVotes;
+            _levelParams.bombsCount = _currentSong.downVotes;
 
             Polyglot.LocalizedTextMeshProUGUI localizer1 = difficulty1Title.GetComponentInChildren<Polyglot.LocalizedTextMeshProUGUI>();
             if (localizer1 != null)
@@ -186,11 +186,11 @@ namespace BeatSaverDownloader.UI.ViewControllers
 
 
 
-            difficulty1Text.text = (_currentSong.difficultyLevels.Where(x => (x.difficulty == "Expert" || x.difficulty == "ExpertPlus")).Count() > 0) ? "Yes" : "No";
-            difficulty2Text.text = (_currentSong.difficultyLevels.Where(x => x.difficulty == "Hard").Count() > 0) ? "Yes" : "No";
-            difficulty3Text.text = (_currentSong.difficultyLevels.Where(x => (x.difficulty == "Easy" || x.difficulty == "Normal")).Count() > 0) ? "Yes" : "No";
+            difficulty1Text.text = (_currentSong.metadata.difficulties.expert || _currentSong.metadata.difficulties.expertPlus) ? "Yes" : "No";
+            difficulty2Text.text = (_currentSong.metadata.difficulties.hard) ? "Yes" : "No";
+            difficulty3Text.text = (_currentSong.metadata.difficulties.easy || _currentSong.metadata.difficulties.normal) ? "Yes" : "No";
 
-            StartCoroutine(LoadScripts.LoadSpriteCoroutine(_currentSong.coverUrl, (cover) => { coverImage.texture = cover.texture;}));
+            StartCoroutine(LoadScripts.LoadSpriteCoroutine(_currentSong.coverURL, (cover) => { coverImage.texture = cover.texture;}));
 
             SetFavoriteState(PluginConfig.favoriteSongs.Any(x => x.Contains(_currentSong.hash)));
             SetDownloadState((SongDownloader.Instance.IsSongDownloaded(_currentSong) ? DownloadState.Downloaded : (sender.IsDownloadingSong(_currentSong) ? DownloadState.Downloading : DownloadState.NotDownloaded)));

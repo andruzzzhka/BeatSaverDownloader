@@ -1,4 +1,4 @@
-﻿using SimpleJSON;
+﻿
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -11,7 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Networking;
-
+using Newtonsoft.Json.Linq;
 namespace BeatSaverDownloader.Misc
 {
     public class SongDownloader : MonoBehaviour
@@ -68,7 +68,7 @@ namespace BeatSaverDownloader.Misc
 
             try
             {
-                www = UnityWebRequest.Get(songInfo.downloadUrl);
+                www = UnityWebRequest.Get(songInfo.downloadURL);
 
                 asyncRequest = www.SendWebRequest();
             }
@@ -146,7 +146,7 @@ namespace BeatSaverDownloader.Misc
                 Plugin.log.Info("Extracting...");
                 _extractingZip = true;
                 ZipArchive archive = new ZipArchive(zipStream, ZipArchiveMode.Read);
-                string path = customSongsPath + "/" + songInfo.id + " (" + songInfo.songName + " - " + songInfo.authorName + ")";
+                string path = customSongsPath + "/" + songInfo.key + " (" + songInfo.songName + " - " + songInfo.levelAuthorName + ")";
                 if (Directory.Exists(path))
                 {
                     int pathNum = 1;
@@ -376,7 +376,7 @@ namespace BeatSaverDownloader.Misc
         public static string GetLevelID(Song song)
         {
             Console.WriteLine("LevelID for: " + song.path);
-            string[] values = new string[] { song.hash, song.songName, song.songSubName, song.authorName, song.beatsPerMinute };
+            string[] values = new string[] { song.hash, song.songName, song.songSubName, song.levelAuthorName, song.bpm.ToString() };
             return string.Join("∎", values) + "∎";
         }
 
@@ -427,16 +427,15 @@ namespace BeatSaverDownloader.Misc
             }
             else
             {
-                JSONNode node = JSON.Parse(wwwId.downloadHandler.text);
-
-                if (node["songs"].Count == 0)
+                JObject jNode = JObject.Parse(wwwId.downloadHandler.text);
+                if (jNode["songs"].Children().Count() == 0)
                 {
                     Plugin.log.Error($"Song {levelId} doesn't exist on BeatSaver!");
                     callback?.Invoke(null);
                     yield break;
                 }
 
-                Song _tempSong = Song.FromSearchNode(node["songs"][0]);
+                Song _tempSong = Song.FromSearchNode((JObject)jNode["songs"][0]);
                 callback?.Invoke(_tempSong);
             }
         }
@@ -460,9 +459,9 @@ namespace BeatSaverDownloader.Misc
             }
             else
             {
-                JSONNode node = JSON.Parse(wwwId.downloadHandler.text);
+                JObject node = JObject.Parse(wwwId.downloadHandler.text);
 
-                Song _tempSong = new Song(node["song"], false);
+                Song _tempSong = new Song((JObject)node["song"], false);
                 callback?.Invoke(_tempSong);
             }
         }

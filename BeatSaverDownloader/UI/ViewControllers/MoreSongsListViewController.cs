@@ -327,7 +327,7 @@ namespace BeatSaverDownloader.UI.ViewControllers
             
             _tableCell.reuseIdentifier = "MoreSongsTableCell";
             _tableCell.GetPrivateField<TextMeshProUGUI>("_songNameText").text = string.Format("{0} <size=80%>{1}</size>", songsList[row].songName, songsList[row].songSubName);
-            _tableCell.GetPrivateField<TextMeshProUGUI>("_authorText").text = songsList[row].authorName;
+            _tableCell.GetPrivateField<TextMeshProUGUI>("_authorText").text = songsList[row].songAuthorName + " <size=80%>[" + songsList[row].levelAuthorName + "]</size>";
             _tableCell.SetPrivateField("_beatmapCharacteristicAlphas", new float[0]);
             _tableCell.SetPrivateField("_beatmapCharacteristicImages", new UnityEngine.UI.Image[0]);
             _tableCell.SetPrivateField("_bought", true);
@@ -337,7 +337,7 @@ namespace BeatSaverDownloader.UI.ViewControllers
                 Destroy(icon.gameObject);
             }
 
-            StartCoroutine(LoadScripts.LoadSpriteCoroutine(songsList[row].coverUrl, (cover) => { _tableCell.GetPrivateField<UnityEngine.UI.RawImage>("_coverRawImage").texture = cover.texture; }));
+            StartCoroutine(LoadScripts.LoadSpriteCoroutine(songsList[row].coverURL, (cover) => { _tableCell.GetPrivateField<UnityEngine.UI.RawImage>("_coverRawImage").texture = cover.texture; }));
             bool alreadyDownloaded = SongDownloader.Instance.IsSongDownloaded(songsList[row]);
             
             if (alreadyDownloaded)

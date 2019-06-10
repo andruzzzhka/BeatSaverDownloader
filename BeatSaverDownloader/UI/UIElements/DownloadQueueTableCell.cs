@@ -42,8 +42,8 @@ namespace BeatSaverDownloader.UI.UIElements
             }
 
             _songNameText.text = string.Format("{0}\n<size=80%>{1}</size>", song.songName, song.songSubName);
-            _authorText.text = song.authorName;
-            StartCoroutine(LoadScripts.LoadSpriteCoroutine(song.coverUrl, (cover) => { _coverRawImage.texture = cover.texture; }));
+            _authorText.text = song.songAuthorName + " <size=80%>[" + song.levelAuthorName + "]</size>";
+            StartCoroutine(LoadScripts.LoadSpriteCoroutine(song.coverURL, (cover) => { _coverRawImage.texture = cover.texture; }));
 
             _bgImage.enabled = true;
             _bgImage.sprite = Sprite.Create((new Texture2D(1, 1)), new Rect(0, 0, 1, 1), Vector2.one / 2f);

@@ -21,6 +21,7 @@ using CustomUI.Utilities;
 using UnityEngine.Networking;
 using SimpleJSON;
 using SongCore.OverrideClasses;
+using Newtonsoft.Json.Linq;
 namespace BeatSaverDownloader.UI
 {
     public enum SortMode { Default, Difficulty, Newest };
@@ -995,10 +996,10 @@ namespace BeatSaverDownloader.UI
                     beatSaverSong = new Song()
                     {
                         songName = item.songName,
-                        id = item.key,
+                        key = item.key,
                         downloadingProgress = 0f,
                         hash = (item.levelId == null ? "" : item.levelId),
-                        downloadUrl = archiveUrl
+                        downloadURL = archiveUrl
                     };
                 }
 
@@ -1053,21 +1054,21 @@ namespace BeatSaverDownloader.UI
             {
                 try
                 {
-                    JSONNode node = JSON.Parse(www.downloadHandler.text);
+                    JObject jNode = JObject.Parse(www.downloadHandler.text);
 
                     if (_usingHash)
                     {
-                        if (node["songs"].Count == 0)
+                        if (jNode["songs"].Children().Count() == 0)
                         {
                             Plugin.log.Error($"Song {song.songName} doesn't exist on BeatSaver!");
                             songCallback?.Invoke(null);
                             yield break;
                         }
-                        songCallback?.Invoke(Song.FromSearchNode(node["songs"][0]));
+                        songCallback?.Invoke(Song.FromSearchNode((JObject)jNode["songs"][0]));
                     }
                     else
                     {
-                        songCallback?.Invoke(new Song(node["song"], false));
+                        songCallback?.Invoke(new Song((JObject)jNode["song"], false));
                     }
                 }
                 catch (Exception e)
