@@ -146,8 +146,16 @@ namespace BeatSaverDownloader.Misc
                 Plugin.log.Info("Extracting...");
                 _extractingZip = true;
                 ZipArchive archive = new ZipArchive(zipStream, ZipArchiveMode.Read);
-                await Task.Run(() => archive.ExtractToDirectory(customSongsPath)).ConfigureAwait(false);
+                string path = customSongsPath + "/" + songInfo.id + " (" + songInfo.songName + " - " + songInfo.authorName + ")";
+                if (Directory.Exists(path))
+                {
+                    int pathNum = 1;
+                    while (Directory.Exists(path + $" ({pathNum})")) ++pathNum;
+                    path += $" ({pathNum})";
+                }
+                await Task.Run(() => archive.ExtractToDirectory(path)).ConfigureAwait(false);
                 archive.Dispose();
+                songInfo.path = path;
             }
             catch (Exception e)
             {
@@ -158,8 +166,40 @@ namespace BeatSaverDownloader.Misc
             }
             zipStream.Close();
 
-            songInfo.path = Directory.GetDirectories(customSongsPath).FirstOrDefault();
-
+            //Correct subfolder
+            /*
+            try
+            {
+                string path = Directory.GetDirectories(customSongsPath).FirstOrDefault();
+                SongCore.Utilities.Utils.GrantAccess(path);
+                DirectoryInfo subfolder = new DirectoryInfo(path).GetDirectories().FirstOrDefault();
+                if(subfolder != null)
+                {
+                    Console.WriteLine(path);
+                    Console.WriteLine(subfolder.FullName);
+                    string newPath = CustomLevelPathHelper.customLevelsDirectoryPath + "/" + songInfo.id + " " + subfolder.Name;
+                    if (Directory.Exists(newPath))
+                    {
+                        int pathNum = 1;
+                        while (Directory.Exists(newPath + $" ({pathNum})")) ++pathNum;
+                        newPath = newPath + $" ({pathNum})";
+                    }
+                    Console.WriteLine(newPath);
+                    Directory.Move(subfolder.FullName, newPath);
+                    if (SongCore.Utilities.Utils.IsDirectoryEmpty(path))
+                    {
+                        Directory.Delete(path);
+                    }
+                    songInfo.path = newPath;
+                }
+                else
+                    Console.WriteLine("subfoldern null");
+            }
+            catch(Exception ex)
+            {
+                Plugin.log.Error($"Unable to prepare Extracted Zip! \n {ex}");
+            }
+            */
             if (string.IsNullOrEmpty(songInfo.path))
             {
                 songInfo.path = customSongsPath;

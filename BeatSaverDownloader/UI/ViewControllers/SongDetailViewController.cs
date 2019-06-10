@@ -107,11 +107,11 @@ namespace BeatSaverDownloader.UI.ViewControllers
 
                     playsText = _textComponents.First(x => x.name == "ValueText" && x.transform.parent.name == "BPM");
                     playsText.fontSize = 3f;
-                    foreach (var x in _textComponents)
-                    {
-                        Console.WriteLine(x.name);
-                        Console.WriteLine(x.transform.parent.name);
-                    }
+            //        foreach (var x in _textComponents)
+            //        {
+            //            Console.WriteLine(x.name);
+            //            Console.WriteLine(x.transform.parent.name);
+            //        }
                     difficulty1Title = _textComponents.First(x => x.name == "Title" && x.transform.parent.name == "MaxRank"); //.text = "Expert/+";
                     difficulty1Text = _textComponents.First(x => x.name == "Value" && x.transform.parent.name == "MaxRank");
 
