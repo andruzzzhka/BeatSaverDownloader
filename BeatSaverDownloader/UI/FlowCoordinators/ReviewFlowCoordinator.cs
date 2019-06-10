@@ -96,18 +96,18 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
                 {
                     if (arg1 == VRUIViewController.ActivationType.AddedToHierarchy)
                     {
-                        if (PluginConfig.reviewedSongs.ContainsKey(hash.Substring(0, 32)))
+                        if (PluginConfig.reviewedSongs.ContainsKey(hash))
                         {
                             _reviewViewController.SetSubmitButtonState(false, true);
                             _reviewViewController.SetStatusText(true, "<color=red>You have already left a review about this song!");
 
                             _reviewViewController.SetReviewValues(
-                                PluginConfig.reviewedSongs[hash.Substring(0, 32)].fun_factor,
-                                PluginConfig.reviewedSongs[hash.Substring(0, 32)].rhythm,
-                                PluginConfig.reviewedSongs[hash.Substring(0, 32)].flow,
-                                PluginConfig.reviewedSongs[hash.Substring(0, 32)].pattern_quality,
-                                PluginConfig.reviewedSongs[hash.Substring(0, 32)].readability,
-                                PluginConfig.reviewedSongs[hash.Substring(0, 32)].level_quality
+                                PluginConfig.reviewedSongs[hash].fun_factor,
+                                PluginConfig.reviewedSongs[hash].rhythm,
+                                PluginConfig.reviewedSongs[hash].flow,
+                                PluginConfig.reviewedSongs[hash].pattern_quality,
+                                PluginConfig.reviewedSongs[hash].readability,
+                                PluginConfig.reviewedSongs[hash].level_quality
                                 );
                         }
                         else
@@ -174,14 +174,14 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
                             {
                                 Plugin.log.Info("Success!");
 
-                                if (!PluginConfig.reviewedSongs.ContainsKey(hash.Substring(0, 32)))
+                                if (!PluginConfig.reviewedSongs.ContainsKey(hash))
                                 {
-                                    PluginConfig.reviewedSongs.Add(hash.Substring(0, 32), new SongReview(songkey, funFactor, rhythm, flow, patternQuality, readability, levelQuality));
+                                    PluginConfig.reviewedSongs.Add(hash, new SongReview(songkey, funFactor, rhythm, flow, patternQuality, readability, levelQuality));
                                     PluginConfig.SaveConfig();
                                 }
                                 else
                                 {
-                                    PluginConfig.reviewedSongs[hash.Substring(0, 32)] = new SongReview(songkey, funFactor, rhythm, flow, patternQuality, readability, levelQuality);
+                                    PluginConfig.reviewedSongs[hash] = new SongReview(songkey, funFactor, rhythm, flow, patternQuality, readability, levelQuality);
                                     PluginConfig.SaveConfig();
                                 }
 
