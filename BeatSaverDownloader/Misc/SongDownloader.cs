@@ -415,7 +415,7 @@ namespace BeatSaverDownloader.Misc
 
         public IEnumerator RequestSongByLevelIDCoroutine(string levelId, Action<Song> callback)
         {
-            UnityWebRequest wwwId = UnityWebRequest.Get($"{PluginConfig.beatsaverURL}/api/songs/search/hash/" + levelId);
+            UnityWebRequest wwwId = UnityWebRequest.Get($"{PluginConfig.beatsaverURL}/api/maps/by-hash/" + levelId);
             wwwId.timeout = 10;
 
             yield return wwwId.SendWebRequest();
@@ -428,14 +428,14 @@ namespace BeatSaverDownloader.Misc
             else
             {
                 JObject jNode = JObject.Parse(wwwId.downloadHandler.text);
-                if (jNode["songs"].Children().Count() == 0)
+                if (jNode["docs"].Children().Count() == 0)
                 {
                     Plugin.log.Error($"Song {levelId} doesn't exist on BeatSaver!");
                     callback?.Invoke(null);
                     yield break;
                 }
 
-                Song _tempSong = Song.FromSearchNode((JObject)jNode["songs"][0]);
+                Song _tempSong = Song.FromSearchNode((JObject)jNode["docs"][0]);
                 callback?.Invoke(_tempSong);
             }
         }
@@ -447,7 +447,7 @@ namespace BeatSaverDownloader.Misc
 
         public IEnumerator RequestSongByKeyCoroutine(string key, Action<Song> callback)
         {
-            UnityWebRequest wwwId = UnityWebRequest.Get($"{PluginConfig.beatsaverURL}/api/songs/detail/" + key);
+            UnityWebRequest wwwId = UnityWebRequest.Get($"{PluginConfig.beatsaverURL}/api/maps/detail/" + key);
             wwwId.timeout = 10;
 
             yield return wwwId.SendWebRequest();

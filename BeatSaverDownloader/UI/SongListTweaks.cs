@@ -1020,7 +1020,7 @@ namespace BeatSaverDownloader.UI
             bool _usingHash = false;
             if (!string.IsNullOrEmpty(song.key))
             {
-                url = $"{PluginConfig.beatsaverURL}/api/songs/detail/{song.key}";
+                url = $"{PluginConfig.beatsaverURL}/api/maps/detail/{song.key}";
                 if (!string.IsNullOrEmpty(playlist.customDetailUrl))
                 {
                     url = playlist.customDetailUrl + song.key;
@@ -1028,13 +1028,13 @@ namespace BeatSaverDownloader.UI
             }
             else if (!string.IsNullOrEmpty(song.hash))
             {
-                url = $"{PluginConfig.beatsaverURL}/api/songs/search/hash/{song.hash}";
+                url = $"{PluginConfig.beatsaverURL}/api/maps/by-hash/{song.hash}";
                 _usingHash = true;
             }
             else if (!string.IsNullOrEmpty(song.levelId))
             {
                 string hash = CustomHelpers.CheckHex(song.levelId.Substring(0, Math.Min(32, song.levelId.Length)));
-                url = $"{PluginConfig.beatsaverURL}/api/songs/search/hash/{hash}";
+                url = $"{PluginConfig.beatsaverURL}/api/maps/by-hash/{hash}";
                 _usingHash = true;
             }
             else
@@ -1058,13 +1058,13 @@ namespace BeatSaverDownloader.UI
 
                     if (_usingHash)
                     {
-                        if (jNode["songs"].Children().Count() == 0)
+                        if (jNode["docs"].Children().Count() == 0)
                         {
                             Plugin.log.Error($"Song {song.songName} doesn't exist on BeatSaver!");
                             songCallback?.Invoke(null);
                             yield break;
                         }
-                        songCallback?.Invoke(Song.FromSearchNode((JObject)jNode["songs"][0]));
+                        songCallback?.Invoke(Song.FromSearchNode((JObject)jNode["docs"][0]));
                     }
                     else
                     {

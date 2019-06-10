@@ -294,7 +294,7 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
 
             yield return null;
             _songDetailViewController.SetLoadingState(true);
-            UnityWebRequest www = UnityWebRequest.Get($"{PluginConfig.beatsaverURL}/api/songs/search/hash/{currentPageSongs[row].hash}");
+            UnityWebRequest www = UnityWebRequest.Get($"{PluginConfig.beatsaverURL}/api/maps/by-hash/{currentPageSongs[row].hash}");
             www.timeout = 15;
             yield return www.SendWebRequest();
             if (www.isNetworkError || www.isHttpError)
@@ -308,7 +308,7 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
                     
                     Newtonsoft.Json.Linq.JObject jNode = JObject.Parse(www.downloadHandler.text);
                //     JSONNode node = JSON.Parse(www.downloadHandler.text);
-                    currentPageSongs[row] = new Song((JObject)jNode["songs"][0], false);
+                    currentPageSongs[row] = new Song((JObject)jNode["docs"][0], false);
                     //      currentPageSongs[row] = new Song(node["songs"][0], false);
                     _songDetailViewController.SetContent(this, currentPageSongs[row]);
                     _descriptionViewController.SetDescription(currentPageSongs[row].description);
@@ -346,9 +346,9 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
                 {
                     JObject jNode = JObject.Parse(www.downloadHandler.text);
                     currentPageSongs.Clear();
-                    for (int i = 0; i < Math.Min(jNode["songs"].Children().Count(), songsPerPage); i++)
+                    for (int i = 0; i < Math.Min(jNode["docs"].Children().Count(), songsPerPage); i++)
                     {
-                        currentPageSongs.Add(new Song((JObject)jNode["songs"][i], true));
+                        currentPageSongs.Add(new Song((JObject)jNode["docs"][i], true));
                     }
 
                     _moreSongsListViewController.SetContent(currentPageSongs);
@@ -369,7 +369,7 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
             _moreSongsListViewController.TogglePageUpDownButtons((page > 0), true);
             _moreSongsListViewController.SetContent(null);
             
-            UnityWebRequest www = UnityWebRequest.Get($"{PluginConfig.beatsaverURL}/api/songs/{sortBy}/{(page * 6)}");
+            UnityWebRequest www = UnityWebRequest.Get($"{PluginConfig.beatsaverURL}/api/maps/{sortBy}/{(page * 6)}");
             www.timeout = 15;
             yield return www.SendWebRequest();
 
@@ -385,9 +385,9 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
 
                     currentPageSongs.Clear();
 
-                    for (int i = 0; i < Math.Min(jNode["songs"].Children().Count(), songsPerPage); i++)
+                    for (int i = 0; i < Math.Min(jNode["docs"].Children().Count(), songsPerPage); i++)
                     {
-                        currentPageSongs.Add(new Song((JObject)jNode["songs"][i], false));
+                        currentPageSongs.Add(new Song((JObject)jNode["docs"][i], false));
                     }
 
                     _moreSongsListViewController.SetContent(currentPageSongs);
@@ -408,7 +408,7 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
             _moreSongsListViewController.TogglePageUpDownButtons((page > 0), true);
             _moreSongsListViewController.SetContent(null);
 
-            UnityWebRequest www = UnityWebRequest.Get($"{PluginConfig.beatsaverURL}/api/songs/search/all/{search}");
+            UnityWebRequest www = UnityWebRequest.Get($"{PluginConfig.beatsaverURL}/api/search/text/0?q={search}");
 
             www.timeout = 30;
             yield return www.SendWebRequest();
@@ -425,9 +425,9 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
 
                     currentPageSongs.Clear();
 
-                    for (int i = 0; i < Math.Min(jNode["songs"].Children().Count(), songsPerPage); i++)
+                    for (int i = 0; i < Math.Min(jNode["docs"].Children().Count(), songsPerPage); i++)
                     {
-                        currentPageSongs.Add(new Song((JObject)jNode["songs"][i], false));
+                        currentPageSongs.Add(new Song((JObject)jNode["docs"][i], false));
                     }
 
                     _moreSongsListViewController.SetContent(currentPageSongs);

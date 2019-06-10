@@ -126,7 +126,7 @@ namespace BeatSaverDownloader.UI
 
         private IEnumerator GetRatingForSong(IBeatmapLevel level)
         {
-            UnityWebRequest www = UnityWebRequest.Get($"{PluginConfig.beatsaverURL}/api/songs/search/hash/{SongCore.Utilities.Hashing.GetCustomLevelHash(level as CustomPreviewBeatmapLevel)}");
+            UnityWebRequest www = UnityWebRequest.Get($"{PluginConfig.beatsaverURL}/api/maps/by-hash/{SongCore.Utilities.Hashing.GetCustomLevelHash(level as CustomPreviewBeatmapLevel)}");
 
             yield return www.SendWebRequest();
 
@@ -141,13 +141,13 @@ namespace BeatSaverDownloader.UI
                     _firstVote = true;
                     JObject jNode = JObject.Parse(www.downloadHandler.text);
 
-                    if (jNode["songs"].Children().Count() > 0)
+                    if (jNode["docs"].Children().Count() > 0)
                     {
-                        _lastBeatSaverSong = Song.FromSearchNode((JObject)jNode["songs"][0]);
+                        _lastBeatSaverSong = Song.FromSearchNode((JObject)jNode["docs"][0]);
 
                         _ratingText.text = (_lastBeatSaverSong.upVotes -_lastBeatSaverSong.downVotes).ToString();
 
-                        bool canVote = (PluginConfig.apiAccessToken != PluginConfig.apiTokenPlaceholder || (VRPlatformHelper.instance.vrPlatformSDK == VRPlatformHelper.VRPlatformSDK.OpenVR || Environment.CommandLine.ToLower().Contains("-vrmode oculus") || Environment.CommandLine.ToLower().Contains("fpfc")));
+                        bool canVote = (/*PluginConfig.apiAccessToken != PluginConfig.apiTokenPlaceholder ||*/ (VRPlatformHelper.instance.vrPlatformSDK == VRPlatformHelper.VRPlatformSDK.OpenVR || Environment.CommandLine.ToLower().Contains("-vrmode oculus") || Environment.CommandLine.ToLower().Contains("fpfc")));
 
                         _upvoteButton.interactable = canVote;
                         _downvoteButton.interactable = canVote;
@@ -193,8 +193,8 @@ namespace BeatSaverDownloader.UI
 
             _upvoteButton.interactable = false;
             _downvoteButton.interactable = false;
-
-            UnityWebRequest voteWWW = UnityWebRequest.Get($"{PluginConfig.beatsaverURL}/api/songs/vote/{_lastBeatSaverSong.key}/{(upvote ? 1 : 0)}/{PluginConfig.apiAccessToken}");
+            
+            UnityWebRequest voteWWW = UnityWebRequest.Get($"{PluginConfig.beatsaverURL}/api/vote/user/{_lastBeatSaverSong.key}/{(upvote ? 1 : -1)}/{PluginConfig.apiAccessToken}");
             voteWWW.timeout = 30;
             yield return voteWWW.SendWebRequest();
 
@@ -351,8 +351,9 @@ namespace BeatSaverDownloader.UI
             Dictionary<string, string> formData = new Dictionary<string, string> ();
             formData.Add("id", steamId.m_SteamID.ToString());
             formData.Add("ticket", authTicketHexString);
+            formData.Add("direction", (upvote ? 1 : -1).ToString());
 
-            UnityWebRequest voteWWW = UnityWebRequest.Post($"{PluginConfig.beatsaverURL}/api/songs/voteById/{_lastBeatSaverSong.key}/{(upvote ? 1 : 0)}", formData);
+            UnityWebRequest voteWWW = UnityWebRequest.Post($"{PluginConfig.beatsaverURL}/api/vote/steam/{_lastBeatSaverSong.key}", formData);
             voteWWW.SetRequestHeader("Content-Type", "application/x-www-form-urlencoded");
             voteWWW.timeout = 30;
             yield return voteWWW.SendWebRequest();
