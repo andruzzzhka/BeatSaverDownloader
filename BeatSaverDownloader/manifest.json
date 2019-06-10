@@ -2,15 +2,14 @@
   "$schema": "https://raw.githubusercontent.com/beat-saber-modding-group/BSIPA-MetadataFileSchema/master/Schema.json",
   "author": "andruzzzhka",
   "description": "Enables you to download songs from BeatSaver in-game.",
-  "gameVersion": "1.0.0",
+  "gameVersion": "1.1.0",
   "id": "BeatSaverDownloader",
   "name": "BeatSaver Downloader",
-  "version": "3.3.6",
+  "version": "4.0.0",
   "dependsOn": {
     "CustomUI": "^1.5.4",
     "BS Utils": "^1.2.3",
-    "SongCore": "^1.0.0",
-    "Harmony": "^1.2.1"
+    "SongCore": "^2.0.0"
   },
   "features": [
     "print",
