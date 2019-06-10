@@ -83,7 +83,7 @@ namespace BeatSaverDownloader.UI
             IDifficultyBeatmap diffBeatmap = _standardLevelResultsViewController.GetPrivateField<IDifficultyBeatmap>("_difficultyBeatmap");
             _lastLevel = diffBeatmap.level;
 
-            if (_lastLevel.levelID.Length < 32)
+            if (!(_lastLevel is CustomPreviewBeatmapLevel))
             {
                 _upvoteButton.gameObject.SetActive(false);
                 _downvoteButton.gameObject.SetActive(false);
@@ -120,13 +120,13 @@ namespace BeatSaverDownloader.UI
 
             PluginUI.Instance.reviewFlowCoordinator.parentFlowCoordinator = SongListTweaks.Instance.freePlayFlowCoordinator;
             PluginUI.Instance.reviewFlowCoordinator.songkey = _lastBeatSaverSong.key;
-            PluginUI.Instance.reviewFlowCoordinator.levelId = _lastLevel.levelID;
+            PluginUI.Instance.reviewFlowCoordinator.hash = SongCore.Utilities.Hashing.GetCustomLevelHash(_lastLevel as CustomPreviewBeatmapLevel);
             SongListTweaks.Instance.freePlayFlowCoordinator.InvokePrivateMethod("PresentFlowCoordinator", new object[] { PluginUI.Instance.reviewFlowCoordinator, null, false, false });
         }
 
         private IEnumerator GetRatingForSong(IBeatmapLevel level)
         {
-            UnityWebRequest www = UnityWebRequest.Get($"{PluginConfig.beatsaverURL}/api/songs/search/hash/{level.levelID.Substring(0, 32)}");
+            UnityWebRequest www = UnityWebRequest.Get($"{PluginConfig.beatsaverURL}/api/songs/search/hash/{SongCore.Utilities.Hashing.GetCustomLevelHash(level as CustomPreviewBeatmapLevel)}");
 
             yield return www.SendWebRequest();
 
@@ -153,10 +153,10 @@ namespace BeatSaverDownloader.UI
                         _downvoteButton.interactable = canVote;
 
                         _reviewButton.interactable = true;
-
-                        if (PluginConfig.votedSongs.ContainsKey(_lastLevel.levelID.Substring(0, 32)))
+                        string lastLevelHash = SongCore.Utilities.Hashing.GetCustomLevelHash(_lastLevel as CustomPreviewBeatmapLevel);
+                        if (PluginConfig.votedSongs.ContainsKey(lastLevelHash))
                         {
-                            switch (PluginConfig.votedSongs[_lastLevel.levelID.Substring(0, 32)].voteType)
+                            switch (PluginConfig.votedSongs[lastLevelHash].voteType)
                             {
                                 case VoteType.Upvote: { _upvoteButton.interactable = false; } break;
                                 case VoteType.Downvote: { _downvoteButton.interactable = false; } break;
@@ -229,15 +229,15 @@ namespace BeatSaverDownloader.UI
                                 _downvoteButton.interactable = false;
                                 _upvoteButton.interactable = true;
                             }
-
-                            if (!PluginConfig.votedSongs.ContainsKey(_lastLevel.levelID.Substring(0, 32)))
+                            string lastlevelHash = SongCore.Utilities.Hashing.GetCustomLevelHash(_lastLevel as CustomPreviewBeatmapLevel);
+                            if (!PluginConfig.votedSongs.ContainsKey(lastlevelHash))
                             {
-                                PluginConfig.votedSongs.Add(_lastLevel.levelID.Substring(0, 32), new SongVote(_lastBeatSaverSong.key, upvote ? VoteType.Upvote : VoteType.Downvote));
+                                PluginConfig.votedSongs.Add(lastlevelHash, new SongVote(_lastBeatSaverSong.key, upvote ? VoteType.Upvote : VoteType.Downvote));
                                 PluginConfig.SaveConfig();
                             }
-                            else if (PluginConfig.votedSongs[_lastLevel.levelID.Substring(0, 32)].voteType != (upvote ? VoteType.Upvote : VoteType.Downvote))
+                            else if (PluginConfig.votedSongs[lastlevelHash].voteType != (upvote ? VoteType.Upvote : VoteType.Downvote))
                             {
-                                PluginConfig.votedSongs[_lastLevel.levelID.Substring(0, 32)] = new SongVote(_lastBeatSaverSong.key, upvote ? VoteType.Upvote : VoteType.Downvote);
+                                PluginConfig.votedSongs[lastlevelHash] = new SongVote(_lastBeatSaverSong.key, upvote ? VoteType.Upvote : VoteType.Downvote);
                                 PluginConfig.SaveConfig();
                             }
                         }; break;
@@ -388,15 +388,15 @@ namespace BeatSaverDownloader.UI
                                 _downvoteButton.interactable = false;
                                 _upvoteButton.interactable = true;
                             }
-
-                            if (!PluginConfig.votedSongs.ContainsKey(_lastLevel.levelID.Substring(0, 32)))
+                            string lastlevelHash = SongCore.Utilities.Hashing.GetCustomLevelHash(_lastLevel as CustomPreviewBeatmapLevel);
+                            if (!PluginConfig.votedSongs.ContainsKey(lastlevelHash))
                             {
-                                PluginConfig.votedSongs.Add(_lastLevel.levelID.Substring(0, 32), new SongVote(_lastBeatSaverSong.key, upvote ? VoteType.Upvote : VoteType.Downvote));
+                                PluginConfig.votedSongs.Add(lastlevelHash, new SongVote(_lastBeatSaverSong.key, upvote ? VoteType.Upvote : VoteType.Downvote));
                                 PluginConfig.SaveConfig();
                             }
-                            else if (PluginConfig.votedSongs[_lastLevel.levelID.Substring(0, 32)].voteType != (upvote ? VoteType.Upvote : VoteType.Downvote))
+                            else if (PluginConfig.votedSongs[lastlevelHash].voteType != (upvote ? VoteType.Upvote : VoteType.Downvote))
                             {
-                                PluginConfig.votedSongs[_lastLevel.levelID.Substring(0, 32)] = new SongVote(_lastBeatSaverSong.key, upvote ? VoteType.Upvote : VoteType.Downvote);
+                                PluginConfig.votedSongs[lastlevelHash] = new SongVote(_lastBeatSaverSong.key, upvote ? VoteType.Upvote : VoteType.Downvote);
                                 PluginConfig.SaveConfig();
                             }
                         }; break;

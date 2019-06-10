@@ -827,7 +827,7 @@ namespace BeatSaverDownloader.UI
                     case SortMode.Newest: { levels = SortLevelsByCreationTime(levels); }; break;
                     case SortMode.Difficulty:
                         {
-                            levels = levels.AsParallel().OrderBy(x => { int index = ScrappedData.Songs.FindIndex(y => x.levelID.StartsWith(y.Hash)); return (index == -1 ? (x.levelID.Length < 32 ? int.MaxValue : int.MaxValue - 1) : index); }).ToArray();
+                            levels = levels.AsParallel().OrderBy(x => { int index = ScrappedData.Songs.FindIndex(y => x.levelID.StartsWith(y.Hash)); return (index == -1 ? (int.MaxValue - 1) : index); }).ToArray();
                         }; break;
                 }
             }
@@ -1097,9 +1097,12 @@ namespace BeatSaverDownloader.UI
                 {
                     return __result;
                 }
-
-                string levelId = __instance.GetPrivateField<IBeatmapLevelPack>("_pack").beatmapLevelCollection.beatmapLevels[(showHeader ? (row - 1) : row)].levelID;
-                levelId = levelId.Substring(0, Math.Min(32, levelId.Length));
+                var level = __instance.GetPrivateField<IBeatmapLevelPack>("_pack").beatmapLevelCollection.beatmapLevels[(showHeader ? (row - 1) : row)];
+                string levelId;
+                if (level is CustomPreviewBeatmapLevel)
+                    levelId = SongCore.Utilities.Hashing.GetCustomLevelHash(level as CustomPreviewBeatmapLevel);
+                else
+                    levelId = level.levelID;
 
                 UnityEngine.UI.Image icon = null;
 

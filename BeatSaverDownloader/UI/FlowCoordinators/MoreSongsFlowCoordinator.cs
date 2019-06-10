@@ -25,7 +25,7 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
         private SimpleDialogPromptViewController _simpleDialog;
 
         public int currentPage = 0;
-        public string currentSortMode = "top";
+        public string currentSortMode = "hot";
         public string currentSearchRequest = "";
         public int currentScoreSaberSortMode = 0;
         public bool scoreSaber = false;
@@ -62,7 +62,7 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
                 _moreSongsListViewController.pageUpPressed += _moreSongsListViewController_pageUpPressed;
 
 
-                _moreSongsListViewController.sortByTop += () => { currentSortMode = "top"; currentPage = 0; StartCoroutine(GetPage(currentPage, currentSortMode)); currentSearchRequest = ""; };
+                _moreSongsListViewController.sortByTop += () => { currentSortMode = "hot"; currentPage = 0; StartCoroutine(GetPage(currentPage, currentSortMode)); currentSearchRequest = ""; };
                 _moreSongsListViewController.sortByNew += () => { currentSortMode = "new"; currentPage = 0; StartCoroutine(GetPage(currentPage, currentSortMode)); currentSearchRequest = ""; };
 
                 _moreSongsListViewController.sortByNewlyRanked += () => { currentScoreSaberSortMode = 1; currentPage = 0; StartCoroutine(GetPageScoreSaber(currentPage, currentScoreSaberSortMode)); };

@@ -50,7 +50,7 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
         public event Action didFinishEvent;
 
         public string songkey;
-        public string levelId;
+        public string hash;
 
         public FlowCoordinator parentFlowCoordinator;
 
@@ -96,18 +96,18 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
                 {
                     if (arg1 == VRUIViewController.ActivationType.AddedToHierarchy)
                     {
-                        if (PluginConfig.reviewedSongs.ContainsKey(levelId.Substring(0, 32)))
+                        if (PluginConfig.reviewedSongs.ContainsKey(hash.Substring(0, 32)))
                         {
                             _reviewViewController.SetSubmitButtonState(false, true);
                             _reviewViewController.SetStatusText(true, "<color=red>You have already left a review about this song!");
 
                             _reviewViewController.SetReviewValues(
-                                PluginConfig.reviewedSongs[levelId.Substring(0, 32)].fun_factor,
-                                PluginConfig.reviewedSongs[levelId.Substring(0, 32)].rhythm,
-                                PluginConfig.reviewedSongs[levelId.Substring(0, 32)].flow,
-                                PluginConfig.reviewedSongs[levelId.Substring(0, 32)].pattern_quality,
-                                PluginConfig.reviewedSongs[levelId.Substring(0, 32)].readability,
-                                PluginConfig.reviewedSongs[levelId.Substring(0, 32)].level_quality
+                                PluginConfig.reviewedSongs[hash.Substring(0, 32)].fun_factor,
+                                PluginConfig.reviewedSongs[hash.Substring(0, 32)].rhythm,
+                                PluginConfig.reviewedSongs[hash.Substring(0, 32)].flow,
+                                PluginConfig.reviewedSongs[hash.Substring(0, 32)].pattern_quality,
+                                PluginConfig.reviewedSongs[hash.Substring(0, 32)].readability,
+                                PluginConfig.reviewedSongs[hash.Substring(0, 32)].level_quality
                                 );
                         }
                         else
@@ -174,14 +174,14 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
                             {
                                 Plugin.log.Info("Success!");
 
-                                if (!PluginConfig.reviewedSongs.ContainsKey(levelId.Substring(0, 32)))
+                                if (!PluginConfig.reviewedSongs.ContainsKey(hash.Substring(0, 32)))
                                 {
-                                    PluginConfig.reviewedSongs.Add(levelId.Substring(0, 32), new SongReview(songkey, funFactor, rhythm, flow, patternQuality, readability, levelQuality));
+                                    PluginConfig.reviewedSongs.Add(hash.Substring(0, 32), new SongReview(songkey, funFactor, rhythm, flow, patternQuality, readability, levelQuality));
                                     PluginConfig.SaveConfig();
                                 }
                                 else
                                 {
-                                    PluginConfig.reviewedSongs[levelId.Substring(0, 32)] = new SongReview(songkey, funFactor, rhythm, flow, patternQuality, readability, levelQuality);
+                                    PluginConfig.reviewedSongs[hash.Substring(0, 32)] = new SongReview(songkey, funFactor, rhythm, flow, patternQuality, readability, levelQuality);
                                     PluginConfig.SaveConfig();
                                 }
 
