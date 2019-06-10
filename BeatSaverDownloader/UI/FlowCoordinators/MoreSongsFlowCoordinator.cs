@@ -346,9 +346,9 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
                 {
                     JObject jNode = JObject.Parse(www.downloadHandler.text);
                     currentPageSongs.Clear();
-                    for (int i = 0; i < Math.Min(jNode["docs"].Children().Count(), songsPerPage); i++)
+                    for (int i = 0; i < Math.Min(jNode["songs"].Children().Count(), songsPerPage); i++)
                     {
-                        currentPageSongs.Add(new Song((JObject)jNode["docs"][i], true));
+                        currentPageSongs.Add(new Song((JObject)jNode["songs"][i], true));
                     }
 
                     _moreSongsListViewController.SetContent(currentPageSongs);
