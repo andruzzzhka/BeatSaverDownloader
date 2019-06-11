@@ -408,7 +408,7 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
             _moreSongsListViewController.TogglePageUpDownButtons((page > 0), true);
             _moreSongsListViewController.SetContent(null);
 
-            UnityWebRequest www = UnityWebRequest.Get($"{PluginConfig.beatsaverURL}/api/search/text/0?q={search}");
+            UnityWebRequest www = UnityWebRequest.Get($"{PluginConfig.beatsaverURL}/api/search/text/{page}?q={search}");
 
             www.timeout = 30;
             yield return www.SendWebRequest();
