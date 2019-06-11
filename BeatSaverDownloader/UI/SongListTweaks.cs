@@ -1081,7 +1081,7 @@ namespace BeatSaverDownloader.UI
 
                     if (_usingHash)
                     {
-                        if (jNode["docs"].Children().Count() == 0)
+                        if (jNode.Children().Count() == 0)
                         {
                             Plugin.log.Error($"Song {song.songName} doesn't exist on BeatSaver!");
                             songCallback?.Invoke(null);
