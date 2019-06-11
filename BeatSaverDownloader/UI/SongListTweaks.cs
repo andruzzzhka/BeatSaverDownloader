@@ -847,10 +847,9 @@ namespace BeatSaverDownloader.UI
 
             List<string> sortedLevelPaths = new List<string>();
 
-            foreach (string path in sortedFolders)
+            for (int i = 0; i < sortedFolders.Count; i++)
             {
-                CustomPreviewBeatmapLevel song = SongCore.Loader.CustomLevels[path];
-               if (song != null)
+                if (SongCore.Loader.CustomLevels.TryGetValue(sortedFolders[i], out var song))
                 {
                     sortedLevelPaths.Add(song.customLevelPath);
                 }
@@ -860,9 +859,9 @@ namespace BeatSaverDownloader.UI
 
             List<CustomPreviewBeatmapLevel> sortedLevels = new List<CustomPreviewBeatmapLevel>();
 
-            foreach (string path in sortedLevelPaths)
+            for (int i2 = 0; i2 < sortedLevelPaths.Count; i2++)
             {
-                CustomPreviewBeatmapLevel data = notSorted.FirstOrDefault(x => x.customLevelPath == path);
+                CustomPreviewBeatmapLevel data = notSorted.FirstOrDefault(x => x.customLevelPath == sortedLevelPaths[i2]);
                 if (data != null)
                 {
                     sortedLevels.Add(data);
