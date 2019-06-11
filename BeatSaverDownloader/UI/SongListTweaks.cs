@@ -1030,6 +1030,7 @@ namespace BeatSaverDownloader.UI
                 }
             }
             _downloadingPlaylist = false;
+            PlaylistsCollection.MatchSongsForPlaylist(playlist);
         }
 
         public IEnumerator GetInfoForSong(Playlist playlist, PlaylistSong song, Action<Song> songCallback)
@@ -1051,7 +1052,7 @@ namespace BeatSaverDownloader.UI
             }
             else if (!string.IsNullOrEmpty(song.levelId))
             {
-                string hash = CustomHelpers.CheckHex(song.levelId.Substring(0, Math.Min(32, song.levelId.Length)));
+                string hash = song.levelId.Split('_')[2];
                 url = $"{PluginConfig.beatsaverURL}/api/maps/by-hash/{hash}";
                 _usingHash = true;
             }
@@ -1082,11 +1083,17 @@ namespace BeatSaverDownloader.UI
                             songCallback?.Invoke(null);
                             yield break;
                         }
-                        songCallback?.Invoke(new Song((JObject)jNode, false));
+                        var newSong = new Song((JObject)jNode, false);
+                        if (song.key.Contains("-"))
+                            UpdatePlaylistSongEntry(playlist, song, newSong);
+                        songCallback?.Invoke(newSong);
                     }
                     else
                     {
-                        songCallback?.Invoke(new Song((JObject)jNode, false));
+                        var newSong = new Song((JObject)jNode, false);
+                        if (song.key.Contains("-"))
+                            UpdatePlaylistSongEntry(playlist, song, newSong);
+                        songCallback?.Invoke(newSong);
                     }
                 }
                 catch (Exception e)
@@ -1094,6 +1101,23 @@ namespace BeatSaverDownloader.UI
                     Plugin.log.Critical("Unable to parse response! Exception: " + e);
                 }
             }
+        }
+        public void UpdatePlaylistSongEntry(Playlist playlist, PlaylistSong song, Song newSong)
+        {
+            playlist.songs.First(x => x.songName == song.songName).key = newSong.key;
+            var json = JSON.Parse(File.ReadAllText(playlist.fileLoc));
+            foreach (JSONNode node in json["songs"].AsArray)
+            {
+                if (node["songName"] == song.songName)
+                {
+       //             Plugin.log.Info("Updating: " + song.songName);
+                    node["key"] = newSong.key;
+                }
+
+            }
+            File.WriteAllText(playlist.fileLoc, json.ToString());
+
+
         }
     }
 

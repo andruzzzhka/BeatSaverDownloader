@@ -225,7 +225,7 @@ namespace BeatSaverDownloader.Misc
                     };
                     SongCore.Loader.SongsLoadedEvent += songsLoadedAction;
 
-                    SongCore.Loader.Instance.RetrieveNewSong(songInfo.path);
+                    SongCore.Loader.Instance.RefreshSongs(false);
                     
                 }
                 catch (Exception e)

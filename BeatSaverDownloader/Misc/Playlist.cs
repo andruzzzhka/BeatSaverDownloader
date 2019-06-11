@@ -180,6 +180,10 @@ namespace BeatSaverDownloader.Misc
                                     x.level = SongCore.Loader.CustomLevels.Values.FirstOrDefault(y => y.customLevelPath.Contains(x.key));
                                 }
                             }
+                    //        if(x.level == null) //If Still null, grab first level with same songName
+                    //        {
+                    //            x.level = SongCore.Loader.CustomLevels.Values.FirstOrDefault(y => y.songName == x.songName);
+                    //        }
                         }
                         catch (Exception e)
                         {
@@ -210,7 +214,7 @@ namespace BeatSaverDownloader.Misc
     {
         public string key { get { if (_key == null) return ""; else return _key; } set { _key = value; } }
         private string _key;
-
+        public string newKey = "";
         public string songName { get { if (_songName == null) return ""; else return _songName; } set { _songName = value; } }
         private string _songName;
 
