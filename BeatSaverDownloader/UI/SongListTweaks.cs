@@ -1082,11 +1082,11 @@ namespace BeatSaverDownloader.UI
                             songCallback?.Invoke(null);
                             yield break;
                         }
-                        songCallback?.Invoke(Song.FromSearchNode((JObject)jNode["docs"][0]));
+                        songCallback?.Invoke(new Song((JObject)jNode, false));
                     }
                     else
                     {
-                        songCallback?.Invoke(new Song((JObject)jNode["song"], false));
+                        songCallback?.Invoke(new Song((JObject)jNode, false));
                     }
                 }
                 catch (Exception e)

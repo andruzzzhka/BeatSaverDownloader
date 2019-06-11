@@ -214,7 +214,7 @@ namespace BeatSaverDownloader.Misc
                 try
                 {
                     
-                    string dirName = new DirectoryInfo(customSongsPath).Name;
+          //          string dirName = new DirectoryInfo(customSongsPath).Name;
 
                     SongCore.Loader.SongsLoadedEvent -= Plugin.instance.SongCore_SongsLoadedEvent;
                     Action<SongCore.Loader, Dictionary<string, CustomPreviewBeatmapLevel>> songsLoadedAction = null;
@@ -225,7 +225,7 @@ namespace BeatSaverDownloader.Misc
                     };
                     SongCore.Loader.SongsLoadedEvent += songsLoadedAction;
 
-                    SongCore.Loader.Instance.RetrieveNewSong(dirName);
+                    SongCore.Loader.Instance.RetrieveNewSong(songInfo.path);
                     
                 }
                 catch (Exception e)
