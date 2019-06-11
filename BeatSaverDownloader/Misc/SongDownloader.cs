@@ -428,14 +428,14 @@ namespace BeatSaverDownloader.Misc
             else
             {
                 JObject jNode = JObject.Parse(wwwId.downloadHandler.text);
-                if (jNode["docs"].Children().Count() == 0)
+                if (jNode.Children().Count() == 0)
                 {
                     Plugin.log.Error($"Song {levelId} doesn't exist on BeatSaver!");
                     callback?.Invoke(null);
                     yield break;
                 }
 
-                Song _tempSong = Song.FromSearchNode((JObject)jNode["docs"][0]);
+                Song _tempSong = Song.FromSearchNode((JObject)jNode);
                 callback?.Invoke(_tempSong);
             }
         }
@@ -461,7 +461,7 @@ namespace BeatSaverDownloader.Misc
             {
                 JObject node = JObject.Parse(wwwId.downloadHandler.text);
 
-                Song _tempSong = new Song((JObject)node["song"], false);
+                Song _tempSong = new Song((JObject)node, false);
                 callback?.Invoke(_tempSong);
             }
         }
