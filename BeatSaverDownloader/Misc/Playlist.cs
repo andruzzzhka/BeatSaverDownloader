@@ -270,7 +270,7 @@ namespace BeatSaverDownloader.Misc
                 songName = level.songName + " " + level.songSubName;
                 levelId = level.levelID;
                 //bananbread id customlevel 
-                hash = SongCore.Utilities.Hashing.GetCustomLevelHash(level);
+                hash = SongCore.Utilities.Hashing.GetCustomLevelHash(level).ToLower();
             }
         }
 

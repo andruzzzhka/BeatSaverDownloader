@@ -112,9 +112,9 @@ namespace BeatSaverDownloader.UI
         private Button _favoriteButton;
         private Button _deleteButton;
         private Button _authorButton;
-        private TextMeshProUGUI _starStatText;
-        private TextMeshProUGUI _upvoteStatText;
-        private TextMeshProUGUI _downvoteStatText;
+    //    private TextMeshProUGUI _starStatText;
+    //    private TextMeshProUGUI _upvoteStatText;
+    //    private TextMeshProUGUI _downvoteStatText;
 
         public void OnLoad()
         {
@@ -340,6 +340,7 @@ namespace BeatSaverDownloader.UI
             _deleteButton.transform.SetAsLastSibling();
 
             //based on https://github.com/halsafar/BeatSaberSongBrowser/blob/master/SongBrowserPlugin/UI/Browser/SongBrowserUI.cs#L416
+            /*
             var statsPanel = _detailViewController.GetPrivateField<StandardLevelDetailView>("_standardLevelDetailView").GetPrivateField<LevelParamsPanel>("_levelParamsPanel");
             var statTransforms = statsPanel.GetComponentsInChildren<RectTransform>();
             var valueTexts = statsPanel.GetComponentsInChildren<TextMeshProUGUI>().Where(x => x.name == "ValueText").ToList();
@@ -362,21 +363,22 @@ namespace BeatSaverDownloader.UI
                 var text = valueTexts[i];
                 text.fontSize = 3.25f;
             }
+            */
 
-            var _starStatTransform = Instantiate(statTransforms[1], statsPanel.transform, false);
-            _starStatText = _starStatTransform.GetComponentInChildren<TextMeshProUGUI>(true);
-            _starStatTransform.GetComponentInChildren<UnityEngine.UI.Image>(true).sprite = Sprites.StarFull;
-            _starStatText.text = "--";
+       //     var _starStatTransform = Instantiate(statTransforms[1], statsPanel.transform, false);
+       //     _starStatText = _starStatTransform.GetComponentInChildren<TextMeshProUGUI>(true);
+       //     _starStatTransform.GetComponentInChildren<UnityEngine.UI.Image>(true).sprite = Sprites.StarFull;
+       //     _starStatText.text = "--";
 
-            var _upvoteStatTransform = Instantiate(statTransforms[1], statsPanel.transform, false);
-            _upvoteStatText = _upvoteStatTransform.GetComponentInChildren<TextMeshProUGUI>(true);
-            _upvoteStatTransform.GetComponentInChildren<UnityEngine.UI.Image>(true).sprite = Sprites.ThumbUp;
-            _upvoteStatText.text = "--";
+       //     var _upvoteStatTransform = Instantiate(statTransforms[1], statsPanel.transform, false);
+       //     _upvoteStatText = _upvoteStatTransform.GetComponentInChildren<TextMeshProUGUI>(true);
+       //     _upvoteStatTransform.GetComponentInChildren<UnityEngine.UI.Image>(true).sprite = Sprites.ThumbUp;
+       //     _upvoteStatText.text = "--";
 
-            var _downvoteStatTransform = Instantiate(statTransforms[1], statsPanel.transform, false);
-            _downvoteStatText = _downvoteStatTransform.GetComponentInChildren<TextMeshProUGUI>(true);
-            _downvoteStatTransform.GetComponentInChildren<UnityEngine.UI.Image>(true).sprite = Sprites.ThumbDown;
-            _downvoteStatText.text = "--";
+       //     var _downvoteStatTransform = Instantiate(statTransforms[1], statsPanel.transform, false);
+       //     _downvoteStatText = _downvoteStatTransform.GetComponentInChildren<TextMeshProUGUI>(true);
+       //     _downvoteStatTransform.GetComponentInChildren<UnityEngine.UI.Image>(true).sprite = Sprites.ThumbDown;
+       //     _downvoteStatText.text = "--";
             
             ResultsViewController _standardLevelResultsViewController = viewControllersContainer.GetComponentsInChildren<ResultsViewController>(true).First(x => x.name == "StandardLevelResultsViewController");
             _standardLevelResultsViewController.continueButtonPressedEvent += _standardLevelResultsViewController_continueButtonPressedEvent;
@@ -394,7 +396,7 @@ namespace BeatSaverDownloader.UI
 
                 Playlist _favPlaylist = new Playlist() { playlistTitle = "Your favorite songs", playlistAuthor = "", image = Sprites.SpriteToBase64(Sprites.BeastSaberLogo), icon = Sprites.BeastSaberLogo, fileLoc = "" };
                 _favPlaylist.songs = new List<PlaylistSong>();
-                _favPlaylist.songs.AddRange(levels.Where(x =>  PluginConfig.favoriteSongs.Contains(x.levelID)).Select(x =>new PlaylistSong() { songName = $"{x.songName} {x.songSubName}", level = x as CustomPreviewBeatmapLevel, oneSaber = x.beatmapCharacteristics.Any(y => y.serializedName == "OneSaber"), path = "", key = "", levelId = x.levelID, hash = SongCore.Utilities.Hashing.GetCustomLevelHash(x as CustomPreviewBeatmapLevel) }));
+                _favPlaylist.songs.AddRange(levels.Where(x =>  PluginConfig.favoriteSongs.Contains(x.levelID)).Select(x =>new PlaylistSong() { songName = $"{x.songName} {x.songSubName}", level = x as CustomPreviewBeatmapLevel, oneSaber = x.beatmapCharacteristics.Any(y => y.serializedName == "OneSaber"), path = "", key = "", levelId = x.levelID, hash = SongCore.Utilities.Hashing.GetCustomLevelHash(x as CustomPreviewBeatmapLevel).ToLower() }));
                 Plugin.log.Info($"Created \"{_favPlaylist.playlistTitle}\" playlist with {_favPlaylist.songs.Count} songs!");
 
                 if (PlaylistsCollection.loadedPlaylists.Any(x => x.playlistTitle == "Your favorite songs"))
@@ -588,6 +590,7 @@ namespace BeatSaverDownloader.UI
             _deleteButton.interactable = !PluginConfig.disableDeleteButton && (beatmap.level is CustomPreviewBeatmapLevel);
 
             //Banana id
+            /*
             if (beatmap.level is CustomPreviewBeatmapLevel)
             {
                 var levelhash = SongCore.Collections.hashForLevelID((beatmap.level as CustomPreviewBeatmapLevel).levelID);
@@ -614,6 +617,7 @@ namespace BeatSaverDownloader.UI
                 _upvoteStatText.text = "--";
                 _downvoteStatText.text = "--";
             }
+            */
         }
         
         private void _levelPacksViewController_didSelectPackEvent(LevelPacksViewController arg1, IBeatmapLevelPack arg2)
@@ -722,7 +726,7 @@ namespace BeatSaverDownloader.UI
             _favoriteButton.interactable = !(beatmap is PreviewBeatmapLevelSO);
 
             _deleteButton.interactable = !PluginConfig.disableDeleteButton && (beatmap is CustomPreviewBeatmapLevel);
-
+            /*
             if (beatmap is CustomPreviewBeatmapLevel)
             {
                 var levelhash = SongCore.Utilities.Hashing.GetCustomLevelHash(beatmap as CustomPreviewBeatmapLevel);
@@ -749,7 +753,7 @@ namespace BeatSaverDownloader.UI
                 _upvoteStatText.text = "--";
                 _downvoteStatText.text = "--";
             }
-
+            */
             StartCoroutine(HideDownloadQueue());
         }
 
@@ -1024,7 +1028,7 @@ namespace BeatSaverDownloader.UI
                 if (!_downloadingPlaylist)
                     yield break;
                 //bananabread playlists id
-                if (beatSaverSong != null && !SongCore.Loader.CustomLevels.Values.Any(x => beatSaverSong.hash == SongCore.Collections.hashForLevelID(x.levelID)))
+                if (beatSaverSong != null && !SongCore.Loader.CustomLevels.Values.Any(x => beatSaverSong.hash == SongCore.Collections.hashForLevelID(x.levelID).ToLower()))
                 {
                     _downloadQueueViewController.EnqueueSong(beatSaverSong, true);
                 }
@@ -1142,7 +1146,7 @@ namespace BeatSaverDownloader.UI
                 var level = __instance.GetPrivateField<IBeatmapLevelPack>("_pack").beatmapLevelCollection.beatmapLevels[(showHeader ? (row - 1) : row)];
                 string levelId;
                 if (level is CustomPreviewBeatmapLevel)
-                    levelId = SongCore.Utilities.Hashing.GetCustomLevelHash(level as CustomPreviewBeatmapLevel);
+                    levelId = SongCore.Utilities.Hashing.GetCustomLevelHash(level as CustomPreviewBeatmapLevel).ToLower();
                 else
                     levelId = level.levelID;
 

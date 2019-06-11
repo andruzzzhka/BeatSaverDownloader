@@ -67,7 +67,7 @@ namespace BeatSaverDownloader.UI
 
             _upvoteButton = _standardLevelResultsViewController.CreateUIButton("PracticeButton", new Vector2(65f, 10f), () => { VoteForSong(true); }, "", Sprites.ThumbUp);
             _downvoteButton = _standardLevelResultsViewController.CreateUIButton("PracticeButton", new Vector2(65f, -10f), () => { VoteForSong(false); }, "", Sprites.ThumbDown);
-            _ratingText = _standardLevelResultsViewController.CreateText("LOADING", new Vector2(65f, 0f));
+            _ratingText = _standardLevelResultsViewController.CreateText("PracticeButton", new Vector2(65f, 0f));
             _ratingText.alignment = TextAlignmentOptions.Center;
             _ratingText.fontSize = 7f;
             _ratingText.lineSpacing = -38f;
@@ -120,13 +120,14 @@ namespace BeatSaverDownloader.UI
 
             PluginUI.Instance.reviewFlowCoordinator.parentFlowCoordinator = SongListTweaks.Instance.freePlayFlowCoordinator;
             PluginUI.Instance.reviewFlowCoordinator.songkey = _lastBeatSaverSong.key;
-            PluginUI.Instance.reviewFlowCoordinator.hash = SongCore.Utilities.Hashing.GetCustomLevelHash(_lastLevel as CustomPreviewBeatmapLevel);
+            PluginUI.Instance.reviewFlowCoordinator.hash = SongCore.Utilities.Hashing.GetCustomLevelHash(_lastLevel as CustomPreviewBeatmapLevel).ToLower();
             SongListTweaks.Instance.freePlayFlowCoordinator.InvokePrivateMethod("PresentFlowCoordinator", new object[] { PluginUI.Instance.reviewFlowCoordinator, null, false, false });
         }
 
         private IEnumerator GetRatingForSong(IBeatmapLevel level)
         {
-            UnityWebRequest www = UnityWebRequest.Get($"{PluginConfig.beatsaverURL}/api/maps/by-hash/{SongCore.Utilities.Hashing.GetCustomLevelHash(level as CustomPreviewBeatmapLevel)}");
+            Plugin.log.Info($"{PluginConfig.beatsaverURL}/api/maps/by-hash/{SongCore.Utilities.Hashing.GetCustomLevelHash(level as CustomPreviewBeatmapLevel).ToLower()}");
+            UnityWebRequest www = UnityWebRequest.Get($"{PluginConfig.beatsaverURL}/api/maps/by-hash/{SongCore.Utilities.Hashing.GetCustomLevelHash(level as CustomPreviewBeatmapLevel).ToLower()}");
 
             yield return www.SendWebRequest();
 
@@ -141,9 +142,9 @@ namespace BeatSaverDownloader.UI
                     _firstVote = true;
                     JObject jNode = JObject.Parse(www.downloadHandler.text);
 
-                    if (jNode["docs"].Children().Count() > 0)
+                    if (jNode.Children().Count() > 0)
                     {
-                        _lastBeatSaverSong = Song.FromSearchNode((JObject)jNode["docs"][0]);
+                        _lastBeatSaverSong =new Song((JObject)jNode, false);
 
                         _ratingText.text = (_lastBeatSaverSong.upVotes -_lastBeatSaverSong.downVotes).ToString();
 
@@ -153,7 +154,7 @@ namespace BeatSaverDownloader.UI
                         _downvoteButton.interactable = canVote;
 
                         _reviewButton.interactable = true;
-                        string lastLevelHash = SongCore.Utilities.Hashing.GetCustomLevelHash(_lastLevel as CustomPreviewBeatmapLevel);
+                        string lastLevelHash = SongCore.Utilities.Hashing.GetCustomLevelHash(_lastLevel as CustomPreviewBeatmapLevel).ToLower();
                         if (PluginConfig.votedSongs.ContainsKey(lastLevelHash))
                         {
                             switch (PluginConfig.votedSongs[lastLevelHash].voteType)
@@ -230,7 +231,7 @@ namespace BeatSaverDownloader.UI
                                 _downvoteButton.interactable = false;
                                 _upvoteButton.interactable = true;
                             }
-                            string lastlevelHash = SongCore.Utilities.Hashing.GetCustomLevelHash(_lastLevel as CustomPreviewBeatmapLevel);
+                            string lastlevelHash = SongCore.Utilities.Hashing.GetCustomLevelHash(_lastLevel as CustomPreviewBeatmapLevel).ToLower();
                             if (!PluginConfig.votedSongs.ContainsKey(lastlevelHash))
                             {
                                 PluginConfig.votedSongs.Add(lastlevelHash, new SongVote(_lastBeatSaverSong.key, upvote ? VoteType.Upvote : VoteType.Downvote));
@@ -390,7 +391,7 @@ namespace BeatSaverDownloader.UI
                                 _downvoteButton.interactable = false;
                                 _upvoteButton.interactable = true;
                             }
-                            string lastlevelHash = SongCore.Utilities.Hashing.GetCustomLevelHash(_lastLevel as CustomPreviewBeatmapLevel);
+                            string lastlevelHash = SongCore.Utilities.Hashing.GetCustomLevelHash(_lastLevel as CustomPreviewBeatmapLevel).ToLower();
                             if (!PluginConfig.votedSongs.ContainsKey(lastlevelHash))
                             {
                                 PluginConfig.votedSongs.Add(lastlevelHash, new SongVote(_lastBeatSaverSong.key, upvote ? VoteType.Upvote : VoteType.Downvote));
