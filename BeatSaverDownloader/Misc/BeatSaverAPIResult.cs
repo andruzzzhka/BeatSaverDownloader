@@ -94,11 +94,11 @@ namespace BeatSaverDownloader.Misc
                 return;
             }
             metadata = jsonNode["metadata"].ToObject<Metadata>();
-            levelAuthorName = (string)jsonNode["levelAuthorName"];
-            songAuthorName = (string)jsonNode["songAuthorName"];
-            songName = (string)jsonNode["songName"];
-            songSubName = (string)jsonNode["songSubName"];
-            bpm = (float)jsonNode["bpm"];
+            levelAuthorName = (string)jsonNode["metadata"]["levelAuthorName"];
+            songAuthorName = (string)jsonNode["metadata"]["songAuthorName"];
+            songName = (string)jsonNode["metadata"]["songName"];
+            songSubName = (string)jsonNode["metadata"]["songSubName"];
+            bpm = (float)jsonNode["metadata"]["bpm"];
             downloads = (int)jsonNode["stats"]["downloads"];
             plays = (int)jsonNode["stats"]["plays"];
             upVotes = (int)jsonNode["stats"]["upVotes"];
@@ -112,9 +112,10 @@ namespace BeatSaverDownloader.Misc
             ownerid = (string)jsonNode["uploader"]["_id"];
             ownerName = (string)jsonNode["uploader"]["username"];
             hash = (string)jsonNode["hash"];
+            hash = hash.ToLower();
             uploaded = (string)jsonNode["uploaded"];
-            downloadURL = (string)jsonNode["downloadURL"];
-            coverURL = (string)jsonNode["coverURL"];
+            downloadURL = PluginConfig.beatsaverURL + (string)jsonNode["downloadURL"];
+            coverURL = PluginConfig.beatsaverURL + (string)jsonNode["coverURL"];
         }
 
         public void ConstructFromScoreSaber(JObject jsonNode)
@@ -138,8 +139,9 @@ namespace BeatSaverDownloader.Misc
             levelAuthorName = (string)jsonNode["levelAuthorName"];
             songAuthorName = (string)jsonNode["songAuthorName"];
             bpm = (int)jsonNode["bpm"];
-            coverURL = @"https://scoresaber.com" + jsonNode["image"];
+            coverURL = PluginConfig.scoresaberURL + jsonNode["image"];
             hash = (string)jsonNode["id"];
+            hash = hash.ToLower();
             metadata = new Metadata() { characteristics = new string[] { "Standard" }, difficulties = new Metadata.Difficulties(true, false, false, false, false) };
             //       difficultyLevels = new DifficultyLevel[1];
             //       difficultyLevels[0] = new DifficultyLevel("Easy", 4, "", 0);

@@ -308,7 +308,7 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
                     
                     Newtonsoft.Json.Linq.JObject jNode = JObject.Parse(www.downloadHandler.text);
                //     JSONNode node = JSON.Parse(www.downloadHandler.text);
-                    currentPageSongs[row] = new Song((JObject)jNode["docs"][0], false);
+                    currentPageSongs[row] = new Song((JObject)jNode, false);
                     //      currentPageSongs[row] = new Song(node["songs"][0], false);
                     _songDetailViewController.SetContent(this, currentPageSongs[row]);
                     _descriptionViewController.SetDescription(currentPageSongs[row].description);
