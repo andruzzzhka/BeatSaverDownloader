@@ -28,6 +28,7 @@ namespace BeatSaverDownloader.Misc
                 yield return www;
                 tex = www.texture;
                 var newSprite = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), Vector2.one * 0.5f, 100, 1);
+                if(!_cachedSprites.ContainsKey(spritePath))
                 _cachedSprites.Add(spritePath, newSprite);
                 finished.Invoke(newSprite);
             }
