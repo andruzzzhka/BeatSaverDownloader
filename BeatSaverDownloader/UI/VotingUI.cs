@@ -65,14 +65,17 @@ namespace BeatSaverDownloader.UI
             _standardLevelResultsViewController = Resources.FindObjectsOfTypeAll<ResultsViewController>().First(x => x.name == "StandardLevelResultsViewController");
             _standardLevelResultsViewController.didActivateEvent += _standardLevelResultsViewController_didActivateEvent;
 
-            _upvoteButton = _standardLevelResultsViewController.CreateUIButton("PracticeButton", new Vector2(65f, 10f), () => { VoteForSong(true); }, "", Sprites.ThumbUp);
-            _downvoteButton = _standardLevelResultsViewController.CreateUIButton("PracticeButton", new Vector2(65f, -10f), () => { VoteForSong(false); }, "", Sprites.ThumbDown);
+            _upvoteButton = _standardLevelResultsViewController.CreateUIButton("PracticeButton", new Vector2(65f, 10f), new Vector2(12f,12f), () => { VoteForSong(true); }, "", Sprites.ThumbUp );
+
+       //     (_upvoteButton.transform as RectTransform).anchorMin = new Vector2(1f, 1f);
+       //     (_upvoteButton.transform as RectTransform).anchorMax = new Vector2(1f, 1f);
+            _downvoteButton = _standardLevelResultsViewController.CreateUIButton("PracticeButton", new Vector2(65f, -10f), new Vector2(12f, 12f), () => { VoteForSong(false); }, "", Sprites.ThumbDown);
             _ratingText = _standardLevelResultsViewController.CreateText("PracticeButton", new Vector2(65f, 0f));
             _ratingText.alignment = TextAlignmentOptions.Center;
             _ratingText.fontSize = 7f;
             _ratingText.lineSpacing = -38f;
 
-            _reviewButton = _standardLevelResultsViewController.CreateUIButton("PracticeButton", new Vector2(65f, -20f), () => { ShowReviewScreen(); }, "", Sprites.ReviewIcon);
+            _reviewButton = _standardLevelResultsViewController.CreateUIButton("PracticeButton", new Vector2(65f, -22f), new Vector2(12f, 12f), () => { ShowReviewScreen(); }, "", Sprites.ReviewIcon);
 
             initialized = true;
         }
@@ -349,7 +352,9 @@ namespace BeatSaverDownloader.UI
             SteamHelper.lastTicketResult = EResult.k_EResultRevoked;
 
             Plugin.log.Info($"Voting...");
-
+            Plugin.log.Info("SteamID: " + steamId.m_SteamID.ToString());
+            Plugin.log.Info("Ticket: " + authTicketHexString);
+            Plugin.log.Info("direction: " + (upvote ? 1 : -1));
             Dictionary<string, string> formData = new Dictionary<string, string> ();
             formData.Add("id", steamId.m_SteamID.ToString());
             formData.Add("ticket", authTicketHexString);

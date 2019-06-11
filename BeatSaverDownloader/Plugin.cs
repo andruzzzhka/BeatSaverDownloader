@@ -41,7 +41,7 @@ namespace BeatSaverDownloader
             try
             {
                 PluginUI.Instance.OnLoad();
-            //    VotingUI.Instance.OnLoad();
+                VotingUI.Instance.OnLoad();
                 SongListTweaks.Instance.OnLoad();
 
                 GetUserInfo.GetUserName();
