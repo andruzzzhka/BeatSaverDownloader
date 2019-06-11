@@ -24,7 +24,7 @@ using SongCore.OverrideClasses;
 using Newtonsoft.Json.Linq;
 namespace BeatSaverDownloader.UI
 {
-    public enum SortMode { Default, Difficulty, Newest };
+    public enum SortMode { Default, Difficulty, Newest, Author };
 
     public class SongListTweaks : MonoBehaviour
     {
@@ -111,7 +111,7 @@ namespace BeatSaverDownloader.UI
 
         private Button _favoriteButton;
         private Button _deleteButton;
-
+        private Button _authorButton;
         private TextMeshProUGUI _starStatText;
         private TextMeshProUGUI _upvoteStatText;
         private TextMeshProUGUI _downvoteStatText;
@@ -263,15 +263,26 @@ namespace BeatSaverDownloader.UI
             _newButton.gameObject.SetActive(false);
 
 
-            _difficultyButton = _levelListViewController.CreateUIButton("CreditsButton", new Vector2(20f, 36.5f), new Vector2(20f, 6f), () =>
-            {
-                SelectTopButtons(TopButtonsState.Select);
-                SetLevels(SortMode.Difficulty, "");
-            }, "Difficulty");
-            
-            _difficultyButton.SetButtonTextSize(3f);
-            _difficultyButton.ToggleWordWrapping(false);
-            _difficultyButton.gameObject.SetActive(false);
+            //    _difficultyButton = _levelListViewController.CreateUIButton("CreditsButton", new Vector2(20f, 36.5f), new Vector2(20f, 6f), () =>
+            //    {
+            //        SelectTopButtons(TopButtonsState.Select);
+            //         SetLevels(SortMode.Difficulty, "");
+            //     }, "Difficulty");
+
+            //     _difficultyButton.SetButtonTextSize(3f);
+            //     _difficultyButton.ToggleWordWrapping(false);
+            //     _difficultyButton.gameObject.SetActive(false);
+
+           _authorButton = _levelListViewController.CreateUIButton("CreditsButton", new Vector2(20f, 36.5f), new Vector2(20f, 6f), () =>
+           {
+               SelectTopButtons(TopButtonsState.Select);
+               SetLevels(SortMode.Author, "");
+            }, "Song Author");
+
+            _authorButton.SetButtonTextSize(3f);
+            _authorButton.ToggleWordWrapping(false);
+            _authorButton.gameObject.SetActive(false);
+
 
             var packDetailViewController = viewControllersContainer.GetComponentsInChildren<LevelPackDetailViewController>(true).First(x => x.name == "LevelPackDetailViewController");
             _buyPackText = packDetailViewController.GetComponentsInChildren<TextMeshProUGUI>(true).FirstOrDefault(x => x.name.EndsWith("InfoText"));
@@ -540,7 +551,8 @@ namespace BeatSaverDownloader.UI
 
                         _defButton.gameObject.SetActive(false);
                         _newButton.gameObject.SetActive(false);
-                        _difficultyButton.gameObject.SetActive(false);
+                        //            _difficultyButton.gameObject.SetActive(false);
+                        _authorButton.gameObject.SetActive(false);
                     }; break;
                 case TopButtonsState.SortBy:
                     {
@@ -550,7 +562,8 @@ namespace BeatSaverDownloader.UI
 
                         _defButton.gameObject.SetActive(true);
                         _newButton.gameObject.SetActive(true);
-                        _difficultyButton.gameObject.SetActive(true);
+                        //                _difficultyButton.gameObject.SetActive(true);
+                        _authorButton.gameObject.SetActive(true);
                     }; break;
                 case TopButtonsState.Search:
                     {
@@ -560,7 +573,8 @@ namespace BeatSaverDownloader.UI
 
                         _defButton.gameObject.SetActive(false);
                         _newButton.gameObject.SetActive(false);
-                        _difficultyButton.gameObject.SetActive(false);
+                        //            _difficultyButton.gameObject.SetActive(false);
+                        _authorButton.gameObject.SetActive(false);
 
                     }; break;
             }
@@ -817,10 +831,10 @@ namespace BeatSaverDownloader.UI
             }
             else
             {
-                     levels = SongCore.Loader.CustomLevelsPack.beatmapLevelCollection.beatmapLevels.Cast<CustomPreviewBeatmapLevel>().ToArray();
+                levels = SongCore.Loader.CustomLevelsPack.beatmapLevelCollection.beatmapLevels.Cast<CustomPreviewBeatmapLevel>().ToArray();
             }
 
-            if (string.IsNullOrEmpty(searchRequest))
+            if (string.IsNullOrWhiteSpace(searchRequest))
             {
                 switch (sortMode)
                 {
@@ -829,6 +843,12 @@ namespace BeatSaverDownloader.UI
                         {
                             levels = levels.AsParallel().OrderBy(x => { int index = ScrappedData.Songs.FindIndex(y => x.levelID.StartsWith(y.Hash)); return (index == -1 ? (int.MaxValue - 1) : index); }).ToArray();
                         }; break;
+                    case SortMode.Author:
+                        {
+
+                            levels = levels.ToList().OrderBy(x => x.songAuthorName).ToArray();
+                        };
+                        break;
                 }
             }
             else
@@ -843,18 +863,18 @@ namespace BeatSaverDownloader.UI
         {
             DirectoryInfo customSongsFolder = new DirectoryInfo(CustomLevelPathHelper.customLevelsDirectoryPath);
 
-            List<string> sortedFolders = customSongsFolder.GetDirectories().OrderByDescending(x => x.CreationTime.Ticks).Select(x => x.FullName.Replace('\\', '/')).ToList();
+            List<string> sortedFolders = customSongsFolder.GetDirectories().OrderByDescending(x => x.CreationTime.Ticks).Select(x => x.FullName).ToList();
 
             List<string> sortedLevelPaths = new List<string>();
 
             for (int i = 0; i < sortedFolders.Count; i++)
             {
+          //      Plugin.log.Info(sortedFolders[i]);
                 if (SongCore.Loader.CustomLevels.TryGetValue(sortedFolders[i], out var song))
                 {
                     sortedLevelPaths.Add(song.customLevelPath);
                 }
             }
-
             List<CustomPreviewBeatmapLevel> notSorted = new List<CustomPreviewBeatmapLevel>(levels);
 
             List<CustomPreviewBeatmapLevel> sortedLevels = new List<CustomPreviewBeatmapLevel>();
@@ -866,10 +886,9 @@ namespace BeatSaverDownloader.UI
                 {
                     sortedLevels.Add(data);
                 }
+                
             }
-
             sortedLevels.AddRange(notSorted.Except(sortedLevels));
-
             return sortedLevels.ToArray();
             
         }
