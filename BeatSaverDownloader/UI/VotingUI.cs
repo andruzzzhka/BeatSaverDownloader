@@ -177,11 +177,12 @@ namespace BeatSaverDownloader.UI
 
         private void VoteForSong(bool upvote)
         {
-            if(PluginConfig.apiAccessToken != PluginConfig.apiTokenPlaceholder && !string.IsNullOrWhiteSpace(PluginConfig.apiAccessToken))
-            {
-                StartCoroutine(VoteWithAccessToken(upvote));
-            }
-            else if((VRPlatformHelper.instance.vrPlatformSDK == VRPlatformHelper.VRPlatformSDK.OpenVR || Environment.CommandLine.ToLower().Contains("-vrmode oculus") || Environment.CommandLine.ToLower().Contains("fpfc")))
+      //      if(PluginConfig.apiAccessToken != PluginConfig.apiTokenPlaceholder && !string.IsNullOrWhiteSpace(PluginConfig.apiAccessToken))
+      //      {
+      //          StartCoroutine(VoteWithAccessToken(upvote));
+      //      }
+      //else
+           if((VRPlatformHelper.instance.vrPlatformSDK == VRPlatformHelper.VRPlatformSDK.OpenVR || Environment.CommandLine.ToLower().Contains("-vrmode oculus") || Environment.CommandLine.ToLower().Contains("fpfc")))
             {
                 StartCoroutine(VoteWithSteamID(upvote));
             }

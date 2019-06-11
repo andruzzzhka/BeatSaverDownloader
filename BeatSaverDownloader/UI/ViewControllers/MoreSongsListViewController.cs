@@ -100,7 +100,7 @@ namespace BeatSaverDownloader.UI.ViewControllers
                     sortByTop?.Invoke();
                     SelectTopButtons(TopButtonsState.Select);
                 },
-                "Top");
+                "Hot");
 
                 _topButton.SetButtonTextSize(3f);
                 _topButton.ToggleWordWrapping(false);

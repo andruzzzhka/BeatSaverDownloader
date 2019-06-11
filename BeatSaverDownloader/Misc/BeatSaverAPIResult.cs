@@ -13,6 +13,11 @@ namespace BeatSaverDownloader.Misc
     {
         public string[] characteristics;
         public Difficulties difficulties;
+
+        public Metadata()
+        {
+        }
+
         [JsonConstructor]
         public Metadata(string[] characteristics, Difficulties difficulties)
         {
@@ -114,25 +119,30 @@ namespace BeatSaverDownloader.Misc
 
         public void ConstructFromScoreSaber(JObject jsonNode)
         {
-           
-     //       id = "";
-     //       ownerid = "";
-     //       downloads = "";
-     //       upvotes = "";
-     //       downvotes = "";
-     //       plays = "";
-     //       description = "";
-     //       uploadtime = "";
-
-     //       songName = jsonNode["name"];
-     //       songSubName = jsonNode["songSubName"];
-     //       beatname = songName + "-" + songSubName;
-     //       authorName = jsonNode["author"];
-     //       beatsPerMinute = jsonNode["bpm"];
-     //       coverUrl = @"https://scoresaber.com" + jsonNode["image"];
-     //       hash = jsonNode["id"];
-     //       difficultyLevels = new DifficultyLevel[1];
-     //       difficultyLevels[0] = new DifficultyLevel("Easy", 4, "", 0);
+            _id = "";
+            ownerid = "";
+            downloads = 0;
+            upVotes = 0;
+            downVotes = 0;
+            plays = 0;
+            description = "";
+            uploaded = "";
+            rating = 0;
+            heat = "";
+            key = "";
+            name = "";
+            ownerName = "";
+            downloadURL = "";
+            songName = (string)jsonNode["name"];
+            songSubName = (string)jsonNode["songSubName"];
+            levelAuthorName = (string)jsonNode["levelAuthorName"];
+            songAuthorName = (string)jsonNode["songAuthorName"];
+            bpm = (int)jsonNode["bpm"];
+            coverURL = @"https://scoresaber.com" + jsonNode["image"];
+            hash = (string)jsonNode["id"];
+            metadata = new Metadata() { characteristics = new string[] { "Standard" }, difficulties = new Metadata.Difficulties(true, false, false, false, false) };
+            //       difficultyLevels = new DifficultyLevel[1];
+            //       difficultyLevels[0] = new DifficultyLevel("Easy", 4, "", 0);
         }
 
         public static Song FromSearchNode(JObject mainNode)

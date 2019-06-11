@@ -838,7 +838,7 @@ namespace BeatSaverDownloader.UI
                _levelListViewController.SetData(CustomHelpers.GetLevelPackWithLevels(levels, lastPack?.packName ?? "Custom Songs" ,lastPack?.coverImage));
             PopDifficultyAndDetails();
         }
-
+        
         public CustomPreviewBeatmapLevel[] SortLevelsByCreationTime(CustomPreviewBeatmapLevel[] levels)
         {
             DirectoryInfo customSongsFolder = new DirectoryInfo(CustomLevelPathHelper.customLevelsDirectoryPath);
@@ -849,7 +849,7 @@ namespace BeatSaverDownloader.UI
 
             foreach (string path in sortedFolders)
             {
-                CustomPreviewBeatmapLevel song = SongCore.Loader.CustomLevels.Values.FirstOrDefault(x => x.customLevelPath.StartsWith(path));
+                CustomPreviewBeatmapLevel song = SongCore.Loader.CustomLevels[path];
                if (song != null)
                 {
                     sortedLevelPaths.Add(song.customLevelPath);
