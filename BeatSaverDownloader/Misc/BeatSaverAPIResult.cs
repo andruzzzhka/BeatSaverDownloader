@@ -59,7 +59,7 @@ namespace BeatSaverDownloader.Misc
         public int upVotes;
         public int downVotes;
         public float rating;
-        public string heat;
+        public float heat;
         public string description;
         public string _id;
         public string key;
@@ -104,7 +104,7 @@ namespace BeatSaverDownloader.Misc
             upVotes = (int)jsonNode["stats"]["upVotes"];
             downVotes = (int)jsonNode["stats"]["downVotes"];
             rating = (float)jsonNode["stats"]["rating"];
-            heat = (string)jsonNode["stats"]["heat"];
+            heat = (float)jsonNode["stats"]["heat"];
             description = (string)jsonNode["description"];
             _id = (string)jsonNode["_id"];
             key = (string)jsonNode["key"];
@@ -129,7 +129,7 @@ namespace BeatSaverDownloader.Misc
             description = "";
             uploaded = "";
             rating = 0;
-            heat = "";
+            heat = 0f;
             key = "";
             name = "";
             ownerName = "";
@@ -161,7 +161,7 @@ namespace BeatSaverDownloader.Misc
             buffer.upVotes = (int)jsonNode["stats"]["upVotes"];
             buffer.downVotes = (int)jsonNode["stats"]["downVotes"];
             buffer.rating = (float)jsonNode["stats"]["rating"];
-            buffer.heat = (string)jsonNode["stats"]["heat"];
+            buffer.heat = (float)jsonNode["stats"]["heat"];
             buffer.description = (string)jsonNode["description"];
             buffer._id = (string)jsonNode["_id"];
             buffer.key = (string)jsonNode["key"];
