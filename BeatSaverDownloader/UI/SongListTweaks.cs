@@ -84,9 +84,9 @@ namespace BeatSaverDownloader.UI
         public FlowCoordinator freePlayFlowCoordinator;
         
         private MainFlowCoordinator _mainFlowCoordinator;
-        private LevelPackLevelsViewController _levelListViewController;
+        internal LevelPackLevelsViewController _levelListViewController;
         private StandardLevelDetailViewController _detailViewController;
-        private LevelPacksViewController _levelPacksViewController;
+        internal LevelPacksViewController _levelPacksViewController;
         private SearchKeyboardViewController _searchViewController;
         private SimpleDialogPromptViewController _simpleDialog;
 
@@ -148,7 +148,7 @@ namespace BeatSaverDownloader.UI
 
             RectTransform viewControllersContainer = FindObjectsOfType<RectTransform>().First(x => x.name == "ViewControllers");
 
-            if (initialized || PluginConfig.disableSongListTweaks) return;
+            if (initialized) return;
 
             Plugin.log.Info("Setting up song list tweaks...");
 
@@ -162,227 +162,234 @@ namespace BeatSaverDownloader.UI
                 Plugin.log.Info("Unable to patch level list! Exception: " + e);
             }
 
-            _simpleDialog = ReflectionUtil.GetPrivateField<SimpleDialogPromptViewController>(_mainFlowCoordinator, "_simpleDialogPromptViewController");
-            _simpleDialog = Instantiate(_simpleDialog.gameObject, _simpleDialog.transform.parent).GetComponent<SimpleDialogPromptViewController>();
-            
+
             _levelListViewController = viewControllersContainer.GetComponentInChildren<LevelPackLevelsViewController>(true);
-            _levelListViewController.didSelectLevelEvent += _levelListViewController_didSelectLevelEvent;
-            _levelListViewController.didSelectPackEvent += _levelListViewController_didSelectPackEvent;
-
             _levelPacksViewController = viewControllersContainer.GetComponentInChildren<LevelPacksViewController>(true);
+
+            if (!PluginConfig.disableSongListTweaks)
+            {
+
+                _levelListViewController.didSelectLevelEvent += _levelListViewController_didSelectLevelEvent;
+                _detailViewController = viewControllersContainer.GetComponentsInChildren<StandardLevelDetailViewController>(true).First(x => x.name == "LevelDetailViewController");
+                _detailViewController.didChangeDifficultyBeatmapEvent += _difficultyViewController_didSelectDifficultyEvent;
+
+                _simpleDialog = ReflectionUtil.GetPrivateField<SimpleDialogPromptViewController>(_mainFlowCoordinator, "_simpleDialogPromptViewController");
+            _simpleDialog = Instantiate(_simpleDialog.gameObject, _simpleDialog.transform.parent).GetComponent<SimpleDialogPromptViewController>();
+
+
+                TableView _songSelectionTableView = _levelListViewController.GetComponentsInChildren<TableView>(true).First();
+                RectTransform _tableViewRectTransform = _levelListViewController.GetComponentsInChildren<RectTransform>(true).First(x => x.name == "LevelsTableView");
+
+                _tableViewRectTransform.sizeDelta = new Vector2(0f, -20.5f);
+                _tableViewRectTransform.anchoredPosition = new Vector2(0f, -2.5f);
+
+                Button _pageUp = _tableViewRectTransform.GetComponentsInChildren<Button>(true).First(x => x.name == "PageUpButton");
+                (_pageUp.transform as RectTransform).anchoredPosition = new Vector2(0f, -1.75f);
+
+                Button _pageDown = _tableViewRectTransform.GetComponentsInChildren<Button>(true).First(x => x.name == "PageDownButton");
+                (_pageDown.transform as RectTransform).anchoredPosition = new Vector2(0f, 1f);
+
+                _fastPageUpButton = Instantiate(_pageUp, _tableViewRectTransform, false);
+                (_fastPageUpButton.transform as RectTransform).anchorMin = new Vector2(0.5f, 1f);
+                (_fastPageUpButton.transform as RectTransform).anchorMax = new Vector2(0.5f, 1f);
+                (_fastPageUpButton.transform as RectTransform).anchoredPosition = new Vector2(-26f, 0.25f);
+                (_fastPageUpButton.transform as RectTransform).sizeDelta = new Vector2(8f, 6f);
+                _fastPageUpButton.GetComponentsInChildren<RectTransform>().First(x => x.name == "BG").sizeDelta = new Vector2(8f, 6f);
+                _fastPageUpButton.GetComponentsInChildren<UnityEngine.UI.Image>().First(x => x.name == "Arrow").sprite = Sprites.DoubleArrow;
+                _fastPageUpButton.onClick.AddListener(delegate ()
+                {
+                    FastScrollUp(_songSelectionTableView, PluginConfig.fastScrollSpeed);
+                });
+
+                _fastPageDownButton = Instantiate(_pageDown, _tableViewRectTransform, false);
+                (_fastPageDownButton.transform as RectTransform).anchorMin = new Vector2(0.5f, 0f);
+                (_fastPageDownButton.transform as RectTransform).anchorMax = new Vector2(0.5f, 0f);
+                (_fastPageDownButton.transform as RectTransform).anchoredPosition = new Vector2(-26f, -1f);
+                (_fastPageDownButton.transform as RectTransform).sizeDelta = new Vector2(8f, 6f);
+                _fastPageDownButton.GetComponentsInChildren<RectTransform>().First(x => x.name == "BG").sizeDelta = new Vector2(8f, 6f);
+                _fastPageDownButton.GetComponentsInChildren<UnityEngine.UI.Image>().First(x => x.name == "Arrow").sprite = Sprites.DoubleArrow;
+                _fastPageDownButton.onClick.AddListener(delegate ()
+                {
+                    FastScrollDown(_songSelectionTableView, PluginConfig.fastScrollSpeed);
+                });
+
+                _randomButton = Instantiate(viewControllersContainer.GetComponentsInChildren<Button>(true).First(x => x.name == "PracticeButton"), _levelListViewController.rectTransform, false);
+                _randomButton.onClick = new Button.ButtonClickedEvent();
+                _randomButton.onClick.AddListener(() =>
+                {
+                    int randomRow = UnityEngine.Random.Range(0, _songSelectionTableView.dataSource.NumberOfCells());
+                    _songSelectionTableView.ScrollToCellWithIdx(randomRow, TableView.ScrollPositionType.Beginning, false);
+                    _songSelectionTableView.SelectCellWithIdx(randomRow, true);
+                });
+                _randomButton.name = "CustomUIButton";
+
+                (_randomButton.transform as RectTransform).anchorMin = new Vector2(0.5f, 0.5f);
+                (_randomButton.transform as RectTransform).anchorMax = new Vector2(0.5f, 0.5f);
+                (_randomButton.transform as RectTransform).anchoredPosition = new Vector2(24f, 36.5f);
+                (_randomButton.transform as RectTransform).sizeDelta = new Vector2(12f, 6f);
+
+                _randomButton.SetButtonText("");
+                _randomButton.SetButtonIcon(Sprites.RandomIcon);
+                _randomButton.GetComponentsInChildren<UnityEngine.UI.Image>().First(x => x.name == "Stroke").sprite = Resources.FindObjectsOfTypeAll<Sprite>().First(x => x.name == "RoundRectSmallStroke");
+
+                var _randomIconLayout = _randomButton.GetComponentsInChildren<HorizontalLayoutGroup>().First(x => x.name == "Content");
+                _randomIconLayout.padding = new RectOffset(0, 0, 0, 0);
+
+                _searchButton = _levelListViewController.CreateUIButton("CreditsButton", new Vector2(-18f, 36.5f), new Vector2(24f, 6f), SearchPressed, "Search");
+                _searchButton.SetButtonTextSize(3f);
+                _searchButton.ToggleWordWrapping(false);
+
+                _sortByButton = _levelListViewController.CreateUIButton("CreditsButton", new Vector2(6f, 36.5f), new Vector2(24f, 6f), () =>
+                {
+                    SelectTopButtons(TopButtonsState.SortBy);
+                }, "Sort By");
+                _sortByButton.SetButtonTextSize(3f);
+                _sortByButton.ToggleWordWrapping(false);
+
+                _defButton = _levelListViewController.CreateUIButton("CreditsButton", new Vector2(-20f, 36.5f), new Vector2(20f, 6f), () =>
+                {
+                    SelectTopButtons(TopButtonsState.Select);
+                    SetLevels(SortMode.Default, "");
+                },
+                    "Default");
+
+                _defButton.SetButtonTextSize(3f);
+                _defButton.ToggleWordWrapping(false);
+                _defButton.gameObject.SetActive(false);
+
+                _newButton = _levelListViewController.CreateUIButton("CreditsButton", new Vector2(0f, 36.5f), new Vector2(20f, 6f), () =>
+                {
+                    SelectTopButtons(TopButtonsState.Select);
+                    SetLevels(SortMode.Newest, "");
+                }, "Newest");
+
+                _newButton.SetButtonTextSize(3f);
+                _newButton.ToggleWordWrapping(false);
+                _newButton.gameObject.SetActive(false);
+
+
+                //    _difficultyButton = _levelListViewController.CreateUIButton("CreditsButton", new Vector2(20f, 36.5f), new Vector2(20f, 6f), () =>
+                //    {
+                //        SelectTopButtons(TopButtonsState.Select);
+                //         SetLevels(SortMode.Difficulty, "");
+                //     }, "Difficulty");
+
+                //     _difficultyButton.SetButtonTextSize(3f);
+                //     _difficultyButton.ToggleWordWrapping(false);
+                //     _difficultyButton.gameObject.SetActive(false);
+
+                _authorButton = _levelListViewController.CreateUIButton("CreditsButton", new Vector2(20f, 36.5f), new Vector2(20f, 6f), () =>
+                {
+                    SelectTopButtons(TopButtonsState.Select);
+                    SetLevels(SortMode.Author, "");
+                }, "Song Author");
+
+                _authorButton.SetButtonTextSize(3f);
+                _authorButton.ToggleWordWrapping(false);
+                _authorButton.gameObject.SetActive(false);
+
+                RectTransform buttonsRect = _detailViewController.GetComponentsInChildren<RectTransform>(true).First(x => x.name == "PlayButtons");
+
+                _favoriteButton = Instantiate(viewControllersContainer.GetComponentsInChildren<Button>(true).First(x => x.name == "PracticeButton"), buttonsRect, false);
+                _favoriteButton.onClick = new Button.ButtonClickedEvent();
+                _favoriteButton.onClick.AddListener(() =>
+                {
+                    if (PluginConfig.favoriteSongs.Any(x => x.Contains(_detailViewController.selectedDifficultyBeatmap.level.levelID)))
+                    {
+                        PluginConfig.favoriteSongs.Remove(_detailViewController.selectedDifficultyBeatmap.level.levelID);
+                        PluginConfig.SaveConfig();
+                        _favoriteButton.SetButtonIcon(Sprites.AddToFavorites);
+                        PlaylistsCollection.RemoveLevelFromPlaylist(PlaylistsCollection.loadedPlaylists.First(x => x.playlistTitle == "Your favorite songs"), _detailViewController.selectedDifficultyBeatmap.level.levelID);
+                    }
+                    else
+                    {
+                        PluginConfig.favoriteSongs.Add(_detailViewController.selectedDifficultyBeatmap.level.levelID);
+                        PluginConfig.SaveConfig();
+                        _favoriteButton.SetButtonIcon(Sprites.RemoveFromFavorites);
+                        PlaylistsCollection.AddSongToPlaylist(PlaylistsCollection.loadedPlaylists.First(x => x.playlistTitle == "Your favorite songs"), new PlaylistSong() { levelId = _detailViewController.selectedDifficultyBeatmap.level.levelID, songName = _detailViewController.selectedDifficultyBeatmap.level.songName, level = SongDownloader.GetLevel(_detailViewController.selectedDifficultyBeatmap.level.levelID) });
+                    }
+                });
+                _favoriteButton.name = "CustomUIButton";
+                _favoriteButton.SetButtonIcon(Sprites.AddToFavorites);
+                (_favoriteButton.transform as RectTransform).sizeDelta = new Vector2(12f, 8.8f);
+                var _favoriteIconLayout = _favoriteButton.GetComponentsInChildren<HorizontalLayoutGroup>().First(x => x.name == "Content");
+                _favoriteIconLayout.padding = new RectOffset(3, 3, 0, 0);
+                _favoriteButton.transform.SetAsFirstSibling();
+
+                Button practiceButton = buttonsRect.GetComponentsInChildren<Button>().First(x => x.name == "PracticeButton");
+                (practiceButton.transform as RectTransform).sizeDelta = new Vector2(12f, 8.8f);
+                var _practiceIconLayout = practiceButton.GetComponentsInChildren<HorizontalLayoutGroup>().First(x => x.name == "Content");
+                _practiceIconLayout.padding = new RectOffset(3, 3, 0, 0);
+
+                _deleteButton = Instantiate(viewControllersContainer.GetComponentsInChildren<Button>(true).First(x => x.name == "PracticeButton"), buttonsRect, false);
+                _deleteButton.onClick = new Button.ButtonClickedEvent();
+                _deleteButton.onClick.AddListener(DeletePressed);
+                _deleteButton.name = "CustomUIButton";
+                _deleteButton.SetButtonIcon(Sprites.DeleteIcon);
+                _deleteButton.interactable = !PluginConfig.disableDeleteButton;
+                (_deleteButton.transform as RectTransform).sizeDelta = new Vector2(8.8f, 8.8f);
+                _deleteButton.GetComponentsInChildren<UnityEngine.UI.Image>().First(x => x.name == "Stroke").sprite = Resources.FindObjectsOfTypeAll<Sprite>().First(x => x.name == "RoundRectSmallStroke");
+
+                var _deleteIconLayout = _deleteButton.GetComponentsInChildren<HorizontalLayoutGroup>().First(x => x.name == "Content");
+                _deleteIconLayout.padding = new RectOffset(0, 0, 1, 1);
+
+                _deleteButton.transform.SetAsLastSibling();
+
+                //based on https://github.com/halsafar/BeatSaberSongBrowser/blob/master/SongBrowserPlugin/UI/Browser/SongBrowserUI.cs#L416
+                /*
+                var statsPanel = _detailViewController.GetPrivateField<StandardLevelDetailView>("_standardLevelDetailView").GetPrivateField<LevelParamsPanel>("_levelParamsPanel");
+                var statTransforms = statsPanel.GetComponentsInChildren<RectTransform>();
+                var valueTexts = statsPanel.GetComponentsInChildren<TextMeshProUGUI>().Where(x => x.name == "ValueText").ToList();
+
+                RectTransform panelRect = (statsPanel.transform as RectTransform);
+                panelRect.sizeDelta = new Vector2(panelRect.sizeDelta.x * 1.2f, panelRect.sizeDelta.y * 1.2f);
+
+                for (int i = 0; i < statTransforms.Length; i++)
+                {
+                    var r = statTransforms[i];
+                    if (r.name == "Separator")
+                    {
+                        continue;
+                    }
+                    r.sizeDelta = new Vector2(r.sizeDelta.x * 0.75f, r.sizeDelta.y * 0.75f);
+                }
+
+                for (int i = 0; i < valueTexts.Count; i++)
+                {
+                    var text = valueTexts[i];
+                    text.fontSize = 3.25f;
+                }
+                */
+
+                //     var _starStatTransform = Instantiate(statTransforms[1], statsPanel.transform, false);
+                //     _starStatText = _starStatTransform.GetComponentInChildren<TextMeshProUGUI>(true);
+                //     _starStatTransform.GetComponentInChildren<UnityEngine.UI.Image>(true).sprite = Sprites.StarFull;
+                //     _starStatText.text = "--";
+
+                //     var _upvoteStatTransform = Instantiate(statTransforms[1], statsPanel.transform, false);
+                //     _upvoteStatText = _upvoteStatTransform.GetComponentInChildren<TextMeshProUGUI>(true);
+                //     _upvoteStatTransform.GetComponentInChildren<UnityEngine.UI.Image>(true).sprite = Sprites.ThumbUp;
+                //     _upvoteStatText.text = "--";
+
+                //     var _downvoteStatTransform = Instantiate(statTransforms[1], statsPanel.transform, false);
+                //     _downvoteStatText = _downvoteStatTransform.GetComponentInChildren<TextMeshProUGUI>(true);
+                //     _downvoteStatTransform.GetComponentInChildren<UnityEngine.UI.Image>(true).sprite = Sprites.ThumbDown;
+                //     _downvoteStatText.text = "--";
+
+                ResultsViewController _standardLevelResultsViewController = viewControllersContainer.GetComponentsInChildren<ResultsViewController>(true).First(x => x.name == "StandardLevelResultsViewController");
+                _standardLevelResultsViewController.continueButtonPressedEvent += _standardLevelResultsViewController_continueButtonPressedEvent;
+
+            }
+
+            _levelListViewController.didSelectPackEvent += _levelListViewController_didSelectPackEvent;
             _levelPacksViewController.didSelectPackEvent += _levelPacksViewController_didSelectPackEvent;
-
-            TableView _songSelectionTableView = _levelListViewController.GetComponentsInChildren<TableView>(true).First();
-            RectTransform _tableViewRectTransform = _levelListViewController.GetComponentsInChildren<RectTransform>(true).First(x => x.name == "LevelsTableView");
-                
-            _tableViewRectTransform.sizeDelta = new Vector2(0f, -20.5f);
-            _tableViewRectTransform.anchoredPosition = new Vector2(0f, -2.5f);
-                
-            Button _pageUp = _tableViewRectTransform.GetComponentsInChildren<Button>(true).First(x => x.name == "PageUpButton");
-            (_pageUp.transform as RectTransform).anchoredPosition = new Vector2(0f, -1.75f);
-
-            Button _pageDown = _tableViewRectTransform.GetComponentsInChildren<Button>(true).First(x => x.name == "PageDownButton");
-            (_pageDown.transform as RectTransform).anchoredPosition = new Vector2(0f, 1f);
-                
-            _fastPageUpButton = Instantiate(_pageUp, _tableViewRectTransform, false);
-            (_fastPageUpButton.transform as RectTransform).anchorMin = new Vector2(0.5f, 1f);
-            (_fastPageUpButton.transform as RectTransform).anchorMax = new Vector2(0.5f, 1f);
-            (_fastPageUpButton.transform as RectTransform).anchoredPosition = new Vector2(-26f, 0.25f);
-            (_fastPageUpButton.transform as RectTransform).sizeDelta = new Vector2(8f, 6f);
-            _fastPageUpButton.GetComponentsInChildren<RectTransform>().First(x => x.name == "BG").sizeDelta = new Vector2(8f, 6f);
-            _fastPageUpButton.GetComponentsInChildren<UnityEngine.UI.Image>().First(x => x.name == "Arrow").sprite = Sprites.DoubleArrow;
-            _fastPageUpButton.onClick.AddListener(delegate ()
-            {
-                FastScrollUp(_songSelectionTableView, PluginConfig.fastScrollSpeed);
-            });
-            
-            _fastPageDownButton = Instantiate(_pageDown, _tableViewRectTransform, false);
-            (_fastPageDownButton.transform as RectTransform).anchorMin = new Vector2(0.5f, 0f);
-            (_fastPageDownButton.transform as RectTransform).anchorMax = new Vector2(0.5f, 0f);
-            (_fastPageDownButton.transform as RectTransform).anchoredPosition = new Vector2(-26f, -1f);
-            (_fastPageDownButton.transform as RectTransform).sizeDelta = new Vector2(8f, 6f);
-            _fastPageDownButton.GetComponentsInChildren<RectTransform>().First(x => x.name == "BG").sizeDelta = new Vector2(8f, 6f);
-            _fastPageDownButton.GetComponentsInChildren<UnityEngine.UI.Image>().First(x => x.name == "Arrow").sprite = Sprites.DoubleArrow;
-            _fastPageDownButton.onClick.AddListener(delegate ()
-            {
-                FastScrollDown(_songSelectionTableView, PluginConfig.fastScrollSpeed);
-            });
-
-            _randomButton = Instantiate(viewControllersContainer.GetComponentsInChildren<Button>(true).First(x => x.name == "PracticeButton"), _levelListViewController.rectTransform, false);
-            _randomButton.onClick = new Button.ButtonClickedEvent();
-            _randomButton.onClick.AddListener(() =>
-            {
-                int randomRow = UnityEngine.Random.Range(0, _songSelectionTableView.dataSource.NumberOfCells());
-                _songSelectionTableView.ScrollToCellWithIdx(randomRow, TableView.ScrollPositionType.Beginning, false);
-                _songSelectionTableView.SelectCellWithIdx(randomRow, true);
-            });
-            _randomButton.name = "CustomUIButton";
-
-            (_randomButton.transform as RectTransform).anchorMin = new Vector2(0.5f, 0.5f);
-            (_randomButton.transform as RectTransform).anchorMax = new Vector2(0.5f, 0.5f);
-            (_randomButton.transform as RectTransform).anchoredPosition = new Vector2(24f, 36.5f);
-            (_randomButton.transform as RectTransform).sizeDelta = new Vector2(12f, 6f);
-
-            _randomButton.SetButtonText("");
-            _randomButton.SetButtonIcon(Sprites.RandomIcon);
-            _randomButton.GetComponentsInChildren<UnityEngine.UI.Image>().First(x => x.name == "Stroke").sprite = Resources.FindObjectsOfTypeAll<Sprite>().First(x => x.name == "RoundRectSmallStroke");
-            
-            var _randomIconLayout = _randomButton.GetComponentsInChildren<HorizontalLayoutGroup>().First(x => x.name == "Content");
-            _randomIconLayout.padding = new RectOffset(0, 0, 0, 0);
-
-            _searchButton = _levelListViewController.CreateUIButton("CreditsButton", new Vector2(-18f, 36.5f), new Vector2(24f, 6f), SearchPressed, "Search");
-            _searchButton.SetButtonTextSize(3f);
-            _searchButton.ToggleWordWrapping(false);
-            
-            _sortByButton = _levelListViewController.CreateUIButton("CreditsButton", new Vector2(6f, 36.5f), new Vector2(24f, 6f), () =>
-            {
-                SelectTopButtons(TopButtonsState.SortBy);
-            }, "Sort By");
-            _sortByButton.SetButtonTextSize(3f);
-            _sortByButton.ToggleWordWrapping(false);
-
-            _defButton = _levelListViewController.CreateUIButton("CreditsButton", new Vector2(-20f, 36.5f), new Vector2(20f, 6f), () =>
-            {
-                SelectTopButtons(TopButtonsState.Select);
-                SetLevels(SortMode.Default, "");
-            },
-                "Default");
-
-            _defButton.SetButtonTextSize(3f);
-            _defButton.ToggleWordWrapping(false);
-            _defButton.gameObject.SetActive(false);
-
-            _newButton = _levelListViewController.CreateUIButton("CreditsButton", new Vector2(0f, 36.5f), new Vector2(20f, 6f), () =>
-            {
-                SelectTopButtons(TopButtonsState.Select);
-                SetLevels(SortMode.Newest, "");
-            }, "Newest");
-
-            _newButton.SetButtonTextSize(3f);
-            _newButton.ToggleWordWrapping(false);
-            _newButton.gameObject.SetActive(false);
-
-
-            //    _difficultyButton = _levelListViewController.CreateUIButton("CreditsButton", new Vector2(20f, 36.5f), new Vector2(20f, 6f), () =>
-            //    {
-            //        SelectTopButtons(TopButtonsState.Select);
-            //         SetLevels(SortMode.Difficulty, "");
-            //     }, "Difficulty");
-
-            //     _difficultyButton.SetButtonTextSize(3f);
-            //     _difficultyButton.ToggleWordWrapping(false);
-            //     _difficultyButton.gameObject.SetActive(false);
-
-           _authorButton = _levelListViewController.CreateUIButton("CreditsButton", new Vector2(20f, 36.5f), new Vector2(20f, 6f), () =>
-           {
-               SelectTopButtons(TopButtonsState.Select);
-               SetLevels(SortMode.Author, "");
-            }, "Song Author");
-
-            _authorButton.SetButtonTextSize(3f);
-            _authorButton.ToggleWordWrapping(false);
-            _authorButton.gameObject.SetActive(false);
-
 
             var packDetailViewController = viewControllersContainer.GetComponentsInChildren<LevelPackDetailViewController>(true).First(x => x.name == "LevelPackDetailViewController");
             _buyPackText = packDetailViewController.GetComponentsInChildren<TextMeshProUGUI>(true).FirstOrDefault(x => x.name.EndsWith("InfoText"));
             _buyPackButton = packDetailViewController.GetComponentsInChildren<Button>(true).FirstOrDefault(x => x.name == "BuyPackButton");
             _originalBuyButtonEvent = _buyPackButton.onClick;
 
-            _detailViewController = viewControllersContainer.GetComponentsInChildren<StandardLevelDetailViewController>(true).First(x => x.name == "LevelDetailViewController");
-            _detailViewController.didChangeDifficultyBeatmapEvent += _difficultyViewController_didSelectDifficultyEvent;
-            
-            RectTransform buttonsRect = _detailViewController.GetComponentsInChildren<RectTransform>(true).First(x => x.name == "PlayButtons");
-            
-            _favoriteButton = Instantiate(viewControllersContainer.GetComponentsInChildren<Button>(true).First(x => x.name == "PracticeButton"), buttonsRect, false);
-            _favoriteButton.onClick = new Button.ButtonClickedEvent();
-            _favoriteButton.onClick.AddListener(() =>
-            {
-                if (PluginConfig.favoriteSongs.Any(x => x.Contains(_detailViewController.selectedDifficultyBeatmap.level.levelID)))
-                {
-                    PluginConfig.favoriteSongs.Remove(_detailViewController.selectedDifficultyBeatmap.level.levelID);
-                    PluginConfig.SaveConfig();
-                    _favoriteButton.SetButtonIcon(Sprites.AddToFavorites);
-                    PlaylistsCollection.RemoveLevelFromPlaylist(PlaylistsCollection.loadedPlaylists.First(x => x.playlistTitle == "Your favorite songs"), _detailViewController.selectedDifficultyBeatmap.level.levelID);
-                }
-                else
-                {
-                    PluginConfig.favoriteSongs.Add(_detailViewController.selectedDifficultyBeatmap.level.levelID);
-                    PluginConfig.SaveConfig();
-                    _favoriteButton.SetButtonIcon(Sprites.RemoveFromFavorites);
-                    PlaylistsCollection.AddSongToPlaylist(PlaylistsCollection.loadedPlaylists.First(x => x.playlistTitle == "Your favorite songs"), new PlaylistSong() { levelId = _detailViewController.selectedDifficultyBeatmap.level.levelID, songName = _detailViewController.selectedDifficultyBeatmap.level.songName, level = SongDownloader.GetLevel(_detailViewController.selectedDifficultyBeatmap.level.levelID) });
-                }
-            });
-            _favoriteButton.name = "CustomUIButton";
-            _favoriteButton.SetButtonIcon(Sprites.AddToFavorites);
-            (_favoriteButton.transform as RectTransform).sizeDelta = new Vector2(12f, 8.8f);
-            var _favoriteIconLayout = _favoriteButton.GetComponentsInChildren<HorizontalLayoutGroup>().First(x => x.name == "Content");
-            _favoriteIconLayout.padding = new RectOffset(3, 3, 0, 0);
-            _favoriteButton.transform.SetAsFirstSibling();
 
-            Button practiceButton = buttonsRect.GetComponentsInChildren<Button>().First(x => x.name == "PracticeButton");
-            (practiceButton.transform as RectTransform).sizeDelta = new Vector2(12f, 8.8f);
-            var _practiceIconLayout = practiceButton.GetComponentsInChildren<HorizontalLayoutGroup>().First(x => x.name == "Content");
-            _practiceIconLayout.padding = new RectOffset(3, 3, 0, 0);
-
-            _deleteButton = Instantiate(viewControllersContainer.GetComponentsInChildren<Button>(true).First(x => x.name == "PracticeButton"), buttonsRect, false);
-            _deleteButton.onClick = new Button.ButtonClickedEvent();
-            _deleteButton.onClick.AddListener(DeletePressed);
-            _deleteButton.name = "CustomUIButton";
-            _deleteButton.SetButtonIcon(Sprites.DeleteIcon);
-            _deleteButton.interactable = !PluginConfig.disableDeleteButton;
-            (_deleteButton.transform as RectTransform).sizeDelta = new Vector2(8.8f, 8.8f);
-            _deleteButton.GetComponentsInChildren<UnityEngine.UI.Image>().First(x => x.name == "Stroke").sprite = Resources.FindObjectsOfTypeAll<Sprite>().First(x => x.name == "RoundRectSmallStroke");
-
-            var _deleteIconLayout = _deleteButton.GetComponentsInChildren<HorizontalLayoutGroup>().First(x => x.name == "Content");
-            _deleteIconLayout.padding = new RectOffset(0, 0, 1, 1);
-
-            _deleteButton.transform.SetAsLastSibling();
-
-            //based on https://github.com/halsafar/BeatSaberSongBrowser/blob/master/SongBrowserPlugin/UI/Browser/SongBrowserUI.cs#L416
-            /*
-            var statsPanel = _detailViewController.GetPrivateField<StandardLevelDetailView>("_standardLevelDetailView").GetPrivateField<LevelParamsPanel>("_levelParamsPanel");
-            var statTransforms = statsPanel.GetComponentsInChildren<RectTransform>();
-            var valueTexts = statsPanel.GetComponentsInChildren<TextMeshProUGUI>().Where(x => x.name == "ValueText").ToList();
-
-            RectTransform panelRect = (statsPanel.transform as RectTransform);
-            panelRect.sizeDelta = new Vector2(panelRect.sizeDelta.x * 1.2f, panelRect.sizeDelta.y * 1.2f);
-
-            for (int i = 0; i < statTransforms.Length; i++)
-            {
-                var r = statTransforms[i];
-                if (r.name == "Separator")
-                {
-                    continue;
-                }
-                r.sizeDelta = new Vector2(r.sizeDelta.x * 0.75f, r.sizeDelta.y * 0.75f);
-            }
-
-            for (int i = 0; i < valueTexts.Count; i++)
-            {
-                var text = valueTexts[i];
-                text.fontSize = 3.25f;
-            }
-            */
-
-       //     var _starStatTransform = Instantiate(statTransforms[1], statsPanel.transform, false);
-       //     _starStatText = _starStatTransform.GetComponentInChildren<TextMeshProUGUI>(true);
-       //     _starStatTransform.GetComponentInChildren<UnityEngine.UI.Image>(true).sprite = Sprites.StarFull;
-       //     _starStatText.text = "--";
-
-       //     var _upvoteStatTransform = Instantiate(statTransforms[1], statsPanel.transform, false);
-       //     _upvoteStatText = _upvoteStatTransform.GetComponentInChildren<TextMeshProUGUI>(true);
-       //     _upvoteStatTransform.GetComponentInChildren<UnityEngine.UI.Image>(true).sprite = Sprites.ThumbUp;
-       //     _upvoteStatText.text = "--";
-
-       //     var _downvoteStatTransform = Instantiate(statTransforms[1], statsPanel.transform, false);
-       //     _downvoteStatText = _downvoteStatTransform.GetComponentInChildren<TextMeshProUGUI>(true);
-       //     _downvoteStatTransform.GetComponentInChildren<UnityEngine.UI.Image>(true).sprite = Sprites.ThumbDown;
-       //     _downvoteStatText.text = "--";
-            
-            ResultsViewController _standardLevelResultsViewController = viewControllersContainer.GetComponentsInChildren<ResultsViewController>(true).First(x => x.name == "StandardLevelResultsViewController");
-            _standardLevelResultsViewController.continueButtonPressedEvent += _standardLevelResultsViewController_continueButtonPressedEvent;
-            
             initialized = true;
         }
         
@@ -489,7 +496,7 @@ namespace BeatSaverDownloader.UI
         {
             yield return null;
             yield return null;
-
+            if (PluginConfig.disableSongListTweaks) yield break;
             lastSortMode = PluginConfig.lastSelectedSortMode;
                 
             if (!string.IsNullOrEmpty(PluginConfig.lastSelectedPack) && SongCore.Loader.CustomBeatmapLevelPackCollectionSO.beatmapLevelPacks.Any(x => x.packID == PluginConfig.lastSelectedPack))
@@ -637,9 +644,11 @@ namespace BeatSaverDownloader.UI
         private void _levelListViewController_didSelectPackEvent(LevelPackLevelsViewController arg1, IBeatmapLevelPack arg2)
         {
             lastPack = arg2;
-            Plugin.log.Info("Selected pack header! IsPlaylist="+(arg2 is PlaylistLevelPackSO));
+        //    Plugin.log.Info("Pack: " + arg2.packName);
+            bool isPlaylist = arg2.packID.StartsWith("Playlist_") || PlaylistsCollection.loadedPlaylists.Any(x => x.playlistTitle == arg2.packName);
+            Plugin.log.Info("Selected pack header! IsPlaylist="+ isPlaylist);
 
-            if (arg2 is PlaylistLevelPackSO)
+            if (isPlaylist)
             {
                 StartCoroutine(ShowDownloadQueue(arg2));
             }
@@ -688,14 +697,14 @@ namespace BeatSaverDownloader.UI
         {
             if (_downloadButtonEvent == null)
                 _downloadButtonEvent = new Button.ButtonClickedEvent();
-
+            Playlist playlist = pack is PlaylistLevelPackSO ? (pack as PlaylistLevelPackSO).playlist : PlaylistsCollection.loadedPlaylists.First(x => x.playlistTitle == pack.packName);
             _downloadButtonEvent.RemoveAllListeners();
             _downloadButtonEvent.AddListener(() =>
             {
-                StartCoroutine(DownloadPlaylist((pack as PlaylistLevelPackSO).playlist));
+                StartCoroutine(DownloadPlaylist(playlist));
             });
 
-            _buyPackButton.interactable = ((pack as PlaylistLevelPackSO).playlist.songs.Count > pack.beatmapLevelCollection.beatmapLevels.Length);
+            _buyPackButton.interactable = (playlist.songs.Count > pack.beatmapLevelCollection.beatmapLevels.Length);
             _buyPackButton.SetButtonText("DOWNLOAD");
             _buyPackButton.onClick = _downloadButtonEvent;
             _buyPackText.gameObject.SetActive(false);
@@ -976,9 +985,9 @@ namespace BeatSaverDownloader.UI
         
         private void SongDownloader_songDownloaded(Song song)
         {
-            if(lastPack is PlaylistLevelPackSO)
+            if(lastPack is PlaylistLevelPackSO || PlaylistsCollection.loadedPlaylists.Any(x => x.playlistTitle == lastPack.packName))
             {
-                Playlist playlist = (lastPack as PlaylistLevelPackSO).playlist;
+                Playlist playlist = PlaylistsCollection.loadedPlaylists.First(x => x.playlistTitle == lastPack.packName);
 
                 if (playlist.songs.Any(x => x.Compare(song)))
                 {
@@ -1024,17 +1033,29 @@ namespace BeatSaverDownloader.UI
                         downloadURL = archiveUrl
                     };
                 }
-
+                Plugin.log.Info($"Info grabbed, url {beatSaverSong.downloadURL}");
                 if (!_downloadingPlaylist)
                     yield break;
                 //bananabread playlists id
-                if (beatSaverSong != null && !SongCore.Loader.CustomLevels.Values.Any(x => beatSaverSong.hash == SongCore.Collections.hashForLevelID(x.levelID).ToLower()))
+                var pathKey = SongCore.Loader.CustomLevels.Keys.FirstOrDefault(path => path.Contains($"\\{beatSaverSong.key} "));
+                if (beatSaverSong != null && string.IsNullOrEmpty(pathKey))
                 {
                     _downloadQueueViewController.EnqueueSong(beatSaverSong, true);
+                }
+                else
+                {
+                    if (beatSaverSong == null)
+                        Plugin.log.Info("null song");
+                    else if(pathKey != null)
+                    {
+                        Plugin.log.Info(pathKey);
+                    }
                 }
             }
             _downloadingPlaylist = false;
             PlaylistsCollection.MatchSongsForPlaylist(playlist);
+   //         if (lastPack is PlaylistLevelPackSO)
+   //             (lastPack as PlaylistLevelPackSO).UpdateDataFromPlaylist();
         }
 
         public IEnumerator GetInfoForSong(Playlist playlist, PlaylistSong song, Action<Song> songCallback)

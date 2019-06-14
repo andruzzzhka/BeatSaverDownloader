@@ -105,6 +105,7 @@ namespace BeatSaverDownloader.UI.ViewControllers
                     song.songQueueState = SongQueueState.Error;
                 }
                 queuedSongs.Clear();
+                SongCore.Loader.Instance.RefreshSongs(false);
                 Refresh();
             }
         }
@@ -163,6 +164,7 @@ namespace BeatSaverDownloader.UI.ViewControllers
             if (queuedSongs.Count(x => x.songQueueState == SongQueueState.Downloading || x.songQueueState == SongQueueState.Queued) == 0)
             {
                 Plugin.log.Info("All songs downloaded!");
+                SongCore.Loader.Instance.RefreshSongs(false);
             }
 
             if (queuedSongs.Count(x => x.songQueueState == SongQueueState.Downloading) < PluginConfig.maxSimultaneousDownloads && queuedSongs.Any(x => x.songQueueState == SongQueueState.Queued))

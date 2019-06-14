@@ -171,23 +171,20 @@ namespace BeatSaverDownloader.Misc
                             {
                                 x.level = SongCore.Loader.CustomLevels.Values.FirstOrDefault(y => string.Equals(y.levelID.Split('_')[2], x.hash, StringComparison.OrdinalIgnoreCase));
                             }
+
                             if (x.level == null && !string.IsNullOrEmpty(x.key)) //if level is still null, check that we have key and if we do, try to match level
                             {
-                                x.level = SongCore.Loader.CustomLevels.Values.FirstOrDefault(y => y.customLevelPath.Contains(x.key));
-                               if (x.level == null)
+                                var pathKey = SongCore.Loader.CustomLevels.Keys.FirstOrDefault(path => path.Contains($"\\{x.key} "));
+                                if (!string.IsNullOrEmpty(pathKey))
                                 {
-                                    ScrappedSong song = ScrappedData.Songs.FirstOrDefault(z => z.Key == x.key);
-                                    if (song != null)
-                                    {
-                                        x.level = SongCore.Loader.CustomLevels.Values.FirstOrDefault(y => string.Equals(y.levelID.Split('_')[2], song.Hash, StringComparison.InvariantCultureIgnoreCase));
-                                    }
+                                    x.level = SongCore.Loader.CustomLevels[pathKey];
                                 }
 
                             }
-                            if (x.level == null) //If Still null, grab first level with same songName
-                            {
+                        //    if (x.level == null) //If Still null, grab first level with same songName
+                       //     {
                     //                           x.level = SongCore.Loader.CustomLevels.Values.FirstOrDefault(y => y.songName == x.songName);
-                            }
+                      //      }
                         }
                         catch (Exception e)
                         {

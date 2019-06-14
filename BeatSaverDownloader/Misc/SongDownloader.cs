@@ -146,13 +146,17 @@ namespace BeatSaverDownloader.Misc
                 Plugin.log.Info("Extracting...");
                 _extractingZip = true;
                 ZipArchive archive = new ZipArchive(zipStream, ZipArchiveMode.Read);
-                string path = customSongsPath + "/" + songInfo.key + " (" + songInfo.songName + " - " + songInfo.levelAuthorName + ")";
+                string basePath =  songInfo.key + " (" + songInfo.songName + " - " + songInfo.levelAuthorName + ")";
+                basePath = string.Join("", basePath.Split((Path.GetInvalidFileNameChars().Concat(Path.GetInvalidPathChars()).ToArray())));
+                string path = customSongsPath + "/" + basePath;
+
                 if (Directory.Exists(path))
                 {
                     int pathNum = 1;
                     while (Directory.Exists(path + $" ({pathNum})")) ++pathNum;
                     path += $" ({pathNum})";
                 }
+                Plugin.log.Info(path);
                 await Task.Run(() => archive.ExtractToDirectory(path)).ConfigureAwait(false);
                 archive.Dispose();
                 songInfo.path = path;
@@ -210,29 +214,28 @@ namespace BeatSaverDownloader.Misc
             _alreadyDownloadedSongs.Add(songInfo);
             Plugin.log.Info($"Extracted {songInfo.songName} {songInfo.songSubName}!");
 
-            HMMainThreadDispatcher.instance.Enqueue(() => {
-                try
-                {
+     //       HMMainThreadDispatcher.instance.Enqueue(() => {
+     //           try
+      //          {
                     
           //          string dirName = new DirectoryInfo(customSongsPath).Name;
 
-                    SongCore.Loader.SongsLoadedEvent -= Plugin.instance.SongCore_SongsLoadedEvent;
-                    Action<SongCore.Loader, Dictionary<string, CustomPreviewBeatmapLevel>> songsLoadedAction = null;
-                    songsLoadedAction = (arg1, arg2) =>
-                    {
-                        SongCore.Loader.SongsLoadedEvent -= songsLoadedAction;
-                        SongCore.Loader.SongsLoadedEvent += Plugin.instance.SongCore_SongsLoadedEvent;
-                    };
-                    SongCore.Loader.SongsLoadedEvent += songsLoadedAction;
+       //             SongCore.Loader.SongsLoadedEvent -= Plugin.instance.SongCore_SongsLoadedEvent;
+       //             Action<SongCore.Loader, Dictionary<string, CustomPreviewBeatmapLevel>> songsLoadedAction = null;
+      //              songsLoadedAction = (arg1, arg2) =>
+      //              {
+      //                  SongCore.Loader.SongsLoadedEvent -= songsLoadedAction;
+      //                  SongCore.Loader.SongsLoadedEvent += Plugin.instance.SongCore_SongsLoadedEvent;
+      //              };
+      //              SongCore.Loader.SongsLoadedEvent += songsLoadedAction;
 
-                    SongCore.Loader.Instance.RefreshSongs(false);
                     
-                }
-                catch (Exception e)
-                {
-                    Plugin.log.Critical("Unable to load song! Exception: " + e);
-                }
-            });
+      //          }
+      //          catch (Exception e)
+      //          {
+      //              Plugin.log.Critical("Unable to load song! Exception: " + e);
+      //          }
+      //      });
             
         }
         
