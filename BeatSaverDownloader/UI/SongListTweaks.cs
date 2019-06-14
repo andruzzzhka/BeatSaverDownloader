@@ -457,7 +457,7 @@ namespace BeatSaverDownloader.UI
 
         private void MainMenuViewController_didFinishEvent(MainMenuViewController sender, MainMenuViewController.MenuButton result)
         {
-            lastPack = null;
+          //  lastPack = null;
             if (result == MainMenuViewController.MenuButton.SoloFreePlay)
             {
                 freePlayFlowCoordinator = FindObjectOfType<SoloFreePlayFlowCoordinator>();
@@ -651,14 +651,15 @@ namespace BeatSaverDownloader.UI
 
         private void _levelListViewController_didSelectPackEvent(LevelPackLevelsViewController arg1, IBeatmapLevelPack arg2)
         {
-            lastPack = arg2;
+       //     if (PluginConfig.disableSongListTweaks)
+       //     lastPack = arg2;
             //    Plugin.log.Info("Pack: " + arg2.packName);
-            bool isPlaylist = arg2.packID.StartsWith("Playlist_") || PlaylistsCollection.loadedPlaylists.Any(x => x.playlistTitle == arg2.packName);
+            bool isPlaylist = PlaylistsCollection.loadedPlaylists.Any(x => x.playlistTitle == lastPack?.packName);
             Plugin.log.Info("Selected pack header! IsPlaylist=" + isPlaylist);
 
             if (isPlaylist)
             {
-                StartCoroutine(ShowDownloadQueue(arg2));
+                StartCoroutine(ShowDownloadQueue(lastPack));
             }
             else
             {
@@ -671,7 +672,7 @@ namespace BeatSaverDownloader.UI
             (freePlayFlowCoordinator as PartyFreePlayFlowCoordinator).didFinishEvent -= partyFreePlayFlowCoordinator_didFinishEvent;
             SongDownloader.Instance.songDownloaded -= SongDownloader_songDownloaded;
             StartCoroutine(HideDownloadQueue());
-            lastPack = null;
+    //        lastPack = null;
         }
 
         private void soloFreePlayFlowCoordinator_didFinishEvent(SoloFreePlayFlowCoordinator obj)
@@ -679,7 +680,7 @@ namespace BeatSaverDownloader.UI
             (freePlayFlowCoordinator as SoloFreePlayFlowCoordinator).didFinishEvent -= soloFreePlayFlowCoordinator_didFinishEvent;
             SongDownloader.Instance.songDownloaded -= SongDownloader_songDownloaded;
             StartCoroutine(HideDownloadQueue());
-            lastPack = null;
+    //        lastPack = null;
         }
 
         private IEnumerator HideDownloadQueue()
