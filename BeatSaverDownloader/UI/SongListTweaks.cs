@@ -170,16 +170,18 @@ namespace BeatSaverDownloader.UI
             _levelPacksViewController = viewControllersContainer.GetComponentInChildren<LevelPacksViewController>(true);
             _levelPackDetailViewController = viewControllersContainer.GetComponentInChildren<LevelPackDetailViewController>(true);
 
+            _detailViewController = viewControllersContainer.GetComponentsInChildren<StandardLevelDetailViewController>(true).First(x => x.name == "LevelDetailViewController");
+
+            _simpleDialog = ReflectionUtil.GetPrivateField<SimpleDialogPromptViewController>(_mainFlowCoordinator, "_simpleDialogPromptViewController");
+            _simpleDialog = Instantiate(_simpleDialog.gameObject, _simpleDialog.transform.parent).GetComponent<SimpleDialogPromptViewController>();
+
+
             if (!PluginConfig.disableSongListTweaks)
             {
 
                 _levelListViewController.didSelectLevelEvent += _levelListViewController_didSelectLevelEvent;
-                _detailViewController = viewControllersContainer.GetComponentsInChildren<StandardLevelDetailViewController>(true).First(x => x.name == "LevelDetailViewController");
+
                 _detailViewController.didChangeDifficultyBeatmapEvent += _difficultyViewController_didSelectDifficultyEvent;
-
-                _simpleDialog = ReflectionUtil.GetPrivateField<SimpleDialogPromptViewController>(_mainFlowCoordinator, "_simpleDialogPromptViewController");
-                _simpleDialog = Instantiate(_simpleDialog.gameObject, _simpleDialog.transform.parent).GetComponent<SimpleDialogPromptViewController>();
-
 
                 TableView _songSelectionTableView = _levelListViewController.GetComponentsInChildren<TableView>(true).First();
                 RectTransform _tableViewRectTransform = _levelListViewController.GetComponentsInChildren<RectTransform>(true).First(x => x.name == "LevelsTableView");
@@ -772,7 +774,7 @@ namespace BeatSaverDownloader.UI
         }
 
 
-        private void DeletePressed()
+        public void DeletePressed()
         {
             IBeatmapLevel level = _detailViewController.selectedDifficultyBeatmap.level;
             _simpleDialog.Init("Delete song", $"Do you really want to delete \"{ level.songName} {level.songSubName}\"?", "Delete", "Cancel",
