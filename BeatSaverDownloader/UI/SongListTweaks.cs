@@ -85,8 +85,9 @@ namespace BeatSaverDownloader.UI
         
         private MainFlowCoordinator _mainFlowCoordinator;
         internal LevelPackLevelsViewController _levelListViewController;
-        private StandardLevelDetailViewController _detailViewController;
+        internal StandardLevelDetailViewController _detailViewController;
         internal LevelPacksViewController _levelPacksViewController;
+        internal LevelPackDetailViewController _levelPackDetailViewController;
         private SearchKeyboardViewController _searchViewController;
         private SimpleDialogPromptViewController _simpleDialog;
 
@@ -165,6 +166,7 @@ namespace BeatSaverDownloader.UI
 
             _levelListViewController = viewControllersContainer.GetComponentInChildren<LevelPackLevelsViewController>(true);
             _levelPacksViewController = viewControllersContainer.GetComponentInChildren<LevelPacksViewController>(true);
+            _levelPackDetailViewController = viewControllersContainer.GetComponentInChildren<LevelPackDetailViewController>(true);
 
             if (!PluginConfig.disableSongListTweaks)
             {
@@ -1054,6 +1056,21 @@ namespace BeatSaverDownloader.UI
             }
             _downloadingPlaylist = false;
             PlaylistsCollection.MatchSongsForPlaylist(playlist);
+            PlaylistLevelPackSO playlistPack = SongCore.Loader.CustomBeatmapLevelPackCollectionSO.beatmapLevelPacks.First(x => x.packName == playlist.playlistTitle) as PlaylistLevelPackSO;
+            playlistPack.UpdateDataFromPlaylist();
+
+     //       int index = Array.IndexOf(SongCore.Loader.CustomBeatmapLevelPackCollectionSO.beatmapLevelPacks, playlistPack);
+     //       var _levelPacksTableView = Instance._levelPacksViewController.GetField<LevelPacksTableView>("_levelPacksTableView");
+     //       var tableView = _levelPacksTableView.GetPrivateField<TableView>("_tableView");
+     //      _levelPacksTableView.SelectCellWithIdx(index);
+      //      tableView.SelectCellWithIdx(index, true);
+      //      tableView.ScrollToCellWithIdx(index, TableView.ScrollPositionType.Beginning, false);
+      //      for (int i = 0; i < index; i++)
+      //      {
+      //          tableView.PageScrollDown();
+      //      }
+   //         Instance._levelListViewController.SetData(playlistPack);
+   //         Instance._levelPackDetailViewController.SetData(playlistPack);
    //         if (lastPack is PlaylistLevelPackSO)
    //             (lastPack as PlaylistLevelPackSO).UpdateDataFromPlaylist();
         }
