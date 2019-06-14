@@ -48,10 +48,12 @@ namespace BeatSaverDownloader.UI
 
         public static IBeatmapLevelPack lastPack
         {
-            get {
+            get
+            {
                 return _lastPack;
             }
-            set {
+            set
+            {
                 _lastPack = value;
                 if (_lastPack != null)
                 {
@@ -82,7 +84,7 @@ namespace BeatSaverDownloader.UI
         }
 
         public FlowCoordinator freePlayFlowCoordinator;
-        
+
         private MainFlowCoordinator _mainFlowCoordinator;
         internal LevelPackLevelsViewController _levelListViewController;
         internal StandardLevelDetailViewController _detailViewController;
@@ -113,9 +115,9 @@ namespace BeatSaverDownloader.UI
         private Button _favoriteButton;
         private Button _deleteButton;
         private Button _authorButton;
-    //    private TextMeshProUGUI _starStatText;
-    //    private TextMeshProUGUI _upvoteStatText;
-    //    private TextMeshProUGUI _downvoteStatText;
+        //    private TextMeshProUGUI _starStatText;
+        //    private TextMeshProUGUI _upvoteStatText;
+        //    private TextMeshProUGUI _downvoteStatText;
 
         public void OnLoad()
         {
@@ -133,7 +135,7 @@ namespace BeatSaverDownloader.UI
             {
                 SongCore.Loader.SongsLoadedEvent += SongLoader_SongsLoadedEvent;
             }
-            
+
         }
 
         private void SongLoader_SongsLoadedEvent(SongCore.Loader arg1, Dictionary<string, CustomPreviewBeatmapLevel> arg2)
@@ -176,7 +178,7 @@ namespace BeatSaverDownloader.UI
                 _detailViewController.didChangeDifficultyBeatmapEvent += _difficultyViewController_didSelectDifficultyEvent;
 
                 _simpleDialog = ReflectionUtil.GetPrivateField<SimpleDialogPromptViewController>(_mainFlowCoordinator, "_simpleDialogPromptViewController");
-            _simpleDialog = Instantiate(_simpleDialog.gameObject, _simpleDialog.transform.parent).GetComponent<SimpleDialogPromptViewController>();
+                _simpleDialog = Instantiate(_simpleDialog.gameObject, _simpleDialog.transform.parent).GetComponent<SimpleDialogPromptViewController>();
 
 
                 TableView _songSelectionTableView = _levelListViewController.GetComponentsInChildren<TableView>(true).First();
@@ -394,7 +396,7 @@ namespace BeatSaverDownloader.UI
 
             initialized = true;
         }
-        
+
         public void AddDefaultPlaylists()
         {
             try
@@ -405,7 +407,7 @@ namespace BeatSaverDownloader.UI
 
                 Playlist _favPlaylist = new Playlist() { playlistTitle = "Your favorite songs", playlistAuthor = "", image = Sprites.SpriteToBase64(Sprites.BeastSaberLogo), icon = Sprites.BeastSaberLogo, fileLoc = "" };
                 _favPlaylist.songs = new List<PlaylistSong>();
-                _favPlaylist.songs.AddRange(levels.Where(x =>  PluginConfig.favoriteSongs.Contains(x.levelID)).Select(x =>new PlaylistSong() { songName = $"{x.songName} {x.songSubName}", level = x as CustomPreviewBeatmapLevel, oneSaber = x.beatmapCharacteristics.Any(y => y.serializedName == "OneSaber"), path = "", key = "", levelId = x.levelID, hash = SongCore.Utilities.Hashing.GetCustomLevelHash(x as CustomPreviewBeatmapLevel).ToLower() }));
+                _favPlaylist.songs.AddRange(levels.Where(x => PluginConfig.favoriteSongs.Contains(x.levelID)).Select(x => new PlaylistSong() { songName = $"{x.songName} {x.songSubName}", level = x as CustomPreviewBeatmapLevel, oneSaber = x.beatmapCharacteristics.Any(y => y.serializedName == "OneSaber"), path = "", key = "", levelId = x.levelID, hash = SongCore.Utilities.Hashing.GetCustomLevelHash(x as CustomPreviewBeatmapLevel).ToLower() }));
                 Plugin.log.Info($"Created \"{_favPlaylist.playlistTitle}\" playlist with {_favPlaylist.songs.Count} songs!");
 
                 if (PlaylistsCollection.loadedPlaylists.Any(x => x.playlistTitle == "Your favorite songs"))
@@ -416,7 +418,8 @@ namespace BeatSaverDownloader.UI
                 PlaylistsCollection.loadedPlaylists.Insert(0, _favPlaylist);
 
                 _favPlaylist.SavePlaylist("Playlists\\favorites.json");
-            }catch(Exception e)
+            }
+            catch (Exception e)
             {
                 Plugin.log.Critical($"Unable to create default playlist! Exception: {e}");
             }
@@ -436,7 +439,7 @@ namespace BeatSaverDownloader.UI
 
             newCollection.SetPrivateField("_customBeatmapLevelPacks", _customBeatmapLevelPacks);
             newCollection.SetPrivateField("_allBeatmapLevelPacks", _allBeatmapLevelPacks.ToArray());
-            
+
             foreach (var playlist in PlaylistsCollection.loadedPlaylists)
             {
                 PlaylistLevelPackSO levelPack = PlaylistLevelPackSO.CreatePackFromPlaylist(playlist);
@@ -445,10 +448,10 @@ namespace BeatSaverDownloader.UI
                 newCollection.AddLevelPack(levelPack);
             }
 
-            Plugin.log.Info("Updating level packs... New level packs count: "+newCollection.beatmapLevelPacks.Length);
-      //      SongLoaderPlugin.SongLoader.Instance.InvokeMethod("ReloadHashes");
+            Plugin.log.Info("Updating level packs... New level packs count: " + newCollection.beatmapLevelPacks.Length);
+            //      SongLoaderPlugin.SongLoader.Instance.InvokeMethod("ReloadHashes");
         }
-        
+
         private void MainMenuViewController_didFinishEvent(MainMenuViewController sender, MainMenuViewController.MenuButton result)
         {
             lastPack = null;
@@ -465,9 +468,9 @@ namespace BeatSaverDownloader.UI
                 }
                 else
                 {
-                                  int lastPackNum = _levelPacksViewController.GetPrivateField<int>("_selectedPackNum");
-                                  if(lastPackNum < SongCore.Loader.CustomBeatmapLevelPackCollectionSO.beatmapLevelPacks.Length && lastPackNum >= 0)
-                                  lastPack = SongCore.Loader.CustomBeatmapLevelPackCollectionSO?.beatmapLevelPacks[lastPackNum];
+                    int lastPackNum = _levelPacksViewController.GetPrivateField<int>("_selectedPackNum");
+                    if (lastPackNum < SongCore.Loader.CustomBeatmapLevelPackCollectionSO.beatmapLevelPacks.Length && lastPackNum >= 0)
+                        lastPack = SongCore.Loader.CustomBeatmapLevelPackCollectionSO?.beatmapLevelPacks[lastPackNum];
                 }
             }
             else if (result == MainMenuViewController.MenuButton.Party)
@@ -483,9 +486,9 @@ namespace BeatSaverDownloader.UI
                 }
                 else
                 {
-                               int lastPackNum = _levelPacksViewController.GetPrivateField<int>("_selectedPackNum");
-                                if (lastPackNum < SongCore.Loader.CustomBeatmapLevelPackCollectionSO.beatmapLevelPacks.Length && lastPackNum >= 0)
-                                    lastPack = SongCore.Loader.CustomBeatmapLevelPackCollectionSO?.beatmapLevelPacks[_levelPacksViewController.GetPrivateField<int>("_selectedPackNum")];
+                    int lastPackNum = _levelPacksViewController.GetPrivateField<int>("_selectedPackNum");
+                    if (lastPackNum < SongCore.Loader.CustomBeatmapLevelPackCollectionSO.beatmapLevelPacks.Length && lastPackNum >= 0)
+                        lastPack = SongCore.Loader.CustomBeatmapLevelPackCollectionSO?.beatmapLevelPacks[_levelPacksViewController.GetPrivateField<int>("_selectedPackNum")];
                 }
             }
             else
@@ -500,7 +503,7 @@ namespace BeatSaverDownloader.UI
             yield return null;
             if (PluginConfig.disableSongListTweaks) yield break;
             lastSortMode = PluginConfig.lastSelectedSortMode;
-                
+
             if (!string.IsNullOrEmpty(PluginConfig.lastSelectedPack) && SongCore.Loader.CustomBeatmapLevelPackCollectionSO.beatmapLevelPacks.Any(x => x.packID == PluginConfig.lastSelectedPack))
             {
                 int packIndex = Array.FindIndex(SongCore.Loader.CustomBeatmapLevelPackCollectionSO.beatmapLevelPacks, x => x.packID == PluginConfig.lastSelectedPack);
@@ -508,14 +511,14 @@ namespace BeatSaverDownloader.UI
                 if (packIndex < 0)
                 {
                     Plugin.log.Warn($"Unable to find last selected pack with ID \"{PluginConfig.lastSelectedPack}\"");
-                   lastPack = SongCore.Loader.CustomBeatmapLevelPackCollectionSO.beatmapLevelPacks[_levelPacksViewController.GetPrivateField<int>("_selectedPackNum")];
+                    lastPack = SongCore.Loader.CustomBeatmapLevelPackCollectionSO.beatmapLevelPacks[_levelPacksViewController.GetPrivateField<int>("_selectedPackNum")];
                     yield break;
                 }
-               if(packIndex < SongCore.Loader.CustomBeatmapLevelPackCollectionSO.beatmapLevelPacks.Length)
-                lastPack = SongCore.Loader.CustomBeatmapLevelPackCollectionSO.beatmapLevelPacks[packIndex];
+                if (packIndex < SongCore.Loader.CustomBeatmapLevelPackCollectionSO.beatmapLevelPacks.Length)
+                    lastPack = SongCore.Loader.CustomBeatmapLevelPackCollectionSO.beatmapLevelPacks[packIndex];
 
                 SetLevels(lastSortMode, "");
-                
+
                 yield return null;
 
                 if (!string.IsNullOrEmpty(PluginConfig.lastSelectedSong) && lastPack.beatmapLevelCollection.beatmapLevels.Any(x => x.levelID == PluginConfig.lastSelectedSong))
@@ -547,9 +550,9 @@ namespace BeatSaverDownloader.UI
                 if (lastPackNum < SongCore.Loader.CustomBeatmapLevelPackCollectionSO.beatmapLevelPacks.Length && lastPackNum >= 0)
                     lastPack = SongCore.Loader.CustomBeatmapLevelPackCollectionSO.beatmapLevelPacks[_levelPacksViewController.GetPrivateField<int>("_selectedPackNum")];
             }
-            
+
         }
-        
+
         public void SelectTopButtons(TopButtonsState _newState)
         {
             switch (_newState)
@@ -628,7 +631,7 @@ namespace BeatSaverDownloader.UI
             }
             */
         }
-        
+
         private void _levelPacksViewController_didSelectPackEvent(LevelPacksViewController arg1, IBeatmapLevelPack arg2)
         {
             lastPack = arg2;
@@ -646,9 +649,9 @@ namespace BeatSaverDownloader.UI
         private void _levelListViewController_didSelectPackEvent(LevelPackLevelsViewController arg1, IBeatmapLevelPack arg2)
         {
             lastPack = arg2;
-        //    Plugin.log.Info("Pack: " + arg2.packName);
+            //    Plugin.log.Info("Pack: " + arg2.packName);
             bool isPlaylist = arg2.packID.StartsWith("Playlist_") || PlaylistsCollection.loadedPlaylists.Any(x => x.playlistTitle == arg2.packName);
-            Plugin.log.Info("Selected pack header! IsPlaylist="+ isPlaylist);
+            Plugin.log.Info("Selected pack header! IsPlaylist=" + isPlaylist);
 
             if (isPlaylist)
             {
@@ -659,7 +662,7 @@ namespace BeatSaverDownloader.UI
                 StartCoroutine(HideDownloadQueue());
             }
         }
-        
+
         private void partyFreePlayFlowCoordinator_didFinishEvent(PartyFreePlayFlowCoordinator obj)
         {
             (freePlayFlowCoordinator as PartyFreePlayFlowCoordinator).didFinishEvent -= partyFreePlayFlowCoordinator_didFinishEvent;
@@ -768,12 +771,12 @@ namespace BeatSaverDownloader.UI
             StartCoroutine(HideDownloadQueue());
         }
 
-        
+
         private void DeletePressed()
         {
             IBeatmapLevel level = _detailViewController.selectedDifficultyBeatmap.level;
-            _simpleDialog.Init("Delete song", $"Do you really want to delete \"{ level.songName} {level.songSubName}\"?", "Delete", "Cancel", 
-                (selectedButton) => 
+            _simpleDialog.Init("Delete song", $"Do you really want to delete \"{ level.songName} {level.songSubName}\"?", "Delete", "Cancel",
+                (selectedButton) =>
                 {
                     freePlayFlowCoordinator.InvokePrivateMethod("DismissViewController", new object[] { _simpleDialog, null, false });
                     if (selectedButton == 0)
@@ -786,12 +789,12 @@ namespace BeatSaverDownloader.UI
                             int selectedIndex = levels.FindIndex(x => x.levelID == _detailViewController.selectedDifficultyBeatmap.level.levelID);
 
                             SongDownloader.Instance.DeleteSong(new Song(SongCore.Loader.CustomLevels.Values.First(x => x.levelID == _detailViewController.selectedDifficultyBeatmap.level.levelID)));
-                            
+
                             if (selectedIndex > -1)
                             {
                                 int removedLevels = levels.RemoveAll(x => x.levelID == _detailViewController.selectedDifficultyBeatmap.level.levelID);
                                 Plugin.log.Info("Removed " + removedLevels + " level(s) from song list!");
-                                
+
                                 _levelListViewController.SetData(CustomHelpers.GetLevelPackWithLevels(levels.Cast<CustomPreviewBeatmapLevel>().ToArray(), lastPack?.packName ?? "Custom Songs", lastPack?.coverImage));
                                 TableView listTableView = levelsTableView.GetPrivateField<TableView>("_tableView");
                                 listTableView.ScrollToCellWithIdx(selectedIndex, TableView.ScrollPositionType.Beginning, false);
@@ -807,7 +810,7 @@ namespace BeatSaverDownloader.UI
                 });
             freePlayFlowCoordinator.InvokePrivateMethod("PresentViewController", new object[] { _simpleDialog, null, false });
         }
-        
+
         private void SearchPressed()
         {
             if (_searchViewController == null)
@@ -870,10 +873,10 @@ namespace BeatSaverDownloader.UI
             {
                 levels = levels.Where(x => ($"{x.songName} {x.songSubName} {x.levelAuthorName} {x.songAuthorName}".ToLower().Contains(searchRequest))).ToArray();
             }
-               _levelListViewController.SetData(CustomHelpers.GetLevelPackWithLevels(levels, lastPack?.packName ?? "Custom Songs" ,lastPack?.coverImage));
+            _levelListViewController.SetData(CustomHelpers.GetLevelPackWithLevels(levels, lastPack?.packName ?? "Custom Songs", lastPack?.coverImage));
             PopDifficultyAndDetails();
         }
-        
+
         public CustomPreviewBeatmapLevel[] SortLevelsByCreationTime(CustomPreviewBeatmapLevel[] levels)
         {
             DirectoryInfo customSongsFolder = new DirectoryInfo(CustomLevelPathHelper.customLevelsDirectoryPath);
@@ -884,7 +887,7 @@ namespace BeatSaverDownloader.UI
 
             for (int i = 0; i < sortedFolders.Count; i++)
             {
-          //      Plugin.log.Info(sortedFolders[i]);
+                //      Plugin.log.Info(sortedFolders[i]);
                 if (SongCore.Loader.CustomLevels.TryGetValue(sortedFolders[i], out var song))
                 {
                     sortedLevelPaths.Add(song.customLevelPath);
@@ -901,11 +904,11 @@ namespace BeatSaverDownloader.UI
                 {
                     sortedLevels.Add(data);
                 }
-                
+
             }
             sortedLevels.AddRange(notSorted.Except(sortedLevels));
             return sortedLevels.ToArray();
-            
+
         }
 
         private void PopDifficultyAndDetails()
@@ -947,9 +950,10 @@ namespace BeatSaverDownloader.UI
                 TableView _levelListTableView = _levelListViewController.GetComponentInChildren<TableView>();
 
                 _levelListTableView.RefreshTable();
-            }catch(Exception e)
+            }
+            catch (Exception e)
             {
-                Plugin.log.Warn("Unable to refresh song list! Exception: "+e);
+                Plugin.log.Warn("Unable to refresh song list! Exception: " + e);
             }
         }
 
@@ -971,25 +975,25 @@ namespace BeatSaverDownloader.UI
         {
             float num = (tableView.GetPrivateField<TableView.TableType>("_tableType") != TableView.TableType.Vertical) ? tableView.GetPrivateField<RectTransform>("_scrollRectTransform").rect.width : tableView.GetPrivateField<RectTransform>("_scrollRectTransform").rect.height;
             float num2 = tableView.GetPrivateField<int>("_numberOfCells") * tableView.GetPrivateField<float>("_cellSize") - num;
-            
+
             float targetPosition = tableView.GetProperty<float>("position") + (Mathf.Max(1f, tableView.GetNumberOfVisibleCells() - 1f) * tableView.GetPrivateField<float>("_cellSize") * pages);
-            
+
             if (targetPosition > num2)
             {
                 targetPosition = num2;
             }
-            
+
             tableView.SetPrivateField("_targetPosition", targetPosition);
 
             tableView.enabled = true;
             tableView.RefreshScrollButtons();
         }
-        
+
         private void SongDownloader_songDownloaded(Song song)
         {
-            if(lastPack is PlaylistLevelPackSO || PlaylistsCollection.loadedPlaylists.Any(x => x.playlistTitle == lastPack.packName))
+            if (lastPack is PlaylistLevelPackSO)// || PlaylistsCollection.loadedPlaylists.Any(x => x.playlistTitle == lastPack.packName))
             {
-                Playlist playlist = PlaylistsCollection.loadedPlaylists.First(x => x.playlistTitle == lastPack.packName);
+                Playlist playlist = (lastPack as PlaylistLevelPackSO).playlist;
 
                 if (playlist.songs.Any(x => x.Compare(song)))
                 {
@@ -1035,44 +1039,41 @@ namespace BeatSaverDownloader.UI
                         downloadURL = archiveUrl
                     };
                 }
-                Plugin.log.Info($"Info grabbed, url {beatSaverSong.downloadURL}");
+                //     Plugin.log.Info($"Info grabbed, url {beatSaverSong.downloadURL}");
                 if (!_downloadingPlaylist)
                     yield break;
                 //bananabread playlists id
-                var pathKey = SongCore.Loader.CustomLevels.Keys.FirstOrDefault(path => path.Contains($"\\{beatSaverSong.key} "));
-                if (beatSaverSong != null && string.IsNullOrEmpty(pathKey))
+                if (beatSaverSong != null)
                 {
+                    var pathKey = SongCore.Loader.CustomLevels.Keys.FirstOrDefault(path => path.Contains($"\\{beatSaverSong.key} "));
+                    if (string.IsNullOrEmpty(pathKey))
                     _downloadQueueViewController.EnqueueSong(beatSaverSong, true);
                 }
                 else
                 {
                     if (beatSaverSong == null)
                         Plugin.log.Info("null song");
-                    else if(pathKey != null)
-                    {
-                        Plugin.log.Info(pathKey);
-                    }
                 }
             }
             _downloadingPlaylist = false;
             PlaylistsCollection.MatchSongsForPlaylist(playlist);
-            PlaylistLevelPackSO playlistPack = SongCore.Loader.CustomBeatmapLevelPackCollectionSO.beatmapLevelPacks.First(x => x.packName == playlist.playlistTitle) as PlaylistLevelPackSO;
-            playlistPack.UpdateDataFromPlaylist();
+       //     PlaylistLevelPackSO playlistPack = SongCore.Loader.CustomBeatmapLevelPackCollectionSO.beatmapLevelPacks.FirstOrDefault(x => x.packName == playlist.playlistTitle) as PlaylistLevelPackSO;
+       //     playlistPack?.UpdateDataFromPlaylist();
 
-     //       int index = Array.IndexOf(SongCore.Loader.CustomBeatmapLevelPackCollectionSO.beatmapLevelPacks, playlistPack);
-     //       var _levelPacksTableView = Instance._levelPacksViewController.GetField<LevelPacksTableView>("_levelPacksTableView");
-     //       var tableView = _levelPacksTableView.GetPrivateField<TableView>("_tableView");
-     //      _levelPacksTableView.SelectCellWithIdx(index);
-      //      tableView.SelectCellWithIdx(index, true);
-      //      tableView.ScrollToCellWithIdx(index, TableView.ScrollPositionType.Beginning, false);
-      //      for (int i = 0; i < index; i++)
-      //      {
-      //          tableView.PageScrollDown();
-      //      }
-   //         Instance._levelListViewController.SetData(playlistPack);
-   //         Instance._levelPackDetailViewController.SetData(playlistPack);
-   //         if (lastPack is PlaylistLevelPackSO)
-   //             (lastPack as PlaylistLevelPackSO).UpdateDataFromPlaylist();
+            //       int index = Array.IndexOf(SongCore.Loader.CustomBeatmapLevelPackCollectionSO.beatmapLevelPacks, playlistPack);
+            //       var _levelPacksTableView = Instance._levelPacksViewController.GetField<LevelPacksTableView>("_levelPacksTableView");
+            //       var tableView = _levelPacksTableView.GetPrivateField<TableView>("_tableView");
+            //      _levelPacksTableView.SelectCellWithIdx(index);
+            //      tableView.SelectCellWithIdx(index, true);
+            //      tableView.ScrollToCellWithIdx(index, TableView.ScrollPositionType.Beginning, false);
+            //      for (int i = 0; i < index; i++)
+            //      {
+            //          tableView.PageScrollDown();
+            //      }
+            //         Instance._levelListViewController.SetData(playlistPack);
+            //         Instance._levelPackDetailViewController.SetData(playlistPack);
+            //         if (lastPack is PlaylistLevelPackSO)
+            //             (lastPack as PlaylistLevelPackSO).UpdateDataFromPlaylist();
         }
 
         public IEnumerator GetInfoForSong(Playlist playlist, PlaylistSong song, Action<Song> songCallback)
@@ -1152,7 +1153,7 @@ namespace BeatSaverDownloader.UI
             {
                 if (node["songName"] == song.songName)
                 {
-       //             Plugin.log.Info("Updating: " + song.songName);
+                    //             Plugin.log.Info("Updating: " + song.songName);
                     node["key"] = newSong.key;
                 }
 

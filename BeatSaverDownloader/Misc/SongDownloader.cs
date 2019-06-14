@@ -243,7 +243,8 @@ namespace BeatSaverDownloader.Misc
         {
             bool zippedSong = false;
             string path = "";
-      //      Console.WriteLine("Deleting: " + song.path);
+            //      Console.WriteLine("Deleting: " + song.path);
+          PlaylistsCollection.MatchSongsForAllPlaylists(true);
             SongCore.Loader.Instance.DeleteSong(song.path, false);
             /*
             CustomLevel level = SongLoader.CustomLevels.FirstOrDefault(x => x.levelID.StartsWith(song.hash));
