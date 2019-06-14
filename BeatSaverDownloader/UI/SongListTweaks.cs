@@ -385,6 +385,7 @@ namespace BeatSaverDownloader.UI
                 ResultsViewController _standardLevelResultsViewController = viewControllersContainer.GetComponentsInChildren<ResultsViewController>(true).First(x => x.name == "StandardLevelResultsViewController");
                 _standardLevelResultsViewController.continueButtonPressedEvent += _standardLevelResultsViewController_continueButtonPressedEvent;
 
+
             }
 
             _levelListViewController.didSelectPackEvent += _levelListViewController_didSelectPackEvent;
@@ -777,7 +778,7 @@ namespace BeatSaverDownloader.UI
         public void DeletePressed()
         {
             IBeatmapLevel level = _detailViewController.selectedDifficultyBeatmap.level;
-            _simpleDialog.Init("Delete song", $"Do you really want to delete \"{ level.songName} {level.songSubName}\"?", "Delete", "Cancel",
+            _simpleDialog.Init($"Delete song", $"Do you really want to delete \"{ level.songName} {level.songSubName}\"? \n Folder - \"{new DirectoryInfo((level as CustomPreviewBeatmapLevel).customLevelPath).Name}\"", "Delete", "Cancel",
                 (selectedButton) =>
                 {
                     freePlayFlowCoordinator.InvokePrivateMethod("DismissViewController", new object[] { _simpleDialog, null, false });
@@ -1037,7 +1038,7 @@ namespace BeatSaverDownloader.UI
                         songName = item.songName,
                         key = item.key,
                         downloadingProgress = 0f,
-                        hash = (item.levelId == null ? "" : item.levelId),
+                        hash = (item.hash == null ? "" : item.hash),
                         downloadURL = archiveUrl
                     };
                 }
@@ -1047,9 +1048,9 @@ namespace BeatSaverDownloader.UI
                 //bananabread playlists id
                 if (beatSaverSong != null)
                 {
-                    var pathKey = SongCore.Loader.CustomLevels.Keys.FirstOrDefault(path => path.Contains($"\\{beatSaverSong.key} "));
-                    if (string.IsNullOrEmpty(pathKey))
-                    _downloadQueueViewController.EnqueueSong(beatSaverSong, true);
+       //             Plugin.log.Info("Adding Song with Hash: " + beatSaverSong.hash + " to queue");
+                        _downloadQueueViewController.EnqueueSongAtStart(beatSaverSong, false);
+
                 }
                 else
                 {
@@ -1057,32 +1058,35 @@ namespace BeatSaverDownloader.UI
                         Plugin.log.Info("null song");
                 }
             }
+            _downloadQueueViewController.DownloadAllSongsFromQueue();
             _downloadingPlaylist = false;
-            PlaylistsCollection.MatchSongsForPlaylist(playlist);
-       //     PlaylistLevelPackSO playlistPack = SongCore.Loader.CustomBeatmapLevelPackCollectionSO.beatmapLevelPacks.FirstOrDefault(x => x.packName == playlist.playlistTitle) as PlaylistLevelPackSO;
-       //     playlistPack?.UpdateDataFromPlaylist();
-
-            //       int index = Array.IndexOf(SongCore.Loader.CustomBeatmapLevelPackCollectionSO.beatmapLevelPacks, playlistPack);
-            //       var _levelPacksTableView = Instance._levelPacksViewController.GetField<LevelPacksTableView>("_levelPacksTableView");
-            //       var tableView = _levelPacksTableView.GetPrivateField<TableView>("_tableView");
-            //      _levelPacksTableView.SelectCellWithIdx(index);
-            //      tableView.SelectCellWithIdx(index, true);
-            //      tableView.ScrollToCellWithIdx(index, TableView.ScrollPositionType.Beginning, false);
-            //      for (int i = 0; i < index; i++)
-            //      {
-            //          tableView.PageScrollDown();
-            //      }
-            //         Instance._levelListViewController.SetData(playlistPack);
-            //         Instance._levelPackDetailViewController.SetData(playlistPack);
-            //         if (lastPack is PlaylistLevelPackSO)
-            //             (lastPack as PlaylistLevelPackSO).UpdateDataFromPlaylist();
+            PlaylistsCollection.MatchSongsForPlaylist(playlist, true);
+      //      UpdateLevelPacks();
+     //            PlaylistLevelPackSO playlistPack = SongCore.Loader.CustomBeatmapLevelPackCollectionSO.beatmapLevelPacks.FirstOrDefault(x => x.packName == playlist.playlistTitle) as PlaylistLevelPackSO;
+     //            playlistPack?.UpdateDataFromPlaylist();
+     //       SongCore.Loader.Instance.RefreshLevelPacks();
+     //       int index = Array.IndexOf(SongCore.Loader.CustomBeatmapLevelPackCollectionSO.beatmapLevelPacks, playlistPack);
+     //       var _levelPacksTableView = Instance._levelPacksViewController.GetField<LevelPacksTableView>("_levelPacksTableView");
+     //       var tableView = _levelPacksTableView.GetPrivateField<TableView>("_tableView");
+     //      _levelPacksTableView.SelectCellWithIdx(index);
+     //      tableView.SelectCellWithIdx(index, true);
+     //      tableView.ScrollToCellWithIdx(index, TableView.ScrollPositionType.Beginning, false);
+     //      for (int i = 0; i < index; i++)
+     //      {
+     //          tableView.PageScrollDown();
+     //      }
+     //         Instance._levelListViewController.SetData(playlistPack);
+     //         Instance._levelPackDetailViewController.SetData(playlistPack);
+     //         if (lastPack is PlaylistLevelPackSO)
+     //             (lastPack as PlaylistLevelPackSO).UpdateDataFromPlaylist();
         }
 
         public IEnumerator GetInfoForSong(Playlist playlist, PlaylistSong song, Action<Song> songCallback)
         {
             string url = "";
             bool _usingHash = false;
-            if (!string.IsNullOrEmpty(song.key))
+
+                if (!string.IsNullOrEmpty(song.key))
             {
                 url = $"{PluginConfig.beatsaverURL}/api/maps/detail/{song.key}";
                 if (!string.IsNullOrEmpty(playlist.customDetailUrl))
@@ -1128,15 +1132,13 @@ namespace BeatSaverDownloader.UI
                             songCallback?.Invoke(null);
                             yield break;
                         }
-                        var newSong = new Song((JObject)jNode, false);
-                        if (song.key.Contains("-"))
+                        var newSong = new Song(jNode, false);
                             UpdatePlaylistSongEntry(playlist, song, newSong);
                         songCallback?.Invoke(newSong);
                     }
                     else
                     {
-                        var newSong = new Song((JObject)jNode, false);
-                        if (song.key.Contains("-"))
+                        var newSong = new Song(jNode, false);
                             UpdatePlaylistSongEntry(playlist, song, newSong);
                         songCallback?.Invoke(newSong);
                     }
@@ -1147,16 +1149,20 @@ namespace BeatSaverDownloader.UI
                 }
             }
         }
+
         public void UpdatePlaylistSongEntry(Playlist playlist, PlaylistSong song, Song newSong)
         {
-            playlist.songs.First(x => x.songName == song.songName).key = newSong.key;
+           song.key = newSong.key;
+            song.hash = newSong.hash;
             var json = JSON.Parse(File.ReadAllText(playlist.fileLoc));
             foreach (JSONNode node in json["songs"].AsArray)
             {
                 if (node["songName"] == song.songName)
                 {
                     //             Plugin.log.Info("Updating: " + song.songName);
-                    node["key"] = newSong.key;
+                    if (node["key"] != null)
+                        node["key"] = null;
+                    node["hash"] = newSong.hash;
                 }
 
             }

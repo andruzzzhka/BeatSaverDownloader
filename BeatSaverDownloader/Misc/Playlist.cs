@@ -171,7 +171,7 @@ namespace BeatSaverDownloader.Misc
                             {
                                 x.level = SongCore.Loader.CustomLevels.Values.FirstOrDefault(y => string.Equals(y.levelID.Split('_')[2], x.hash, StringComparison.OrdinalIgnoreCase));
                             }
-
+                            /*
                             if (x.level == null && !string.IsNullOrEmpty(x.key)) //if level is still null, check that we have key and if we do, try to match level
                             {
                                 var pathKey = SongCore.Loader.CustomLevels.Keys.FirstOrDefault(path => path.Contains($"\\{x.key} "));
@@ -181,14 +181,15 @@ namespace BeatSaverDownloader.Misc
                                 }
 
                             }
-                        //    if (x.level == null) //If Still null, grab first level with same songName
-                       //     {
-                    //                           x.level = SongCore.Loader.CustomLevels.Values.FirstOrDefault(y => y.songName == x.songName);
-                      //      }
+                            if (x.level == null) //If Still null, grab first level with same songName
+                            {
+                                               x.level = SongCore.Loader.CustomLevels.Values.FirstOrDefault(y => y.songName == x.songName);
+                            }
+                            */
                         }
                         catch (Exception e)
                         {
-                            Plugin.log.Warn($"Unable to match song with {(string.IsNullOrEmpty(x.key) ? " unknown key!" : ("key " + x.key + " !"))} Exception: {e}");
+                            Plugin.log.Warn($"Unable to match song with {(string.IsNullOrEmpty(x.key) ? " unknown key!" : ("key " + x.key + " !"))}");
                         }
                     }
                 });

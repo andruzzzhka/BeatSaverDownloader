@@ -117,6 +117,7 @@ namespace BeatSaverDownloader.UI.ViewControllers
 
         public void EnqueueSong(Song song, bool startDownload = true)
         {
+
             queuedSongs.Add(song);
             song.songQueueState = SongQueueState.Queued;
             if (startDownload && queuedSongs.Count(x => x.songQueueState == SongQueueState.Downloading) < PluginConfig.maxSimultaneousDownloads)
@@ -124,8 +125,23 @@ namespace BeatSaverDownloader.UI.ViewControllers
                 StartCoroutine(DownloadSong(song));
                 Refresh();
             }
+            else
+                RefreshVisuals();
+
         }
 
+        public void EnqueueSongAtStart(Song song, bool startDownload = true)
+        {
+            queuedSongs.Insert(0, song);
+            song.songQueueState = SongQueueState.Queued;
+            if (startDownload && queuedSongs.Count(x => x.songQueueState == SongQueueState.Downloading) < PluginConfig.maxSimultaneousDownloads)
+            {
+                StartCoroutine(DownloadSong(song));
+                Refresh();
+            }
+            else
+                RefreshVisuals();
+        }
         public void DownloadAllSongsFromQueue()
         {
             Plugin.log.Info("Downloading all songs from queue...");
@@ -171,6 +187,24 @@ namespace BeatSaverDownloader.UI.ViewControllers
                 StartCoroutine(DownloadSong(queuedSongs.First(x => x.songQueueState == SongQueueState.Queued)));
         }
 
+        public void RefreshVisuals()
+        {
+            int removed = queuedSongs.RemoveAll(x => x.songQueueState == SongQueueState.Downloaded || x.songQueueState == SongQueueState.Error);
+            if(removed > 0)
+            Plugin.log.Info($"Removed {removed} songs from queue");
+
+            _queuedSongsTableView.ReloadData();
+            _queuedSongsTableView.ScrollToCellWithIdx(0, TableView.ScrollPositionType.Beginning, true);
+
+            if (queuedSongs.Count(x => x.songQueueState == SongQueueState.Downloading || x.songQueueState == SongQueueState.Queued) == 0)
+            {
+                Plugin.log.Info("All songs downloaded!");
+                SongCore.Loader.Instance.RefreshSongs(false);
+            }
+
+//            if (queuedSongs.Count(x => x.songQueueState == SongQueueState.Downloading) < PluginConfig.maxSimultaneousDownloads && queuedSongs.Any(x => x.songQueueState == SongQueueState.Queued))
+//                StartCoroutine(DownloadSong(queuedSongs.First(x => x.songQueueState == SongQueueState.Queued)));
+        }
         public float CellSize()
         {
             return 8.5f;

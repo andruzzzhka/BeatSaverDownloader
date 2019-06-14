@@ -39,7 +39,7 @@ namespace BeatSaverDownloader.Misc
         public void Awake()
         {
             DontDestroyOnLoad(gameObject);
-            
+
             if (!SongCore.Loader.AreSongsLoaded)
             {
                 SongCore.Loader.SongsLoadedEvent += SongLoader_SongsLoadedEvent;
@@ -48,19 +48,28 @@ namespace BeatSaverDownloader.Misc
             {
                 SongLoader_SongsLoadedEvent(null, SongCore.Loader.CustomLevels);
             }
-            
+
         }
         //bananbread song id
-        
+
         private void SongLoader_SongsLoadedEvent(SongCore.Loader sender, Dictionary<string, CustomPreviewBeatmapLevel> levels)
         {
             _alreadyDownloadedSongs = levels.Values.Select(x => new Song(x)).ToList();
         }
-        
+
         public IEnumerator DownloadSongCoroutine(Song songInfo)
         {
             songInfo.songQueueState = SongQueueState.Downloading;
 
+            if (SongCore.Collections.songWithHashPresent(songInfo.hash.ToUpper()))
+            {
+        //        Plugin.log.Info("Song Already Downloaded, Skipping");
+                songInfo.downloadingProgress = 1f;
+                yield return new WaitForSeconds(0.1f);
+                songInfo.songQueueState = SongQueueState.Downloaded;
+                songDownloaded?.Invoke(songInfo);
+                yield break;
+            }
             UnityWebRequest www;
             bool timeout = false;
             float time = 0f;
@@ -97,7 +106,7 @@ namespace BeatSaverDownloader.Misc
                 songInfo.downloadingProgress = asyncRequest.progress;
             }
 
-            if(songInfo.songQueueState == SongQueueState.Error && (!asyncRequest.isDone || songInfo.downloadingProgress < 1f))
+            if (songInfo.songQueueState == SongQueueState.Error && (!asyncRequest.isDone || songInfo.downloadingProgress < 1f))
                 www.Abort();
 
             if (www.isNetworkError || www.isHttpError || timeout || songInfo.songQueueState == SongQueueState.Error)
@@ -146,7 +155,7 @@ namespace BeatSaverDownloader.Misc
                 Plugin.log.Info("Extracting...");
                 _extractingZip = true;
                 ZipArchive archive = new ZipArchive(zipStream, ZipArchiveMode.Read);
-                string basePath =  songInfo.key + " (" + songInfo.songName + " - " + songInfo.levelAuthorName + ")";
+                string basePath = songInfo.key + " (" + songInfo.songName + " - " + songInfo.levelAuthorName + ")";
                 basePath = string.Join("", basePath.Split((Path.GetInvalidFileNameChars().Concat(Path.GetInvalidPathChars()).ToArray())));
                 string path = customSongsPath + "/" + basePath;
 
@@ -214,31 +223,31 @@ namespace BeatSaverDownloader.Misc
             _alreadyDownloadedSongs.Add(songInfo);
             Plugin.log.Info($"Extracted {songInfo.songName} {songInfo.songSubName}!");
 
-     //       HMMainThreadDispatcher.instance.Enqueue(() => {
-     //           try
-      //          {
-                    
-          //          string dirName = new DirectoryInfo(customSongsPath).Name;
+            //       HMMainThreadDispatcher.instance.Enqueue(() => {
+            //           try
+            //          {
 
-       //             SongCore.Loader.SongsLoadedEvent -= Plugin.instance.SongCore_SongsLoadedEvent;
-       //             Action<SongCore.Loader, Dictionary<string, CustomPreviewBeatmapLevel>> songsLoadedAction = null;
-      //              songsLoadedAction = (arg1, arg2) =>
-      //              {
-      //                  SongCore.Loader.SongsLoadedEvent -= songsLoadedAction;
-      //                  SongCore.Loader.SongsLoadedEvent += Plugin.instance.SongCore_SongsLoadedEvent;
-      //              };
-      //              SongCore.Loader.SongsLoadedEvent += songsLoadedAction;
+            //          string dirName = new DirectoryInfo(customSongsPath).Name;
 
-                    
-      //          }
-      //          catch (Exception e)
-      //          {
-      //              Plugin.log.Critical("Unable to load song! Exception: " + e);
-      //          }
-      //      });
-            
+            //             SongCore.Loader.SongsLoadedEvent -= Plugin.instance.SongCore_SongsLoadedEvent;
+            //             Action<SongCore.Loader, Dictionary<string, CustomPreviewBeatmapLevel>> songsLoadedAction = null;
+            //              songsLoadedAction = (arg1, arg2) =>
+            //              {
+            //                  SongCore.Loader.SongsLoadedEvent -= songsLoadedAction;
+            //                  SongCore.Loader.SongsLoadedEvent += Plugin.instance.SongCore_SongsLoadedEvent;
+            //              };
+            //              SongCore.Loader.SongsLoadedEvent += songsLoadedAction;
+
+
+            //          }
+            //          catch (Exception e)
+            //          {
+            //              Plugin.log.Critical("Unable to load song! Exception: " + e);
+            //          }
+            //      });
+
         }
-        
+
         public void DeleteSong(Song song)
         {
             bool zippedSong = false;
@@ -327,7 +336,7 @@ namespace BeatSaverDownloader.Misc
                 {
                     try
                     {
-                        Plugin.log.Info("Deleting \"" + path.Substring(0,path.LastIndexOf('/')) + "\"...");
+                        Plugin.log.Info("Deleting \"" + path.Substring(0, path.LastIndexOf('/')) + "\"...");
 
                         if (PluginConfig.deleteToRecycleBin)
                         {
@@ -351,29 +360,29 @@ namespace BeatSaverDownloader.Misc
                             Plugin.log.Warn("Unable to delete empty folder!");
                         }
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
                         Plugin.log.Error("Error Deleting Song:" + song.path);
                         Plugin.log.Error(ex.ToString());
                     }
-                   
+
                 }
 
                 Plugin.log.Info($"{_alreadyDownloadedSongs.RemoveAll(x => x.Compare(song))} song removed");
             }).ConfigureAwait(false);
 
-            
+
         }
-        
+
 
         public bool IsSongDownloaded(Song song)
         {
-                   if (SongCore.Loader.AreSongsLoaded)
-                   {
-                       return _alreadyDownloadedSongs.Any(x => x.Compare(song));
-                   }
-                   else
-                       return false;
+            if (SongCore.Loader.AreSongsLoaded)
+            {
+                return _alreadyDownloadedSongs.Any(x => x.Compare(song));
+            }
+            else
+                return false;
             return false;
         }
 
