@@ -34,8 +34,6 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
 
         private Song _lastSelectedSong;
 
-        private Song _lastDeletedSong;
-
         public void Awake()
         {
             if (_songDetailViewController == null && _moreSongsNavigationController == null)
@@ -51,6 +49,16 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
             }
         }
 
+        private void ResetDetailView()
+        {
+            if (_songDetailViewController.isInViewControllerHierarchy)
+            {
+                PopViewControllerFromNavigationController(_moreSongsNavigationController);
+                _moreSongsListViewController.ResetOffset();
+            }
+
+        }
+
         protected override void DidActivate(bool firstActivation, ActivationType activationType)
         {
             if (firstActivation && activationType == ActivationType.AddedToHierarchy)
@@ -62,12 +70,12 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
                 _moreSongsListViewController.pageUpPressed += _moreSongsListViewController_pageUpPressed;
 
 
-                _moreSongsListViewController.sortByTop += () => { currentSortMode = "hot"; currentPage = 0; StartCoroutine(GetPage(currentPage, currentSortMode)); currentSearchRequest = ""; };
-                _moreSongsListViewController.sortByNew += () => { currentSortMode = "latest"; currentPage = 0; StartCoroutine(GetPage(currentPage, currentSortMode)); currentSearchRequest = ""; };
+                _moreSongsListViewController.sortByTop += () => { ResetDetailView(); currentSortMode = "hot"; currentPage = 0; StartCoroutine(GetPage(currentPage, currentSortMode)); currentSearchRequest = ""; };
+                _moreSongsListViewController.sortByNew += () => { ResetDetailView(); currentSortMode = "latest"; currentPage = 0; StartCoroutine(GetPage(currentPage, currentSortMode)); currentSearchRequest = ""; };
 
-                _moreSongsListViewController.sortByNewlyRanked += () => { currentScoreSaberSortMode = 1; currentPage = 0; StartCoroutine(GetPageScoreSaber(currentPage, currentScoreSaberSortMode)); };
-                _moreSongsListViewController.sortByTrending += () => { currentScoreSaberSortMode = 0; currentPage = 0; StartCoroutine(GetPageScoreSaber(currentPage, currentScoreSaberSortMode)); };
-                _moreSongsListViewController.sortByDifficulty += () => { currentScoreSaberSortMode = 3; currentPage = 0; StartCoroutine(GetPageScoreSaber(currentPage, currentScoreSaberSortMode)); };
+                _moreSongsListViewController.sortByNewlyRanked += () => { ResetDetailView(); currentScoreSaberSortMode = 1; currentPage = 0; StartCoroutine(GetPageScoreSaber(currentPage, currentScoreSaberSortMode)); };
+                _moreSongsListViewController.sortByTrending += () => { ResetDetailView(); currentScoreSaberSortMode = 0; currentPage = 0; StartCoroutine(GetPageScoreSaber(currentPage, currentScoreSaberSortMode)); };
+                _moreSongsListViewController.sortByDifficulty += () => { ResetDetailView(); currentScoreSaberSortMode = 3; currentPage = 0; StartCoroutine(GetPageScoreSaber(currentPage, currentScoreSaberSortMode)); };
 
                 _moreSongsListViewController.searchButtonPressed += _moreSongsListViewController_searchButtonPressed;
                 _moreSongsListViewController.didSelectRow += _moreSongsListViewController_didSelectRow;
@@ -135,19 +143,19 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
         {
             if(PluginConfig.favoriteSongs.Any(x => x.Contains(song.hash)))
             {
-                PluginConfig.favoriteSongs.Remove(SongDownloader.GetLevelID(song));
+                PluginConfig.favoriteSongs.Remove(SongDownloader.GetHash(song));
                 PluginConfig.SaveConfig();
                 
                 _songDetailViewController.SetFavoriteState(false);
-                PlaylistsCollection.RemoveLevelFromPlaylist(PlaylistsCollection.loadedPlaylists.First(x => x.playlistTitle == "Your favorite songs"), SongDownloader.GetLevelID(song));
+                PlaylistsCollection.RemoveLevelFromPlaylist(PlaylistsCollection.loadedPlaylists.First(x => x.playlistTitle == "Your favorite songs"), song.hash);
             }
             else
             {
-                PluginConfig.favoriteSongs.Add(SongDownloader.GetLevelID(song));
+                PluginConfig.favoriteSongs.Add(SongDownloader.GetHash(song));
                 PluginConfig.SaveConfig();
 
                 _songDetailViewController.SetFavoriteState(true);
-                PlaylistsCollection.AddSongToPlaylist(PlaylistsCollection.loadedPlaylists.First(x => x.playlistTitle == "Your favorite songs"), new PlaylistSong() { levelId = SongDownloader.GetLevelID(song), songName = song.songName, level = SongDownloader.GetLevel(SongDownloader.GetLevelID(song)), key = song.key });
+                PlaylistsCollection.AddSongToPlaylist(PlaylistsCollection.loadedPlaylists.First(x => x.playlistTitle == "Your favorite songs"), new PlaylistSong() { levelId = SongDownloader.GetHash(song), songName = song.songName, level = SongDownloader.GetLevel(SongDownloader.GetHash(song)), key = song.key });
             }
         }
 
@@ -165,10 +173,8 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
                     {
                         DismissViewController(_simpleDialog, null, false);
                         if (selectedButton == 0)
-                            DeleteSong(_lastDeletedSong);
-                        _lastDeletedSong = null;
+                            DeleteSong(_lastSelectedSong);
                     });
-                _lastDeletedSong = song;
                 PresentViewController(_simpleDialog, null, false);
             }
         }
@@ -234,9 +240,13 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
             DismissViewController(_searchViewController);
             _moreSongsListViewController.SelectTopButtons(TopButtonsState.Select);
 
+            if(!string.IsNullOrWhiteSpace(obj))
+            {
             currentPage = 0;
             currentSearchRequest = obj;
             StartCoroutine(GetSearchResults(currentPage, currentSearchRequest));
+            }
+
         }
 
         private void _searchViewController_backButtonPressed()

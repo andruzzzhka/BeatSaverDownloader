@@ -133,11 +133,11 @@ namespace BeatSaverDownloader.Misc
 
         }
 
-        public static void RemoveLevelFromPlaylist(Playlist playlist, string levelId)
+        public static void RemoveLevelFromPlaylist(Playlist playlist, string hash)
         {
-            if (playlist.songs.Any(x => x.levelId == levelId || (x.level != null && x.level.levelID == levelId)))
+            if (playlist.songs.Any(x => x.hash == hash ))
             {
-                PlaylistSong song = playlist.songs.First(x => x.levelId == levelId || (x.level != null && x.level.levelID == levelId));
+                PlaylistSong song = playlist.songs.First(x => x.hash == hash);
                 song.level = null;
                 playlist.songs.Remove(song);
             }

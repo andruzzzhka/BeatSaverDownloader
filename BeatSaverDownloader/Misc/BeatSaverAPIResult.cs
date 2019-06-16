@@ -116,6 +116,7 @@ namespace BeatSaverDownloader.Misc
             uploaded = (string)jsonNode["uploaded"];
             downloadURL = PluginConfig.beatsaverURL + (string)jsonNode["downloadURL"];
             coverURL = PluginConfig.beatsaverURL + (string)jsonNode["coverURL"];
+            path = SongCore.Loader.CustomLevels.Values.FirstOrDefault(x => x.levelID.Split('_')[2] == hash.ToUpper())?.customLevelPath;
         }
 
         public void ConstructFromScoreSaber(JObject jsonNode)
@@ -143,37 +144,9 @@ namespace BeatSaverDownloader.Misc
             hash = (string)jsonNode["id"];
             hash = hash.ToLower();
             metadata = new Metadata() { characteristics = new string[] { "Standard" }, difficulties = new Metadata.Difficulties(true, false, false, false, false) };
+            path = SongCore.Loader.CustomLevels.Values.FirstOrDefault(x => x.levelID.Split('_')[2] == hash.ToUpper())?.customLevelPath;
             //       difficultyLevels = new DifficultyLevel[1];
             //       difficultyLevels[0] = new DifficultyLevel("Easy", 4, "", 0);
-        }
-
-        public static Song FromSearchNode(JObject jsonNode)
-        {
-            Song buffer = new Song();
-            buffer.metadata = jsonNode["metadata"].ToObject<Metadata>();
-            buffer.levelAuthorName = (string)jsonNode["metadata"]["levelAuthorName"];
-            buffer.songAuthorName = (string)jsonNode["metadata"]["songAuthorName"];
-            buffer.songName = (string)jsonNode["metadata"]["songName"];
-            buffer.songSubName = (string)jsonNode["metadata"]["songSubName"];
-            buffer.bpm = (float)jsonNode["metadata"]["bpm"];
-            buffer.downloads = (int)jsonNode["stats"]["downloads"];
-            buffer.plays = (int)jsonNode["stats"]["plays"];
-            buffer.upVotes = (int)jsonNode["stats"]["upVotes"];
-            buffer.downVotes = (int)jsonNode["stats"]["downVotes"];
-            buffer.rating = (float)jsonNode["stats"]["rating"];
-            buffer.heat = (float)jsonNode["stats"]["heat"];
-            buffer.description = (string)jsonNode["description"];
-            buffer._id = (string)jsonNode["_id"];
-            buffer.key = (string)jsonNode["key"];
-            buffer.name = (string)jsonNode["name"];
-            buffer.ownerid = (string)jsonNode["uploader"]["_id"];
-            buffer.ownerName = (string)jsonNode["uploader"]["username"];
-            buffer.hash = (string)jsonNode["hash"];
-            buffer.hash = buffer.hash.ToLower();
-            buffer.uploaded = (string)jsonNode["uploaded"];
-            buffer.downloadURL = PluginConfig.beatsaverURL + (string)jsonNode["downloadURL"];
-            buffer.coverURL = PluginConfig.beatsaverURL + (string)jsonNode["coverURL"];
-            return buffer;
         }
 
 

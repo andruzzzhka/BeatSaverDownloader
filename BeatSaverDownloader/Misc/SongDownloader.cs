@@ -386,11 +386,9 @@ namespace BeatSaverDownloader.Misc
             return false;
         }
 
-        public static string GetLevelID(Song song)
+        public static string GetHash(Song song)
         {
-            Console.WriteLine("LevelID for: " + song.path);
-            string[] values = new string[] { song.hash, song.songName, song.songSubName, song.levelAuthorName, song.bpm.ToString() };
-            return string.Join("∎", values) + "∎";
+            return song.hash;
         }
 
         //bananabread songloader id
@@ -448,7 +446,7 @@ namespace BeatSaverDownloader.Misc
                     yield break;
                 }
 
-                Song _tempSong = Song.FromSearchNode((JObject)jNode);
+                Song _tempSong = new Song(jNode, false);
                 callback?.Invoke(_tempSong);
             }
         }

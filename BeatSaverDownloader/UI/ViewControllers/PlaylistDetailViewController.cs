@@ -45,7 +45,7 @@ namespace BeatSaverDownloader.UI.ViewControllers
 
                 _levelDetails = GetComponentsInChildren<StandardLevelDetailView>(true).First(x => x.name == "LevelDetail");
                 _levelDetails.gameObject.SetActive(true);
-
+                (_levelDetails.transform as RectTransform).anchoredPosition = new Vector2(-40f, 0f);
                 RemoveCustomUIElements(rectTransform);
 
                 Destroy(GetComponentsInChildren<LevelParamsPanel>().First(x => x.name == "LevelParamsPanel").gameObject);

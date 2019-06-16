@@ -136,8 +136,8 @@
     <Compile Include="UI\FlowCoordinators\ReviewFlowCoordinator.cs" />
     <Compile Include="UI\PluginUI.cs" />
     <Compile Include="UI\SongListTweaks.cs" />
-    <Compile Include="UI\UIElements\CustomUIKeyboard.cs" />
     <Compile Include="UI\UIElements\DownloadQueueTableCell.cs" />
+    <Compile Include="UI\UIElements\Keyboard.cs" />
     <Compile Include="UI\UIElements\StarsUIControl.cs" />
     <Compile Include="UI\UIElements\TextMeshProHyperlinkHandler.cs" />
     <Compile Include="UI\ViewControllers\DownloadQueueViewController.cs" />

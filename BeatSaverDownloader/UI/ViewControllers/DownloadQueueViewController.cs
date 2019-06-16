@@ -14,22 +14,22 @@ using System.Collections;
 
 namespace BeatSaverDownloader.UI.ViewControllers
 {
-    class DownloadQueueViewController : VRUIViewController, TableView.IDataSource
+    class DownloadQueueViewController : CustomListViewController, TableView.IDataSource
     {
         public List<Song> queuedSongs = new List<Song>();
 
         TextMeshProUGUI _titleText;
 
         Button _abortButton;
-        TableView _queuedSongsTableView;
         LevelListTableCell _songListTableCellInstance;
-        private Button _pageUpButton;
-        private Button _pageDownButton;
-
-        protected override void DidActivate(bool firstActivation, ActivationType type)
+        private bool initialized = false;
+        public override void __Activate(ActivationType activationType)
         {
-            if (firstActivation && type == ActivationType.AddedToHierarchy)
+            base.__Activate(activationType);
+            //
+            if (!initialized && activationType == ActivationType.AddedToHierarchy)
             {
+                (_pageUpButton.transform as RectTransform).anchoredPosition = new Vector2(0, 25);
                 SongDownloader.Instance.songDownloaded -= SongDownloaded;
                 SongDownloader.Instance.songDownloaded += SongDownloaded;
                 _songListTableCellInstance = Resources.FindObjectsOfTypeAll<LevelListTableCell>().First(x => (x.name == "LevelListTableCell"));
@@ -42,56 +42,15 @@ namespace BeatSaverDownloader.UI.ViewControllers
                 _titleText = headerPanelRectTransform.GetComponentInChildren<TextMeshProUGUI>();
                 _titleText.text = "DOWNLOAD QUEUE";
 
-                _pageUpButton = Instantiate(Resources.FindObjectsOfTypeAll<Button>().Last(x => (x.name == "PageUpButton")), rectTransform, false);
-                (_pageUpButton.transform as RectTransform).anchorMin = new Vector2(0.5f, 1f);
-                (_pageUpButton.transform as RectTransform).anchorMax = new Vector2(0.5f, 1f);
-                (_pageUpButton.transform as RectTransform).anchoredPosition = new Vector2(0f, -18f);
-                (_pageUpButton.transform as RectTransform).sizeDelta = new Vector2(40f, 10f);
-                _pageUpButton.interactable = true;
-                _pageUpButton.onClick.AddListener(delegate ()
-                {
-                    _queuedSongsTableView.PageScrollUp();
-                });
-
-                _pageDownButton = Instantiate(Resources.FindObjectsOfTypeAll<Button>().First(x => (x.name == "PageDownButton")), rectTransform, false);
-                (_pageDownButton.transform as RectTransform).anchorMin = new Vector2(0.5f, 0f);
-                (_pageDownButton.transform as RectTransform).anchorMax = new Vector2(0.5f, 0f);
-                (_pageDownButton.transform as RectTransform).anchoredPosition = new Vector2(0f, 9f);
-                (_pageDownButton.transform as RectTransform).sizeDelta = new Vector2(40f, 10f);
-                _pageDownButton.interactable = true;
-                _pageDownButton.onClick.AddListener(delegate ()
-                {
-                    _queuedSongsTableView.PageScrollDown();
-                });
-
-                RectTransform container = new GameObject("CustomListContainer", typeof(RectTransform)).transform as RectTransform;
-                container.SetParent(rectTransform, false);
-                container.anchorMin = new Vector2(0.2f, 0.5f);
-                container.anchorMax = new Vector2(0.8f, 0.5f);
-                container.sizeDelta = new Vector2(0f, 0f);
-                container.anchoredPosition = new Vector2(0f, -4f);
-
-                _queuedSongsTableView = new GameObject("CustomTableView", typeof(RectTransform)).AddComponent<TableView>();
-                _queuedSongsTableView.gameObject.AddComponent<RectMask2D>();
-                _queuedSongsTableView.transform.SetParent(container, false);
-
-                _queuedSongsTableView.SetPrivateField("_isInitialized", false);
-                _queuedSongsTableView.SetPrivateField("_preallocatedCells", new TableView.CellsGroup[0]);
-                _queuedSongsTableView.Init();
-
-                (_queuedSongsTableView.transform as RectTransform).anchorMin = new Vector2(0f, 0f);
-                (_queuedSongsTableView.transform as RectTransform).anchorMax = new Vector2(1f, 1f);
-                (_queuedSongsTableView.transform as RectTransform).sizeDelta = new Vector2(0f, 54f);
-                (_queuedSongsTableView.transform as RectTransform).anchoredPosition = new Vector2(0f, 0f);
-                
-                ReflectionUtil.SetPrivateField(_queuedSongsTableView, "_pageUpButton", _pageUpButton);
-                ReflectionUtil.SetPrivateField(_queuedSongsTableView, "_pageDownButton", _pageDownButton);
-
-                _queuedSongsTableView.selectionType = TableViewSelectionType.None;
-                _queuedSongsTableView.dataSource = this;
+                _customListTableView.selectionType = TableViewSelectionType.None;
 
                 _abortButton = BeatSaberUI.CreateUIButton(rectTransform, "CreditsButton", new Vector2(36f, -30f), new Vector2(20f, 10f), AbortDownloads, "Abort All");
                 _abortButton.ToggleWordWrapping(false);
+                initialized = true;
+            }
+            else
+            {
+                _titleText.text = "DOWNLOAD QUEUE";
             }
         }
 
@@ -145,8 +104,8 @@ namespace BeatSaverDownloader.UI.ViewControllers
         public void DownloadAllSongsFromQueue()
         {
             Plugin.log.Info("Downloading all songs from queue...");
-            
-            for(int i = 0; i < Math.Min(PluginConfig.maxSimultaneousDownloads, queuedSongs.Count); i++)
+
+            for (int i = 0; i < Math.Min(PluginConfig.maxSimultaneousDownloads, queuedSongs.Count); i++)
             {
                 StartCoroutine(DownloadSong(queuedSongs[i]));
             }
@@ -174,8 +133,8 @@ namespace BeatSaverDownloader.UI.ViewControllers
 
             Plugin.log.Info($"Removed {removed} songs from queue");
 
-            _queuedSongsTableView.ReloadData();
-            _queuedSongsTableView.ScrollToCellWithIdx(0, TableView.ScrollPositionType.Beginning, true);
+            _customListTableView.ReloadData();
+            _customListTableView.ScrollToCellWithIdx(0, TableView.ScrollPositionType.Beginning, true);
 
             if (queuedSongs.Count(x => x.songQueueState == SongQueueState.Downloading || x.songQueueState == SongQueueState.Queued) == 0)
             {
@@ -190,11 +149,11 @@ namespace BeatSaverDownloader.UI.ViewControllers
         public void RefreshVisuals()
         {
             int removed = queuedSongs.RemoveAll(x => x.songQueueState == SongQueueState.Downloaded || x.songQueueState == SongQueueState.Error);
-            if(removed > 0)
-            Plugin.log.Info($"Removed {removed} songs from queue");
+            if (removed > 0)
+                Plugin.log.Info($"Removed {removed} songs from queue");
 
-            _queuedSongsTableView.ReloadData();
-            _queuedSongsTableView.ScrollToCellWithIdx(0, TableView.ScrollPositionType.Beginning, true);
+            _customListTableView.ReloadData();
+            _customListTableView.ScrollToCellWithIdx(0, TableView.ScrollPositionType.Beginning, true);
 
             if (queuedSongs.Count(x => x.songQueueState == SongQueueState.Downloading || x.songQueueState == SongQueueState.Queued) == 0)
             {
@@ -202,22 +161,22 @@ namespace BeatSaverDownloader.UI.ViewControllers
                 SongCore.Loader.Instance.RefreshSongs(false);
             }
 
-//            if (queuedSongs.Count(x => x.songQueueState == SongQueueState.Downloading) < PluginConfig.maxSimultaneousDownloads && queuedSongs.Any(x => x.songQueueState == SongQueueState.Queued))
-//                StartCoroutine(DownloadSong(queuedSongs.First(x => x.songQueueState == SongQueueState.Queued)));
+            if (queuedSongs.Count(x => x.songQueueState == SongQueueState.Downloading) < PluginConfig.maxSimultaneousDownloads && queuedSongs.Any(x => x.songQueueState == SongQueueState.Queued))
+                StartCoroutine(DownloadSong(queuedSongs.First(x => x.songQueueState == SongQueueState.Queued)));
         }
-        public float CellSize()
+        public override float CellSize()
         {
             return 8.5f;
         }
 
-        public int NumberOfCells()
+        public override int NumberOfCells()
         {
             return queuedSongs.Count;
         }
 
-        public TableCell CellForIdx(int row)
+        public override TableCell CellForIdx(int row)
         {
-            LevelListTableCell _tableCell = Instantiate(_songListTableCellInstance);
+            LevelListTableCell _tableCell = GetTableCell(false);
 
             DownloadQueueTableCell _queueCell = _tableCell.gameObject.AddComponent<DownloadQueueTableCell>();
 

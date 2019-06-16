@@ -56,7 +56,7 @@ namespace BeatSaverDownloader.UI.ViewControllers
                 gameObject.SetActive(true);
                 _levelDetails = GetComponentsInChildren<StandardLevelDetailView>(true).First(x => x.name == "LevelDetail");
                 _levelDetails.gameObject.SetActive(true);
-
+                (_levelDetails.transform as RectTransform).anchoredPosition = new Vector2(-40, 0);
                 BeatmapDifficultySegmentedControlController beatmapDifficultySegmentedControl = GetComponentsInChildren<BeatmapDifficultySegmentedControlController>(true).First(x => x.name == "BeatmapDifficultySegmentedControl");
                 beatmapDifficultySegmentedControl.gameObject.SetActive(false);
 
@@ -144,6 +144,7 @@ namespace BeatSaverDownloader.UI.ViewControllers
                 (_loadingIndicator.transform as RectTransform).anchorMin = new Vector2(0.5f, 0.5f);
                 (_loadingIndicator.transform as RectTransform).anchorMax = new Vector2(0.5f, 0.5f);
                 (_loadingIndicator.transform as RectTransform).anchoredPosition = new Vector2(0f, 0f);
+                (_loadingIndicator.transform as RectTransform).anchoredPosition = new Vector2(-40f, 0f);
             }
         }
 

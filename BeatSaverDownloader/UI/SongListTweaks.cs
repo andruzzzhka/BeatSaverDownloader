@@ -300,19 +300,19 @@ namespace BeatSaverDownloader.UI
                 _favoriteButton.onClick = new Button.ButtonClickedEvent();
                 _favoriteButton.onClick.AddListener(() =>
                 {
-                    if (PluginConfig.favoriteSongs.Any(x => x.Contains(_detailViewController.selectedDifficultyBeatmap.level.levelID)))
+                    if (PluginConfig.favoriteSongs.Any(x => x.Contains(_detailViewController.selectedDifficultyBeatmap.level.levelID.Split('_')[2])))
                     {
-                        PluginConfig.favoriteSongs.Remove(_detailViewController.selectedDifficultyBeatmap.level.levelID);
+                        PluginConfig.favoriteSongs.Remove(_detailViewController.selectedDifficultyBeatmap.level.levelID.Split('_')[2]);
                         PluginConfig.SaveConfig();
                         _favoriteButton.SetButtonIcon(Sprites.AddToFavorites);
-                        PlaylistsCollection.RemoveLevelFromPlaylist(PlaylistsCollection.loadedPlaylists.First(x => x.playlistTitle == "Your favorite songs"), _detailViewController.selectedDifficultyBeatmap.level.levelID);
+                        PlaylistsCollection.RemoveLevelFromPlaylist(PlaylistsCollection.loadedPlaylists.First(x => x.playlistTitle == "Your favorite songs"), _detailViewController.selectedDifficultyBeatmap.level.levelID.Split('_')[2]);
                     }
                     else
                     {
-                        PluginConfig.favoriteSongs.Add(_detailViewController.selectedDifficultyBeatmap.level.levelID);
+                        PluginConfig.favoriteSongs.Add(_detailViewController.selectedDifficultyBeatmap.level.levelID.Split('_')[2]);
                         PluginConfig.SaveConfig();
                         _favoriteButton.SetButtonIcon(Sprites.RemoveFromFavorites);
-                        PlaylistsCollection.AddSongToPlaylist(PlaylistsCollection.loadedPlaylists.First(x => x.playlistTitle == "Your favorite songs"), new PlaylistSong() { levelId = _detailViewController.selectedDifficultyBeatmap.level.levelID, songName = _detailViewController.selectedDifficultyBeatmap.level.songName, level = SongDownloader.GetLevel(_detailViewController.selectedDifficultyBeatmap.level.levelID) });
+                        PlaylistsCollection.AddSongToPlaylist(PlaylistsCollection.loadedPlaylists.First(x => x.playlistTitle == "Your favorite songs"), new PlaylistSong() { hash = _detailViewController.selectedDifficultyBeatmap.level.levelID.Split('_')[2], songName = _detailViewController.selectedDifficultyBeatmap.level.songName, level = SongDownloader.GetLevel(_detailViewController.selectedDifficultyBeatmap.level.levelID) });
                     }
                 });
                 _favoriteButton.name = "CustomUIButton";
@@ -410,7 +410,7 @@ namespace BeatSaverDownloader.UI
 
                 Playlist _favPlaylist = new Playlist() { playlistTitle = "Your favorite songs", playlistAuthor = "", image = Sprites.SpriteToBase64(Sprites.BeastSaberLogo), icon = Sprites.BeastSaberLogo, fileLoc = "" };
                 _favPlaylist.songs = new List<PlaylistSong>();
-                _favPlaylist.songs.AddRange(levels.Where(x => PluginConfig.favoriteSongs.Contains(x.levelID)).Select(x => new PlaylistSong() { songName = $"{x.songName} {x.songSubName}", level = x as CustomPreviewBeatmapLevel, oneSaber = x.beatmapCharacteristics.Any(y => y.serializedName == "OneSaber"), path = "", key = "", levelId = x.levelID, hash = SongCore.Utilities.Hashing.GetCustomLevelHash(x as CustomPreviewBeatmapLevel).ToLower() }));
+                _favPlaylist.songs.AddRange(levels.Where(x => x is CustomPreviewBeatmapLevel && PluginConfig.favoriteSongs.Contains(x.levelID.Split('_')[2])).Select(x => new PlaylistSong() { songName = $"{x.songName} {x.songSubName}", level = x as CustomPreviewBeatmapLevel, oneSaber = x.beatmapCharacteristics.Any(y => y.serializedName == "OneSaber"), path = "", key = "", levelId = x.levelID, hash = x.levelID.Split('_')[2] }));
                 Plugin.log.Info($"Created \"{_favPlaylist.playlistTitle}\" playlist with {_favPlaylist.songs.Count} songs!");
 
                 if (PlaylistsCollection.loadedPlaylists.Any(x => x.playlistTitle == "Your favorite songs"))
