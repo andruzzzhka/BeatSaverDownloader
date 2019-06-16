@@ -740,7 +740,7 @@ namespace BeatSaverDownloader.UI
             PluginConfig.lastSelectedSong = beatmap.levelID;
             PluginConfig.SaveConfig();
 
-            _favoriteButton.SetButtonIcon(PluginConfig.favoriteSongs.Any(x => x.Contains(beatmap.levelID)) ? Sprites.RemoveFromFavorites : Sprites.AddToFavorites);
+            _favoriteButton.SetButtonIcon(PluginConfig.favoriteSongs.Any(x => x.Contains(beatmap.levelID.Split('_')[2])) ? Sprites.RemoveFromFavorites : Sprites.AddToFavorites);
             _favoriteButton.interactable = !(beatmap is PreviewBeatmapLevelSO);
 
             _deleteButton.interactable = !PluginConfig.disableDeleteButton && (beatmap is CustomPreviewBeatmapLevel);
