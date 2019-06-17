@@ -22,7 +22,7 @@ namespace BeatSaverDownloader.UI.ViewControllers
         private Song _currentSong;
 
         private TextMeshProUGUI songNameText;
-
+        private IconSegmentedControl _characteristicSegmentedDisplay;
         private TextMeshProUGUI difficulty1Text;
         private TextMeshProUGUI difficulty2Text;
         private TextMeshProUGUI difficulty3Text;
@@ -59,7 +59,6 @@ namespace BeatSaverDownloader.UI.ViewControllers
                 (_levelDetails.transform as RectTransform).anchoredPosition = new Vector2(-40, 0);
                 BeatmapDifficultySegmentedControlController beatmapDifficultySegmentedControl = GetComponentsInChildren<BeatmapDifficultySegmentedControlController>(true).First(x => x.name == "BeatmapDifficultySegmentedControl");
                 beatmapDifficultySegmentedControl.gameObject.SetActive(false);
-
                 RemoveCustomUIElements(rectTransform);
 
                 _levelParams = GetComponentsInChildren<LevelParamsPanel>().First(x => x.name == "LevelParamsPanel");
@@ -164,6 +163,14 @@ namespace BeatSaverDownloader.UI.ViewControllers
             _currentSong = newSongInfo;
 
             songNameText.text = _currentSong.songName;
+            if(_characteristicSegmentedDisplay == null)
+            {
+                _characteristicSegmentedDisplay = BeatSaberUI.CreateIconSegmentedControl(rectTransform, new Vector2(-40, .2f), new Vector2(70, 9f), null);
+                SetupCharacteristicDisplay(_characteristicSegmentedDisplay, _currentSong);
+            }
+            else
+                SetupCharacteristicDisplay(_characteristicSegmentedDisplay, _currentSong);
+
 
             downloadsText.text = _currentSong.downloads.ToString();
             _levelParams.bpm = (float)(_currentSong.plays);
@@ -216,7 +223,32 @@ namespace BeatSaverDownloader.UI.ViewControllers
                 _downloadButton.interactable = !isLoading;
                 _levelDetails.gameObject.SetActive(!isLoading);
                 _loadingIndicator.SetActive(isLoading);
+                if(_characteristicSegmentedDisplay)
+                _characteristicSegmentedDisplay.gameObject.SetActive(!isLoading);
             }
+        }
+
+        void SetupCharacteristicDisplay(IconSegmentedControl controller, Song song)
+        {
+            string MissingText = "";
+            List<IconSegmentedControl.DataItem> characteristics = new List<IconSegmentedControl.DataItem>();
+            foreach(var c in song.metadata.characteristics)
+            {
+                BeatmapCharacteristicSO characteristic = SongCore.Loader.beatmapCharacteristicCollection.GetBeatmapCharacteristicBySerialiedName(c);
+                if (characteristic.characteristicName == "Missing Characteristic")
+                {
+                    MissingText += $" {c}";
+                }
+                else
+                    characteristics.Add(new IconSegmentedControl.DataItem(characteristic.icon, characteristic.hintText));
+            }
+            if(!string.IsNullOrWhiteSpace(MissingText))
+            {
+                BeatmapCharacteristicSO characteristic = SongCore.Loader.beatmapCharacteristicCollection.GetBeatmapCharacteristicBySerialiedName("Missing Characteristic");
+                characteristics.Add(new IconSegmentedControl.DataItem(characteristic.icon, "Missing Characteristics:" + MissingText));
+            }
+            controller.SetData(characteristics.ToArray());
+           
         }
 
         void RemoveCustomUIElements(Transform parent)
