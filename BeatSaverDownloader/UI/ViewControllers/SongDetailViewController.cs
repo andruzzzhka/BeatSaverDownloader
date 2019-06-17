@@ -23,6 +23,7 @@ namespace BeatSaverDownloader.UI.ViewControllers
 
         private TextMeshProUGUI songNameText;
         private IconSegmentedControl _characteristicSegmentedDisplay;
+        private TextSegmentedControl _difficultySegmentedDisplay;
         private TextMeshProUGUI difficulty1Text;
         private TextMeshProUGUI difficulty2Text;
         private TextMeshProUGUI difficulty3Text;
@@ -163,13 +164,25 @@ namespace BeatSaverDownloader.UI.ViewControllers
             _currentSong = newSongInfo;
 
             songNameText.text = _currentSong.songName;
-            if(_characteristicSegmentedDisplay == null)
+            if (_characteristicSegmentedDisplay == null)
             {
-                _characteristicSegmentedDisplay = BeatSaberUI.CreateIconSegmentedControl(rectTransform, new Vector2(-40, .2f), new Vector2(70, 9f), null);
+                _characteristicSegmentedDisplay = BeatSaberUI.CreateIconSegmentedControl(rectTransform, new Vector2(-40, .2f), new Vector2(70, 9f),
+                    delegate (int value) { if (value != 0) _characteristicSegmentedDisplay.SelectCellWithNumber(0); });
                 SetupCharacteristicDisplay(_characteristicSegmentedDisplay, _currentSong);
             }
             else
                 SetupCharacteristicDisplay(_characteristicSegmentedDisplay, _currentSong);
+
+            if (_difficultySegmentedDisplay == null)
+            {
+                _difficultySegmentedDisplay = BeatSaberUI.CreateTextSegmentedControl(rectTransform, new Vector2(-40, 12.9f), new Vector2(85, 8f),
+                    delegate (int value) { if (value != 0) _difficultySegmentedDisplay.SelectCellWithNumber(0); });
+                _difficultySegmentedDisplay.transform.localScale = new Vector3(.8f,
+                    _difficultySegmentedDisplay.transform.localScale.y, _difficultySegmentedDisplay.transform.localScale.z);
+                SetupDifficultyDisplay(_difficultySegmentedDisplay, _currentSong);
+            }
+            else
+                SetupDifficultyDisplay(_difficultySegmentedDisplay, _currentSong);
 
 
             downloadsText.text = _currentSong.downloads.ToString();
@@ -187,16 +200,19 @@ namespace BeatSaverDownloader.UI.ViewControllers
             Polyglot.LocalizedTextMeshProUGUI localizer3 = difficulty3Title.GetComponentInChildren<Polyglot.LocalizedTextMeshProUGUI>();
             if (localizer3 != null)
                 GameObject.Destroy(localizer3);
-            difficulty1Title.text = "Expert/+";
-            difficulty2Title.text = "Hard";
-            difficulty3Title.text = "Easy/Normal";
+            difficulty1Title.text = "";
+            difficulty2Title.text = "";
+            difficulty3Title.text = "";
+            difficulty1Text.text = "";
+            difficulty2Text.text = "";
+            difficulty3Text.text = "";
 
 
 
 
-            difficulty1Text.text = (_currentSong.metadata.difficulties.expert || _currentSong.metadata.difficulties.expertPlus) ? "Yes" : "No";
-            difficulty2Text.text = (_currentSong.metadata.difficulties.hard) ? "Yes" : "No";
-            difficulty3Text.text = (_currentSong.metadata.difficulties.easy || _currentSong.metadata.difficulties.normal) ? "Yes" : "No";
+     //       difficulty1Text.text = (_currentSong.metadata.difficulties.expert || _currentSong.metadata.difficulties.expertPlus) ? "Yes" : "No";
+     //       difficulty2Text.text = (_currentSong.metadata.difficulties.hard) ? "Yes" : "No";
+     //       difficulty3Text.text = (_currentSong.metadata.difficulties.easy || _currentSong.metadata.difficulties.normal) ? "Yes" : "No";
 
             StartCoroutine(LoadScripts.LoadSpriteCoroutine(_currentSong.coverURL, (cover) => { coverImage.texture = cover.texture;}));
 
@@ -225,9 +241,27 @@ namespace BeatSaverDownloader.UI.ViewControllers
                 _loadingIndicator.SetActive(isLoading);
                 if(_characteristicSegmentedDisplay)
                 _characteristicSegmentedDisplay.gameObject.SetActive(!isLoading);
+                if (_difficultySegmentedDisplay)
+                    _difficultySegmentedDisplay.gameObject.SetActive(!isLoading);
             }
         }
 
+        void SetupDifficultyDisplay(TextSegmentedControl controller, Song song)
+        {
+            List<string> Diffs = new List<string>();
+            if (song.metadata.difficulties.easy)
+                Diffs.Add("Easy");
+            if (song.metadata.difficulties.normal)
+                Diffs.Add("Normal");
+            if (song.metadata.difficulties.hard)
+                Diffs.Add("Hard");
+            if (song.metadata.difficulties.expert)
+                Diffs.Add("Expert");
+            if (song.metadata.difficulties.expertPlus)
+                Diffs.Add("Expert+");
+            controller.SetTexts(Diffs.ToArray());
+
+        }
         void SetupCharacteristicDisplay(IconSegmentedControl controller, Song song)
         {
             string MissingText = "";
