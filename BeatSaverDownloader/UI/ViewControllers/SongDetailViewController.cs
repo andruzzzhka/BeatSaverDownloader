@@ -218,6 +218,7 @@ namespace BeatSaverDownloader.UI.ViewControllers
 
             SetFavoriteState(PluginConfig.favoriteSongs.Any(x => x.Contains(_currentSong.hash)));
             SetDownloadState((SongDownloader.Instance.IsSongDownloaded(_currentSong) ? DownloadState.Downloaded : (sender.IsDownloadingSong(_currentSong) ? DownloadState.Downloading : DownloadState.NotDownloaded)));
+            SetLoadingState(false);
         }
 
 
