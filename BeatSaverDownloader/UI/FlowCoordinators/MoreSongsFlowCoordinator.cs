@@ -419,9 +419,9 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
                         }
                         currentSortSongs.AddRange(currentPageSongs);
                         collectedPages++;
-                        Plugin.log.Info(currentSortSongs.Count.ToString());
-                        Plugin.log.Info((page * 6).ToString());
-                        Plugin.log.Info((currentSortSongs.Count - (currentPage * 6)).ToString());
+            //            Plugin.log.Info(currentSortSongs.Count.ToString());
+                 //       Plugin.log.Info((page * 6).ToString());
+               //         Plugin.log.Info((currentSortSongs.Count - (currentPage * 6)).ToString());
                         _moreSongsListViewController.SetContent(currentSortSongs.GetRange(page * 6, Math.Min(6, currentSortSongs.Count - (currentPage * 6))));
                     }
                     catch (Exception e)
