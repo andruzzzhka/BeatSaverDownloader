@@ -175,7 +175,7 @@ namespace BeatSaverDownloader.UI.ViewControllers
 
             if (_difficultySegmentedDisplay == null)
             {
-                _difficultySegmentedDisplay = BeatSaberUI.CreateTextSegmentedControl(rectTransform, new Vector2(-40, 12.9f), new Vector2(85, 8f),
+                _difficultySegmentedDisplay = BeatSaberUI.CreateTextSegmentedControl(rectTransform, new Vector2(-40, -9f), new Vector2(85, 8f),
                     delegate (int value) { if (value != 0) _difficultySegmentedDisplay.SelectCellWithNumber(0); });
                 _difficultySegmentedDisplay.transform.localScale = new Vector3(.8f,
                     _difficultySegmentedDisplay.transform.localScale.y, _difficultySegmentedDisplay.transform.localScale.z);
