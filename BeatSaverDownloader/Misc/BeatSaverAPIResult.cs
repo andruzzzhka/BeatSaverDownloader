@@ -9,9 +9,75 @@ namespace BeatSaverDownloader.Misc
 {
     public enum SongQueueState { Queued, Downloading, Downloaded, Error };
     [Serializable]
+    public class ParsedBeatmapDifficulties
+    {
+        public ParsedBeatmapDifficulty easy;
+        public ParsedBeatmapDifficulty normal;
+        public ParsedBeatmapDifficulty hard;
+        public ParsedBeatmapDifficulty expert;
+        public ParsedBeatmapDifficulty expertPlus;
+
+        public ParsedBeatmapDifficulties()
+        {
+
+        }
+        [JsonConstructor]
+        public ParsedBeatmapDifficulties(ParsedBeatmapDifficulty easy, ParsedBeatmapDifficulty normal, ParsedBeatmapDifficulty hard, ParsedBeatmapDifficulty expert, ParsedBeatmapDifficulty expertPlus)
+        {
+            this.easy = easy;
+            this.normal = normal;
+            this.hard = hard;
+            this.expert = expert;
+            this.expertPlus = expertPlus;
+        }
+    }
+    [Serializable]
+    public class ParsedBeatmapDifficulty
+    {
+        public int duration = 0;
+        public int length = 0;
+        public int bombs = 0;
+        public int notes = 0;
+        public int obstacles = 0;
+        public float njs = 0;
+
+        public ParsedBeatmapDifficulty()
+        {
+
+        }
+        [JsonConstructor]
+        public ParsedBeatmapDifficulty(int duration, int length, int bombs, int notes, int obstacles, float njs)
+        {
+            this.duration = duration;
+            this.length = length;
+            this.bombs = bombs;
+            this.notes = notes;
+            this.obstacles = obstacles;
+            this.njs = njs;
+        }
+    }
+    [Serializable]
+    public class ParsedBeatmapCharacteristic
+    {
+        public string name;
+        public ParsedBeatmapDifficulties difficulties;
+
+        public ParsedBeatmapCharacteristic()
+        {
+
+        }
+
+        public ParsedBeatmapCharacteristic(string name, ParsedBeatmapDifficulties difficulties)
+        {
+            this.name = name;
+            this.difficulties = difficulties;
+        }
+
+    }
+    [Serializable]
     public class Metadata
     {
-        public string[] characteristics;
+        public ParsedBeatmapCharacteristic[] characteristics;
         public Difficulties difficulties;
 
         public Metadata()
@@ -19,7 +85,7 @@ namespace BeatSaverDownloader.Misc
         }
 
         [JsonConstructor]
-        public Metadata(string[] characteristics, Difficulties difficulties)
+        public Metadata(ParsedBeatmapCharacteristic[] characteristics, Difficulties difficulties)
         {
             this.characteristics = characteristics;
             this.difficulties = difficulties;
@@ -143,7 +209,7 @@ namespace BeatSaverDownloader.Misc
             coverURL = PluginConfig.scoresaberURL + jsonNode["image"];
             hash = (string)jsonNode["id"];
             hash = hash.ToLower();
-            metadata = new Metadata() { characteristics = new string[] { "Standard" }, difficulties = new Metadata.Difficulties(true, false, false, false, false) };
+            metadata = new Metadata() { characteristics = new ParsedBeatmapCharacteristic[] { new ParsedBeatmapCharacteristic { name = "Standard", difficulties = new ParsedBeatmapDifficulties { easy = new ParsedBeatmapDifficulty()}  } }, difficulties = new Metadata.Difficulties(true, false, false, false, false) };
             path = SongCore.Loader.CustomLevels.Values.FirstOrDefault(x => x.levelID.Split('_')[2] == hash.ToUpper())?.customLevelPath;
             //       difficultyLevels = new DifficultyLevel[1];
             //       difficultyLevels[0] = new DifficultyLevel("Easy", 4, "", 0);

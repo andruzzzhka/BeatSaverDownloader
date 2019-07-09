@@ -21,6 +21,8 @@ namespace BeatSaverDownloader.UI.ViewControllers
 
         private Song _currentSong;
 
+        private ParsedBeatmapCharacteristic selectedCharacteristic;
+        private ParsedBeatmapDifficulty[] currentDifficulties;
         private TextMeshProUGUI songNameText;
         private IconSegmentedControl _characteristicSegmentedDisplay;
         private TextSegmentedControl _difficultySegmentedDisplay;
@@ -60,6 +62,9 @@ namespace BeatSaverDownloader.UI.ViewControllers
                 (_levelDetails.transform as RectTransform).anchoredPosition = new Vector2(-40, 0);
                 BeatmapDifficultySegmentedControlController beatmapDifficultySegmentedControl = GetComponentsInChildren<BeatmapDifficultySegmentedControlController>(true).First(x => x.name == "BeatmapDifficultySegmentedControl");
                 beatmapDifficultySegmentedControl.gameObject.SetActive(false);
+                BeatmapCharacteristicSegmentedControlController beatmapCharacteristicSegmentedControl = GetComponentsInChildren<BeatmapCharacteristicSegmentedControlController>(true).First(x => x.name == "BeatmapCharacteristicSegmentedControl");
+                beatmapCharacteristicSegmentedControl.gameObject.SetActive(false);
+
                 RemoveCustomUIElements(rectTransform);
 
                 _levelParams = GetComponentsInChildren<LevelParamsPanel>().First(x => x.name == "LevelParamsPanel");
@@ -161,29 +166,32 @@ namespace BeatSaverDownloader.UI.ViewControllers
 
         public void SetContent(MoreSongsFlowCoordinator sender, Song newSongInfo)
         {
+            selectedCharacteristic = null;
+            currentDifficulties = null;
             _currentSong = newSongInfo;
 
             songNameText.text = _currentSong.songName;
             if (_characteristicSegmentedDisplay == null)
             {
                 _characteristicSegmentedDisplay = BeatSaberUI.CreateIconSegmentedControl(rectTransform, new Vector2(-40, .2f), new Vector2(70, 9f),
-                    delegate (int value) { if (value != 0) _characteristicSegmentedDisplay.SelectCellWithNumber(0); });
+                    delegate (int value) { SelectedCharacteristic(_currentSong.metadata.characteristics[value]); });
                 SetupCharacteristicDisplay(_characteristicSegmentedDisplay, _currentSong);
             }
             else
                 SetupCharacteristicDisplay(_characteristicSegmentedDisplay, _currentSong);
 
+            
+
             if (_difficultySegmentedDisplay == null)
             {
                 _difficultySegmentedDisplay = BeatSaberUI.CreateTextSegmentedControl(rectTransform, new Vector2(-40, -9f), new Vector2(85, 8f),
-                    delegate (int value) { if (value != 0) _difficultySegmentedDisplay.SelectCellWithNumber(0); });
+                    delegate (int value) { SelectedDifficulty(currentDifficulties[value]); } );
                 _difficultySegmentedDisplay.transform.localScale = new Vector3(.8f,
                     _difficultySegmentedDisplay.transform.localScale.y, _difficultySegmentedDisplay.transform.localScale.z);
                 SetupDifficultyDisplay(_difficultySegmentedDisplay, _currentSong);
             }
             else
                 SetupDifficultyDisplay(_difficultySegmentedDisplay, _currentSong);
-
 
             downloadsText.text = _currentSong.downloads.ToString();
             _levelParams.bpm = (float)(_currentSong.plays);
@@ -219,6 +227,44 @@ namespace BeatSaverDownloader.UI.ViewControllers
             SetFavoriteState(PluginConfig.favoriteSongs.Any(x => x.Contains(_currentSong.hash)));
             SetDownloadState((SongDownloader.Instance.IsSongDownloaded(_currentSong) ? DownloadState.Downloaded : (sender.IsDownloadingSong(_currentSong) ? DownloadState.Downloading : DownloadState.NotDownloaded)));
             SetLoadingState(false);
+
+
+            SelectedCharacteristic(_currentSong.metadata.characteristics[0]);
+        }
+
+    public void SelectedDifficulty(ParsedBeatmapDifficulty difficulty)
+    {
+            difficulty3Title.text = "Length";
+            difficulty2Title.text = "Note Count";
+            difficulty1Title.text = "NJS";
+            difficulty3Text.text = $"{Math.Floor((double)difficulty.length / 60):N0}:{Math.Floor((double)difficulty.length % 60):00}";
+            difficulty2Text.text = $"{difficulty.notes}";
+            difficulty1Text.text = $"{difficulty.njs}";
+
+
+    }
+        public void SelectedCharacteristic(ParsedBeatmapCharacteristic characteristic)
+        {
+            selectedCharacteristic = characteristic;
+            var diffs = new List<ParsedBeatmapDifficulty>();
+            if (characteristic.difficulties.easy != null)
+                diffs.Add(characteristic.difficulties.easy);
+            if (characteristic.difficulties.normal != null)
+                diffs.Add(characteristic.difficulties.normal);
+            if (characteristic.difficulties.hard != null)
+                diffs.Add(characteristic.difficulties.hard);
+            if (characteristic.difficulties.expert != null)
+                diffs.Add(characteristic.difficulties.expert);
+            if (characteristic.difficulties.expertPlus != null)
+                diffs.Add(characteristic.difficulties.expertPlus);
+
+            currentDifficulties = diffs.ToArray();
+       //     Plugin.log.Info("difficulties: " + currentDifficulties.Count());
+
+            if (_difficultySegmentedDisplay != null)
+                SetupDifficultyDisplay(_difficultySegmentedDisplay, _currentSong);
+     //       else
+     //           Plugin.log.Info("null diff segmented");
         }
 
 
@@ -250,38 +296,45 @@ namespace BeatSaverDownloader.UI.ViewControllers
         void SetupDifficultyDisplay(TextSegmentedControl controller, Song song)
         {
             List<string> Diffs = new List<string>();
-            if (song.metadata.difficulties.easy)
+            if(selectedCharacteristic != null)
+            {
+            if(selectedCharacteristic.difficulties.easy != null)
                 Diffs.Add("Easy");
-            if (song.metadata.difficulties.normal)
+            if (selectedCharacteristic.difficulties.normal != null)
                 Diffs.Add("Normal");
-            if (song.metadata.difficulties.hard)
+            if (selectedCharacteristic.difficulties.hard != null)
                 Diffs.Add("Hard");
-            if (song.metadata.difficulties.expert)
+            if (selectedCharacteristic.difficulties.expert != null)
                 Diffs.Add("Expert");
-            if (song.metadata.difficulties.expertPlus)
+            if (selectedCharacteristic.difficulties.expertPlus != null)
                 Diffs.Add("Expert+");
+            }
+
             controller.SetTexts(Diffs.ToArray());
+            if(Diffs.Count > 0)
+            controller.SelectCellWithNumber(0);
+            if (currentDifficulties != null) 
+            SelectedDifficulty(currentDifficulties[0]);
+            else
+            {
+           //     Plugin.log.Info("current diffs null");
+            }
 
         }
         void SetupCharacteristicDisplay(IconSegmentedControl controller, Song song)
         {
-            string MissingText = "";
             List<IconSegmentedControl.DataItem> characteristics = new List<IconSegmentedControl.DataItem>();
             foreach(var c in song.metadata.characteristics)
             {
-                BeatmapCharacteristicSO characteristic = SongCore.Loader.beatmapCharacteristicCollection.GetBeatmapCharacteristicBySerialiedName(c);
+                BeatmapCharacteristicSO characteristic = SongCore.Loader.beatmapCharacteristicCollection.GetBeatmapCharacteristicBySerialiedName(c.name);
                 if (characteristic.characteristicName == "Missing Characteristic")
                 {
-                    MissingText += $" {c}";
+                    characteristics.Add(new IconSegmentedControl.DataItem(characteristic.icon, $"Missing Characteristic: {c.name}"));
                 }
                 else
                     characteristics.Add(new IconSegmentedControl.DataItem(characteristic.icon, characteristic.hintText));
             }
-            if(!string.IsNullOrWhiteSpace(MissingText))
-            {
-                BeatmapCharacteristicSO characteristic = SongCore.Loader.beatmapCharacteristicCollection.GetBeatmapCharacteristicBySerialiedName("Missing Characteristic");
-                characteristics.Add(new IconSegmentedControl.DataItem(characteristic.icon, "Missing Characteristics:" + MissingText));
-            }
+
             controller.SetData(characteristics.ToArray());
            
         }
