@@ -34,8 +34,8 @@ namespace BeatSaverDownloader.Misc
     [Serializable]
     public class ParsedBeatmapDifficulty
     {
-        public int? duration = 0;
-        public int? length = 0;
+        public int duration = 0;
+        public int length = 0;
         public int bombs = 0;
         public int notes = 0;
         public int obstacles = 0;
@@ -48,8 +48,8 @@ namespace BeatSaverDownloader.Misc
         [JsonConstructor]
         public ParsedBeatmapDifficulty(int? duration, int? length, int bombs, int notes, int obstacles, float njs)
         {
-            this.duration = duration;
-            this.length = length;
+            this.duration = duration ?? 0;
+            this.length = length ?? 0;
             this.bombs = bombs;
             this.notes = notes;
             this.obstacles = obstacles;
