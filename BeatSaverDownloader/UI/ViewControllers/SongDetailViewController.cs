@@ -234,7 +234,7 @@ namespace BeatSaverDownloader.UI.ViewControllers
 
     public void SelectedDifficulty(ParsedBeatmapDifficulty difficulty)
     {
-            difficulty3Title.text = "Length";
+            difficulty3Title.text = "Map Length";
             difficulty2Title.text = "Note Count";
             difficulty1Title.text = "NJS";
             difficulty3Text.text = $"{Math.Floor((double)difficulty.length / 60):N0}:{Math.Floor((double)difficulty.length % 60):00}";
