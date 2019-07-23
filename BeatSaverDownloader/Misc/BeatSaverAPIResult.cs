@@ -46,10 +46,10 @@ namespace BeatSaverDownloader.Misc
 
         }
         [JsonConstructor]
-        public ParsedBeatmapDifficulty(int duration, int length, int bombs, int notes, int obstacles, float njs)
+        public ParsedBeatmapDifficulty(int? duration, int? length, int bombs, int notes, int obstacles, float njs)
         {
-            this.duration = duration;
-            this.length = length;
+            this.duration = duration ?? 0;
+            this.length = length ?? 0;
             this.bombs = bombs;
             this.notes = notes;
             this.obstacles = obstacles;
