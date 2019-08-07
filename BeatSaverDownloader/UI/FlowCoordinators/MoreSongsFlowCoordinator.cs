@@ -75,6 +75,8 @@ namespace BeatSaverDownloader.UI.FlowCoordinators
 
                 _moreSongsListViewController.sortByTop += () => { ResetDetailView(); currentSortMode = "hot"; currentPage = 0; StartCoroutine(GetPage(currentPage, currentSortMode)); currentSearchRequest = ""; };
                 _moreSongsListViewController.sortByNew += () => { ResetDetailView(); currentSortMode = "latest"; currentPage = 0; StartCoroutine(GetPage(currentPage, currentSortMode)); currentSearchRequest = ""; };
+                _moreSongsListViewController.sortByBestRating += () => { ResetDetailView(); currentSortMode = "rating"; currentPage = 0; StartCoroutine(GetPage(currentPage, currentSortMode)); currentSearchRequest = ""; };
+                _moreSongsListViewController.sortByMostDownloads += () => { ResetDetailView(); currentSortMode = "downloads"; currentPage = 0; StartCoroutine(GetPage(currentPage, currentSortMode)); currentSearchRequest = ""; };
 
                 _moreSongsListViewController.sortByNewlyRanked += () => { ResetDetailView(); currentScoreSaberSortMode = 1; currentPage = 0; StartCoroutine(GetPageScoreSaber(currentPage, currentScoreSaberSortMode)); };
                 _moreSongsListViewController.sortByTrending += () => { ResetDetailView(); currentScoreSaberSortMode = 0; currentPage = 0; StartCoroutine(GetPageScoreSaber(currentPage, currentScoreSaberSortMode)); };
